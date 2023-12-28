@@ -1,0 +1,53 @@
+'use client'
+
+import * as React from 'react'
+import { useLocalStorage } from '@/lib/hooks/use-local-storage'
+import { useMediaQuery } from '@/lib/hooks/use-media-query'
+
+interface SidebarContextProps {
+  isSidebarOpen: boolean
+  toggleSidebar: () => void
+}
+
+const SidebarContext = React.createContext<SidebarContextProps | undefined>(
+  undefined
+)
+
+export function useSidebar() {
+  const context = React.useContext(SidebarContext)
+  if (!context) {
+    throw new Error('useSidebarContext must be used within a SidebarProvider')
+  }
+  return context
+}
+
+interface SidebarProviderProps {
+  children: React.ReactNode
+}
+
+export function SidebarProvider({ children }: SidebarProviderProps) {
+  const isMobile = useMediaQuery('(max-width: 1023px)')
+  const defaultState = isMobile ? false : true
+  const [isSidebarOpen, setSidebarOpen, isLoading] = useLocalStorage<
+    SidebarContextProps['isSidebarOpen']
+  >('sidebar', defaultState)
+
+  const toggleSidebar = () => {
+    setSidebarOpen(!isSidebarOpen)
+  }
+
+  if (isLoading) {
+    return null
+  }
+
+  return (
+    <SidebarContext.Provider
+      value={{
+        isSidebarOpen: isSidebarOpen === null ? defaultState : isSidebarOpen,
+        toggleSidebar
+      }}
+    >
+      {children}
+    </SidebarContext.Provider>
+  )
+}
