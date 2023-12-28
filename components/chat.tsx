@@ -23,7 +23,7 @@ interface ChatProps extends React.ComponentProps<'div'> {
   updateChat?: (
     id: string,
     data: { [key: keyof Chat]: Chat[keyof Chat] }
-  ) => ServerActionResult<Chat>
+  ) => ServerActionResult<void>
 }
 
 export function Chat({
