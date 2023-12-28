@@ -26,7 +26,7 @@ import { SupportedModels } from '@/lib/constant'
 export const runtime = 'edge'
 
 const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
+  apiKey: process.env.OPENAI_API_KEY ?? '',
   baseURL: process.env.OPENAI_API_URL
 })
 
