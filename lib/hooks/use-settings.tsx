@@ -3,6 +3,7 @@
 import * as React from 'react'
 
 import { type AIToken, ModelSettings, Model } from '@/lib/types'
+import { SystemPrompt } from '@/lib/constant'
 import { useLocalStorage } from '@/lib/hooks/use-local-storage'
 
 type SettingsContextProps = {
@@ -49,8 +50,7 @@ export const SettingsProvider = ({
   >('ai-model', defaultModel)
 
   const defaultModelSettings: ModelSettings = {
-    prompt:
-      '\nYou are ChatGPT, a large language model trained by OpenAI.\nKnowledge cutoff: {cutoff}\nCurrent model: {model}\nCurrent time: {time}\nLatex inline: $x^2$ \nLatex block: $$e=mc^2$$\n\n',
+    prompt: SystemPrompt,
     temperature: 0.5,
     frequencyPenalty: 0,
     presencePenalty: 0,

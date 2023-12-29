@@ -52,3 +52,6 @@ export const SupportedModels: {
   { text: 'Gemini Pro', value: 'gemini-pro', provider: 'google' },
   { text: 'Gemini Pro Vision', value: 'gemini-pro-vision', provider: 'google' }
 ]
+
+export const SystemPrompt =
+  '\nYou are ChatGPT, a large language model trained by OpenAI.\nKnowledge cutoff: {cutoff}\nCurrent model: {model}\nCurrent time: {time}\nLatex inline: $x^2$ \nLatex block: $$e=mc^2$$\n\n'
