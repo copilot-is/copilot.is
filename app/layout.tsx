@@ -11,8 +11,10 @@ import { Providers } from '@/components/providers'
 export const metadata: Metadata = {
   metadataBase: new URL(`https://${process.env.VERCEL_URL}`),
   title: {
-    default: `${process.env.PRODUCT_NAME} - ${process.env.PRODUCT_SUBTITLE}`,
-    template: `%s - ${process.env.PRODUCT_SUBTITLE}`
+    default: `${process.env.PRODUCT_NAME || 'Copilot'} - ${
+      process.env.PRODUCT_SUBTITLE || 'AI Chatbot'
+    }`,
+    template: `%s - ${process.env.PRODUCT_SUBTITLE || 'AI Chatbot'}`
   },
   description: process.env.PRODUCT_DESCRIPTION,
   icons: {
