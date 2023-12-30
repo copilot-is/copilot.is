@@ -48,7 +48,7 @@ export default function RootLayout({ children }: RootLayoutProps) {
         <Toaster
           toastOptions={{
             style: {
-              maxWidth: 350,
+              maxWidth: 356,
               wordBreak: 'break-all'
             }
           }}

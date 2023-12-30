@@ -1,4 +1,4 @@
-import toast from 'react-hot-toast'
+import { toast } from 'react-hot-toast'
 
 import { type Usage, Model } from '@/lib/types'
 import { SupportedModels } from '@/lib/constant'

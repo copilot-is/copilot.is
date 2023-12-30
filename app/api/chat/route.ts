@@ -115,16 +115,14 @@ export async function POST(req: Request) {
       })
 
       return new StreamingTextResponse(aiStream)
-    } catch (err) {
+    } catch (err: any) {
       if (err instanceof OpenAI.APIError) {
         const status = err.status
         const error = err.error as Record<string, any>
-        return NextResponse.json(
-          { status, ...error },
-          { status, statusText: error?.message }
-        )
+        return NextResponse.json({ status, ...error }, { status })
       } else {
-        throw err
+        const status = 500
+        return NextResponse.json({ status, message: err.message }, { status })
       }
     }
   }
@@ -181,16 +179,9 @@ export async function POST(req: Request) {
 
       return new StreamingTextResponse(aiStream)
     } catch (err: any) {
-      if (err && err.message.startsWith('[GoogleGenerativeAI Error]')) {
-        const status = 500
-        const message = err.message.replace('[GoogleGenerativeAI Error]: ', '')
-        return NextResponse.json(
-          { status, message },
-          { status, statusText: message }
-        )
-      } else {
-        throw err
-      }
+      const status = 500
+      const message = err.message.replace('[GoogleGenerativeAI Error]: ', '')
+      return NextResponse.json({ status, message }, { status })
     }
   }
 }

@@ -73,19 +73,19 @@ export function Chat({
             allowCustomAPIKey && provider ? token?.[provider] : undefined
         }
       },
-      onResponse(response) {
+      async onResponse(response) {
         if (response.status !== 200) {
           setInput(input)
-          toast.error(response.statusText)
+          const json = await response.json()
+          toast.error(json.message)
         }
       },
-      onFinish(message) {
+      async onFinish(message) {
         if (!path.includes('chat') && id) {
-          generateTitle(id, input, message).then(() => {
-            setNewChatId(id)
-            router.push(`/chat/${id}`, { scroll: false })
-            router.refresh()
-          })
+          await generateTitle(id, input, message)
+          setNewChatId(id)
+          router.push(`/chat/${id}`, { scroll: false })
+          router.refresh()
         }
       }
     })
