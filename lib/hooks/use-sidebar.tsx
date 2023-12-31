@@ -28,12 +28,15 @@ interface SidebarProviderProps {
 export function SidebarProvider({ children }: SidebarProviderProps) {
   const isMobile = useMediaQuery('(max-width: 1023px)')
   const defaultState = isMobile ? false : true
+
   const [isSidebarOpen, setSidebarOpen, isLoading] = useLocalStorage<
-    SidebarContextProps['isSidebarOpen']
-  >('sidebar', defaultState)
+    SidebarContextProps['isSidebarOpen'] | null
+  >('sidebar', null)
+  const isSidebarOpenState =
+    isSidebarOpen === null ? defaultState : isSidebarOpen
 
   const toggleSidebar = () => {
-    setSidebarOpen(!isSidebarOpen)
+    setSidebarOpen(!isSidebarOpenState)
   }
 
   if (isLoading) {
@@ -43,7 +46,7 @@ export function SidebarProvider({ children }: SidebarProviderProps) {
   return (
     <SidebarContext.Provider
       value={{
-        isSidebarOpen: isSidebarOpen === null ? defaultState : isSidebarOpen,
+        isSidebarOpen: isSidebarOpenState,
         toggleSidebar
       }}
     >

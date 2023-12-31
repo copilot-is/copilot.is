@@ -2,30 +2,21 @@
 
 import { useEffect, useState } from 'react'
 
-type MediaQueryList = {
-  matches: boolean
-  addListener: (listener: () => void) => void
-  removeListener: (listener: () => void) => void
-}
-
-export function useMediaQuery(query: string): boolean {
-  const [matches, setMatches] = useState<boolean>(false)
+export function useMediaQuery(query: string) {
+  const [matches, setMatches] = useState(false)
 
   useEffect(() => {
-    const mediaQueryList: MediaQueryList = window.matchMedia(query)
+    const media = window.matchMedia(query)
 
-    const handleMediaQueryChange = () => {
-      setMatches(mediaQueryList.matches)
+    if (media.matches !== matches) {
+      setMatches(media.matches)
     }
 
-    mediaQueryList.addListener(handleMediaQueryChange)
+    const listener = () => setMatches(media.matches)
+    media.addEventListener('change', listener)
 
-    handleMediaQueryChange()
-
-    return () => {
-      mediaQueryList.removeListener(handleMediaQueryChange)
-    }
-  }, [query])
+    return () => media.removeEventListener('change', listener)
+  }, [matches, query])
 
   return matches
 }
