@@ -21,16 +21,17 @@ import {
 } from '@/lib/utils'
 import { type Chat, Usage } from '@/lib/types'
 import { addChat } from '@/app/actions'
+import { appConfig } from '@/lib/appconfig'
 import { SupportedModels } from '@/lib/constant'
 
 export const runtime = 'edge'
 
 const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY ?? '',
-  baseURL: process.env.OPENAI_API_URL
+  apiKey: appConfig.openai.apiKey,
+  baseURL: appConfig.openai.apiUrl
 })
 
-const googleai = new GoogleGenerativeAI(process.env.GOOGLE_API_KEY ?? '')
+const googleai = new GoogleGenerativeAI(appConfig.google.apiKey)
 
 type PostData = {
   id?: string

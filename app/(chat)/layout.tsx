@@ -1,12 +1,8 @@
+import { appConfig } from '@/lib/appconfig'
 import { SidebarProvider } from '@/lib/hooks/use-sidebar'
 import { SettingsProvider } from '@/lib/hooks/use-settings'
 import { Sidebar } from '@/components/sidebar'
 import { ChatHistory } from '@/components/chat-history'
-
-const defaultModel = process.env.DEFAULT_MODEL
-const availableModels = process.env.SUPPORTED_MODELS
-const allowCustomAPIKey =
-  process.env.ALLOW_CUSTOM_API_KEY === 'false' ? false : undefined
 
 interface ChatLayoutProps {
   children: React.ReactNode
@@ -16,9 +12,9 @@ export default async function ChatLayout({ children }: ChatLayoutProps) {
   return (
     <SidebarProvider>
       <SettingsProvider
-        defaultModel={defaultModel}
-        availableModels={availableModels?.split(',')}
-        allowCustomAPIKey={allowCustomAPIKey}
+        defaultModel={appConfig.defaultModel}
+        availableModels={appConfig.supportedModels}
+        allowCustomAPIKey={appConfig.allowCustomAPIKey}
       >
         <div className="relative flex h-full w-full bg-muted/50">
           <Sidebar>

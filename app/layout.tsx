@@ -4,19 +4,20 @@ import { Toaster } from 'react-hot-toast'
 import '@/app/globals.css'
 
 import { cn } from '@/lib/utils'
+import { appConfig } from '@/lib/appconfig'
 import { fontMono, fontSans } from '@/lib/fonts'
 import { TailwindIndicator } from '@/components/tailwind-indicator'
 import { Providers } from '@/components/providers'
 
 export const metadata: Metadata = {
-  metadataBase: new URL(`https://${process.env.VERCEL_URL}`),
+  metadataBase: new URL(
+    appConfig.product.url || `https://${process.env.VERCEL_URL}`
+  ),
   title: {
-    default: `${process.env.PRODUCT_NAME || 'Copilot'} - ${
-      process.env.PRODUCT_SUBTITLE || 'AI Chatbot'
-    }`,
-    template: `%s - ${process.env.PRODUCT_SUBTITLE || 'AI Chatbot'}`
+    default: `${appConfig.product.name} - ${appConfig.product.subtitle}`,
+    template: `%s - ${appConfig.product.subtitle}`
   },
-  description: process.env.PRODUCT_DESCRIPTION,
+  description: appConfig.product.description,
   icons: {
     icon: '/favicon.svg',
     shortcut: '/favicon-16x16.png',

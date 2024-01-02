@@ -1,13 +1,11 @@
 import { MetadataRoute } from 'next'
+import { appConfig } from '@/lib/appconfig'
 
 export default function manifest(): MetadataRoute.Manifest {
-  const productName = process.env.PRODUCT_NAME || 'Copilot'
-  const description = process.env.PRODUCT_DESCRIPTION || ''
-
   return {
-    name: productName,
-    short_name: productName,
-    description: description,
+    name: appConfig.product.name,
+    short_name: appConfig.product.name,
+    description: appConfig.product.description,
     scope: '/',
     start_url: '/?utm_source=pwa',
     display: 'standalone',
