@@ -82,9 +82,9 @@ export function Chat({
       },
       async onFinish(message) {
         if (!path.includes('chat') && id) {
+          router.push(`/chat/${id}`, { scroll: false })
           await generateTitle(id, input, message)
           setNewChatId(id)
-          router.push(`/chat/${id}`, { scroll: false })
           router.refresh()
         }
       }
