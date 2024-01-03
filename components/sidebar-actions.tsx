@@ -6,6 +6,7 @@ import { type Chat, ServerActionResult } from '@/lib/types'
 import { Button } from '@/components/ui/button'
 import {
   IconDotsThreeVertical,
+  IconEdit,
   IconShare,
   IconTrash
 } from '@/components/ui/icons'
@@ -17,6 +18,8 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { ChatShareDialog } from '@/components/chat-share-dialog'
 import { ChatDeleteDialog } from './chat-delete-dialog'
+import { ChatTitleDialog } from './chat-title-dialog'
+import { updateChat } from '@/app/actions'
 
 interface SidebarActionsProps {
   chat: Chat
@@ -31,6 +34,7 @@ export function SidebarActions({
 }: SidebarActionsProps) {
   const [deleteDialogOpen, setDeleteDialogOpen] = React.useState(false)
   const [shareDialogOpen, setShareDialogOpen] = React.useState(false)
+  const [editDialogOpen, setEditDialogOpen] = React.useState(false)
 
   return (
     <>
@@ -39,7 +43,7 @@ export function SidebarActions({
           <Button
             variant="ghost"
             size="icon"
-            className="h-6 w-6 hover:bg-background"
+            className="h-6 w-6 hover:bg-background data-[state=open]:bg-background outline-none"
           >
             <IconDotsThreeVertical />
           </Button>
@@ -48,6 +52,10 @@ export function SidebarActions({
           <DropdownMenuItem onClick={() => setShareDialogOpen(true)}>
             <IconShare className="mr-2" />
             Share
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={() => setEditDialogOpen(true)}>
+            <IconEdit className="mr-2" />
+            Edit
           </DropdownMenuItem>
           <DropdownMenuItem onClick={() => setDeleteDialogOpen(true)}>
             <IconTrash className="mr-2" />
@@ -68,6 +76,13 @@ export function SidebarActions({
         open={deleteDialogOpen}
         onOpenChange={setDeleteDialogOpen}
         onDelete={() => setDeleteDialogOpen(false)}
+      />
+      <ChatTitleDialog
+        chat={chat}
+        updateChat={updateChat}
+        open={editDialogOpen}
+        onOpenChange={setEditDialogOpen}
+        onUpdate={() => setEditDialogOpen(false)}
       />
     </>
   )

@@ -1,23 +1,28 @@
+'use client'
+
 import { toast } from 'react-hot-toast'
 
-import { type Usage, Model } from '@/lib/types'
+import { ServerActionResult, type Chat, Usage, Model } from '@/lib/types'
 import { SupportedModels } from '@/lib/constant'
 import { buildGoogleGenAIUsage, buildOpenAIUsage } from '@/lib/utils'
 import { ModelMenu } from '@/components/model-menu'
 import { SidebarToggle } from '@/components/sidebar-toggle'
 import { useSettings } from '@/lib/hooks/use-settings'
-import { updateChat } from '@/app/actions'
 
 interface ChatHeaderProps {
   id?: string
   usage?: Usage
+  updateChat?: (
+    id: string,
+    data: { [key: keyof Chat]: Chat[keyof Chat] }
+  ) => ServerActionResult<Chat>
 }
 
-export function ChatHeader({ id, usage }: ChatHeaderProps) {
+export function ChatHeader({ id, usage, updateChat }: ChatHeaderProps) {
   const { modelSettings } = useSettings()
 
   const updateModel = async (value: Model) => {
-    if (id && usage) {
+    if (updateChat && id && usage) {
       const usageProvider = SupportedModels.find(m => m.value === usage.model)
         ?.provider
       const selectedProvider = SupportedModels.find(m => m.value === value)
@@ -38,11 +43,12 @@ export function ChatHeader({ id, usage }: ChatHeaderProps) {
       }
 
       if (newUsage) {
-        const result = await updateChat(id, { usage: newUsage })
+        const result = await updateChat(id, {
+          usage: newUsage
+        })
 
         if (result && 'error' in result) {
           toast.error(result.error)
-          return
         }
       }
     }

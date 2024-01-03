@@ -125,17 +125,13 @@ export async function shareChat(id: string) {
     }
   }
 
-  const payload = {
-    ...chat,
-    sharePath: `/share/${chat.id}`
-  }
-
-  await kv.hmset(`chat:${chat.id}`, payload)
+  const sharePath = `/share/${chat.id}`
+  await kv.hmset(`chat:${chat.id}`, { sharePath })
 
   revalidatePath('/')
   revalidatePath(chat.path)
 
-  return payload
+  return { ...chat, sharePath }
 }
 
 export async function updateChat(
@@ -160,5 +156,7 @@ export async function updateChat(
 
   await kv.hmset(`chat:${chat.id}`, payload)
 
-  revalidatePath(chat.path)
+  revalidatePath('/')
+
+  return { ...chat, ...payload }
 }

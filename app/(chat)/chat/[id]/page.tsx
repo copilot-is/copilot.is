@@ -2,7 +2,7 @@ import { type Metadata } from 'next'
 import { notFound, redirect } from 'next/navigation'
 
 import { auth } from '@/auth'
-import { getChat } from '@/app/actions'
+import { getChat, updateChat } from '@/app/actions'
 import { Chat } from '@/components/chat'
 
 export interface ChatPageProps {
@@ -49,6 +49,7 @@ export default async function ChatPage({ params }: ChatPageProps) {
       title={chat.title}
       usage={chat.usage}
       initialMessages={chat.messages}
+      updateChat={updateChat}
     />
   )
 }

@@ -18,7 +18,7 @@ import { IconSpinner } from '@/components/ui/icons'
 import { useCopyToClipboard } from '@/lib/hooks/use-copy-to-clipboard'
 
 interface ChatShareDialogProps extends DialogProps {
-  chat: Pick<Chat, 'id' | 'title' | 'messages'>
+  chat: Pick<Chat, 'id' | 'title' | 'messages' | 'sharePath'>
   shareChat: (id: string) => ServerActionResult<Chat>
   onCopy: () => void
 }
@@ -33,13 +33,9 @@ export function ChatShareDialog({
   const [isSharePending, startShareTransition] = React.useTransition()
 
   const copyShareLink = React.useCallback(
-    async (chat: Chat) => {
-      if (!chat.sharePath) {
-        return toast.error('Could not copy share link to clipboard')
-      }
-
+    async (sharePath: string) => {
       const url = new URL(window.location.href)
-      url.pathname = chat.sharePath
+      url.pathname = sharePath
       copyToClipboard(url.toString())
       onCopy()
       toast.success('Share link copied to clipboard', {
@@ -78,14 +74,20 @@ export function ChatShareDialog({
             disabled={isSharePending}
             onClick={() => {
               startShareTransition(async () => {
-                const result = await shareChat(chat.id)
+                if (!chat.sharePath) {
+                  const result = await shareChat(chat.id)
 
-                if (result && 'error' in result) {
-                  toast.error(result.error)
-                  return
+                  if (result && 'error' in result) {
+                    toast.error(result.error)
+                    return
+                  }
+
+                  if (result && result.sharePath) {
+                    copyShareLink(result.sharePath)
+                  }
+                } else {
+                  copyShareLink(chat.sharePath)
                 }
-
-                copyShareLink(result)
               })
             }}
           >

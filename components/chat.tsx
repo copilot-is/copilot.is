@@ -23,7 +23,7 @@ interface ChatProps extends React.ComponentProps<'div'> {
   updateChat?: (
     id: string,
     data: { [key: keyof Chat]: Chat[keyof Chat] }
-  ) => ServerActionResult<void>
+  ) => ServerActionResult<Chat>
 }
 
 export function Chat({
@@ -129,7 +129,7 @@ export function Chat({
 
   return (
     <>
-      <ChatHeader id={id} usage={usage} />
+      <ChatHeader id={id} usage={usage} updateChat={updateChat} />
       <div className={cn('flex-1 py-4 md:pt-10', className)}>
         {messages.length && provider ? (
           <>
