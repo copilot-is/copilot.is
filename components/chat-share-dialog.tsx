@@ -18,13 +18,15 @@ import { IconSpinner } from '@/components/ui/icons'
 import { useCopyToClipboard } from '@/lib/hooks/use-copy-to-clipboard'
 
 interface ChatShareDialogProps extends DialogProps {
-  chat: Pick<Chat, 'id' | 'title' | 'messages' | 'sharePath'>
+  chat?: Chat
+  messages?: Chat['messages']
   shareChat: (id: string) => ServerActionResult<Chat>
   onCopy: () => void
 }
 
 export function ChatShareDialog({
   chat,
+  messages,
   shareChat,
   onCopy,
   ...props
@@ -54,6 +56,10 @@ export function ChatShareDialog({
     [copyToClipboard, onCopy]
   )
 
+  if (!chat) {
+    return null
+  }
+
   return (
     <Dialog {...props}>
       <DialogContent>
@@ -66,7 +72,7 @@ export function ChatShareDialog({
         <div className="p-4 space-y-1 text-sm border rounded-md">
           <div className="font-medium">{chat.title}</div>
           <div className="text-muted-foreground">
-            {chat.messages.length} messages
+            {(messages ?? chat.messages).length} messages
           </div>
         </div>
         <DialogFooter className="items-center">

@@ -43,13 +43,5 @@ export default async function ChatPage({ params }: ChatPageProps) {
     notFound()
   }
 
-  return (
-    <Chat
-      id={chat.id}
-      title={chat.title}
-      usage={chat.usage}
-      initialMessages={chat.messages}
-      updateChat={updateChat}
-    />
-  )
+  return <Chat id={chat.id} chat={chat} updateChat={updateChat} />
 }

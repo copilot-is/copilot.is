@@ -8,12 +8,17 @@ import { IconShare } from '@/components/ui/icons'
 import { ChatShareDialog } from './chat-share-dialog'
 
 interface ChatShareProps {
-  chat: Pick<Chat, 'id' | 'title' | 'messages'>
+  chat?: Chat
+  messages?: Chat['messages']
   shareChat: (id: string) => ServerActionResult<Chat>
 }
 
-export function ChatShare({ chat, shareChat }: ChatShareProps) {
+export function ChatShare({ chat, messages = [], shareChat }: ChatShareProps) {
   const [shareDialogOpen, setShareDialogOpen] = useState(false)
+
+  if (!chat && !messages.length) {
+    return null
+  }
 
   return (
     <>
@@ -29,8 +34,9 @@ export function ChatShare({ chat, shareChat }: ChatShareProps) {
         open={shareDialogOpen}
         onOpenChange={setShareDialogOpen}
         onCopy={() => setShareDialogOpen(false)}
-        shareChat={shareChat}
         chat={chat}
+        messages={messages}
+        shareChat={shareChat}
       />
     </>
   )

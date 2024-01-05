@@ -4,8 +4,8 @@ import { useChat, type Message } from 'ai/react'
 import { toast } from 'react-hot-toast'
 import { usePathname, useRouter } from 'next/navigation'
 
-import { ServerActionResult, type Chat, Usage } from '@/lib/types'
-import { cn, fetcher, formatString, messageId } from '@/lib/utils'
+import { ServerActionResult, type Chat } from '@/lib/types'
+import { fetcher, formatString, messageId } from '@/lib/utils'
 import { useLocalStorage } from '@/lib/hooks/use-local-storage'
 import { ChatList } from '@/components/chat-list'
 import { ChatPanel } from '@/components/chat-panel'
@@ -15,39 +15,40 @@ import { ChatHeader } from '@/components/chat-header'
 import { useSettings } from '@/lib/hooks/use-settings'
 import { KnowledgeCutOffDate, SupportedModels } from '@/lib/constant'
 
-interface ChatProps extends React.ComponentProps<'div'> {
-  id?: string
-  title?: string
-  initialMessages?: Message[]
-  usage?: Usage
-  updateChat?: (
+interface ChatProps {
+  id: string
+  chat?: Chat
+  updateChat: (
     id: string,
     data: { [key: keyof Chat]: Chat[keyof Chat] }
   ) => ServerActionResult<Chat>
 }
 
-export function Chat({
-  id,
-  title,
-  usage,
-  initialMessages,
-  updateChat,
-  className
-}: ChatProps) {
+export function Chat({ id, chat, updateChat }: ChatProps) {
   const router = useRouter()
   const path = usePathname()
+  const { title, usage, messages: initialMessages } = chat ?? {}
 
   const [_, setNewChatId] = useLocalStorage<string>('new-chat-id')
   const { allowCustomAPIKey, model, token, modelSettings } = useSettings()
-  const provider = SupportedModels.find(
-    m => m.value === (usage?.model || model)
-  )?.provider
 
   const generateId = messageId()
+  const currentTime = new Date().toLocaleString()
+  const currentSettings = usage ?? modelSettings
   const currentModel = usage?.model || model
   const cutoff =
     KnowledgeCutOffDate[currentModel] ?? KnowledgeCutOffDate.default
-  const time = new Date().toLocaleString()
+  const provider = SupportedModels.find(m => m.value === currentModel)?.provider
+  const prompt = modelSettings.prompt
+    ? formatString(modelSettings.prompt, {
+        cutoff,
+        model: currentModel,
+        time: currentTime
+      })
+    : undefined
+  const previewToken =
+    allowCustomAPIKey && provider ? token?.[provider] : undefined
+
   const { messages, append, reload, stop, isLoading, input, setInput } =
     useChat({
       id,
@@ -59,18 +60,11 @@ export function Chat({
         title,
         generateId,
         usage: {
-          ...(usage ?? modelSettings),
-          stream: true,
+          ...currentSettings,
           model: currentModel,
-          prompt: modelSettings.prompt
-            ? formatString(modelSettings.prompt, {
-                cutoff,
-                model: currentModel,
-                time
-              })
-            : undefined,
-          previewToken:
-            allowCustomAPIKey && provider ? token?.[provider] : undefined
+          stream: true,
+          prompt,
+          previewToken
         }
       },
       async onResponse(response) {
@@ -81,7 +75,7 @@ export function Chat({
         }
       },
       async onFinish(message) {
-        if (!path.includes('chat') && id) {
+        if (!path.includes('chat')) {
           router.push(`/chat/${id}`, { scroll: false })
           await generateTitle(id, input, message)
           setNewChatId(id)
@@ -92,7 +86,7 @@ export function Chat({
 
   const generateTitle = async (id: string, input: string, message: Message) => {
     try {
-      if (updateChat && input && message && message.content) {
+      if (input && message && message.content) {
         const data = await fetcher('/api/chat', {
           method: 'POST',
           headers: {
@@ -109,11 +103,10 @@ export function Chat({
               }
             ],
             usage: {
-              ...(usage ?? modelSettings),
+              ...currentSettings,
               model: currentModel,
               prompt: undefined,
-              previewToken:
-                allowCustomAPIKey && provider ? token?.[provider] : undefined
+              previewToken
             }
           })
         })
@@ -129,8 +122,8 @@ export function Chat({
 
   return (
     <>
-      <ChatHeader id={id} usage={usage} updateChat={updateChat} />
-      <div className={cn('flex-1 py-4 md:pt-10', className)}>
+      <ChatHeader chat={chat} updateChat={updateChat} />
+      <div className="flex-1 py-4 md:pt-10">
         {messages.length && provider ? (
           <>
             <ChatList messages={messages} provider={provider} />
@@ -141,13 +134,12 @@ export function Chat({
         )}
       </div>
       <ChatPanel
-        id={id}
-        title={title}
+        chat={chat}
+        messages={messages}
         isLoading={isLoading}
         stop={stop}
         append={append}
         reload={reload}
-        messages={messages}
         input={input}
         setInput={setInput}
       />

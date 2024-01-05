@@ -94,6 +94,7 @@ export async function POST(req: Request) {
         async onCompletion(completion) {
           const id = json.id ?? nanoid()
           const createdAt = Date.now()
+          const updatedAt = Date.now()
           const path = `/chat/${id}`
           const payload: Chat = {
             id,
@@ -101,6 +102,7 @@ export async function POST(req: Request) {
             title,
             userId,
             createdAt,
+            updatedAt,
             messages: [
               ...messages,
               {
@@ -157,6 +159,7 @@ export async function POST(req: Request) {
         onCompletion: async (completion: string) => {
           const id = json.id ?? nanoid()
           const createdAt = Date.now()
+          const updatedAt = Date.now()
           const path = `/chat/${id}`
           const payload: Chat = {
             id,
@@ -164,6 +167,7 @@ export async function POST(req: Request) {
             title,
             userId,
             createdAt,
+            updatedAt,
             messages: [
               ...messages,
               {

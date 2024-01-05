@@ -40,6 +40,11 @@ export async function getChat(id: string, userId: string) {
 }
 
 export async function addChat(chat: Chat) {
+  const createdAt = await kv.hget<number>(`chat:${chat.id}`, 'createdAt')
+  if (createdAt) {
+    chat.createdAt = createdAt
+  }
+
   await kv.hmset(`chat:${chat.id}`, chat)
   await kv.zadd(`user:chat:${chat.userId}`, {
     score: chat.createdAt,
