@@ -5,7 +5,7 @@ import { toast } from 'react-hot-toast'
 import { usePathname, useRouter } from 'next/navigation'
 
 import { ServerActionResult, type Chat } from '@/lib/types'
-import { fetcher, formatString, messageId } from '@/lib/utils'
+import { buildChatUsage, fetcher, formatString, messageId } from '@/lib/utils'
 import { useLocalStorage } from '@/lib/hooks/use-local-storage'
 import { ChatList } from '@/components/chat-list'
 import { ChatPanel } from '@/components/chat-panel'
@@ -34,8 +34,8 @@ export function Chat({ id, chat, updateChat }: ChatProps) {
 
   const generateId = messageId()
   const currentTime = new Date().toLocaleString()
-  const currentSettings = usage ?? modelSettings
-  const currentModel = usage?.model || model
+  const currentUsage = usage ?? { ...modelSettings, model }
+  const currentModel = currentUsage.model
   const cutoff =
     KnowledgeCutOffDate[currentModel] ?? KnowledgeCutOffDate.default
   const provider = SupportedModels.find(m => m.value === currentModel)?.provider
@@ -48,7 +48,7 @@ export function Chat({ id, chat, updateChat }: ChatProps) {
     : undefined
   const previewToken =
     allowCustomAPIKey && provider ? token?.[provider] : undefined
-
+  const chatUsage = buildChatUsage(currentUsage, provider, prompt)
   const { messages, append, reload, stop, isLoading, input, setInput } =
     useChat({
       id,
@@ -60,10 +60,8 @@ export function Chat({ id, chat, updateChat }: ChatProps) {
         title,
         generateId,
         usage: {
-          ...currentSettings,
-          model: currentModel,
+          ...chatUsage,
           stream: true,
-          prompt,
           previewToken
         }
       },
@@ -86,6 +84,7 @@ export function Chat({ id, chat, updateChat }: ChatProps) {
 
   const generateTitle = async (id: string, input: string, message: Message) => {
     try {
+      const genUsage = buildChatUsage(currentUsage, provider)
       if (input && message && message.content) {
         const data = await fetcher('/api/chat', {
           method: 'POST',
@@ -103,9 +102,7 @@ export function Chat({ id, chat, updateChat }: ChatProps) {
               }
             ],
             usage: {
-              ...currentSettings,
-              model: currentModel,
-              prompt: undefined,
+              ...genUsage,
               previewToken
             }
           })

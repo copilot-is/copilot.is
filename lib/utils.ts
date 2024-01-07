@@ -8,7 +8,7 @@ import {
 } from 'openai/resources'
 import { type GenerateContentResult } from '@google/generative-ai'
 
-import { type Usage } from '@/lib/types'
+import { ModelProvider, type Usage } from '@/lib/types'
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
@@ -94,7 +94,7 @@ export const buildGoogleGenAIPrompt = (messages: Message[]) => ({
     }))
 })
 
-export function buildOpenAIUsage(usage: Usage): Usage {
+export function buildOpenAIUsage(usage: Usage, prompt?: string): Usage {
   const fields: string[] = [
     'model',
     'temperature',
@@ -104,6 +104,10 @@ export function buildOpenAIUsage(usage: Usage): Usage {
   ]
 
   const newUsage = {} as Usage
+
+  if (prompt) {
+    newUsage['prompt'] = prompt
+  }
 
   fields.forEach(field => {
     if (usage[field] !== null && usage[field] !== '') {
@@ -126,6 +130,22 @@ export function buildGoogleGenAIUsage(usage: Usage): Usage {
   })
 
   return newUsage
+}
+
+export function buildChatUsage(
+  usage: Usage,
+  provider?: ModelProvider,
+  prompt?: string
+): Usage | undefined {
+  if (provider === 'openai') {
+    return buildOpenAIUsage(usage, prompt)
+  }
+
+  if (provider === 'google') {
+    return buildGoogleGenAIUsage(usage)
+  }
+
+  return
 }
 
 export function buildOpenAIMessages(result: ChatCompletion): Message[] {
