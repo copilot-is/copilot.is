@@ -6,8 +6,8 @@ module.exports = {
         protocol: 'https',
         hostname: 'avatars.githubusercontent.com',
         port: '',
-        pathname: '**',
-      },
-    ],
-  },
-};
+        pathname: '**'
+      }
+    ]
+  }
+}
