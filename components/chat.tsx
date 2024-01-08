@@ -74,7 +74,7 @@ export function Chat({ id, chat, updateChat }: ChatProps) {
       },
       async onFinish(message) {
         if (!path.includes('chat')) {
-          router.push(`/chat/${id}`, { scroll: false })
+          window.history.pushState({}, '', `/chat/${id}`)
           await generateTitle(id, input, message)
           setNewChatId(id)
           router.refresh()
