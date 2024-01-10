@@ -78,11 +78,11 @@ export function SidebarActions({
         onDelete={() => setDeleteDialogOpen(false)}
       />
       <ChatTitleDialog
-        chat={chat}
-        updateChat={updateChat}
         open={editDialogOpen}
         onOpenChange={setEditDialogOpen}
         onUpdate={() => setEditDialogOpen(false)}
+        chat={chat}
+        updateChat={updateChat}
       />
     </>
   )

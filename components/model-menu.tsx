@@ -2,6 +2,7 @@
 
 import * as React from 'react'
 import { toast } from 'react-hot-toast'
+import { useRouter } from 'next/navigation'
 
 import { ServerActionResult, type Chat, Model } from '@/lib/types'
 import { IconGoogleAI, IconOpenAI } from '@/components/ui/icons'
@@ -28,6 +29,7 @@ interface ModelMenuProps {
 }
 
 export function ModelMenu({ chat, updateChat }: ModelMenuProps) {
+  const router = useRouter()
   const { availableModels, model, setModel, modelSettings } = useSettings()
   const [isPending, startTransition] = React.useTransition()
   const allowedModels = availableModels
@@ -47,7 +49,10 @@ export function ModelMenu({ chat, updateChat }: ModelMenuProps) {
 
       if (result && 'error' in result) {
         toast.error(result.error)
+        return
       }
+
+      router.refresh()
     } else {
       setModel(value)
     }

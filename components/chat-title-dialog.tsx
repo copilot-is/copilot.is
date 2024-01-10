@@ -3,6 +3,7 @@
 import * as React from 'react'
 import { type DialogProps } from '@radix-ui/react-dialog'
 import { toast } from 'react-hot-toast'
+import { useRouter } from 'next/navigation'
 
 import { ServerActionResult, type Chat } from '@/lib/types'
 import { Button } from '@/components/ui/button'
@@ -32,8 +33,13 @@ export function ChatTitleDialog({
   onUpdate,
   ...props
 }: ChatTitleDialogProps) {
+  const router = useRouter()
   const [isPending, startTransition] = React.useTransition()
-  const [title, setTitle] = React.useState('')
+  const [title, setTitle] = React.useState(chat.title)
+
+  React.useEffect(() => {
+    setTitle(chat.title)
+  }, [chat.title])
 
   return (
     <Dialog {...props}>
@@ -63,8 +69,9 @@ export function ChatTitleDialog({
                   toast.error(result.error)
                   return
                 }
-                
+
                 toast.success('Chat new title saved')
+                router.refresh()
                 onUpdate()
               })
             }}

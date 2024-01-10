@@ -161,7 +161,5 @@ export async function updateChat(
 
   await kv.hmset(`chat:${chat.id}`, payload)
 
-  revalidatePath('/')
-
   return { ...chat, ...payload }
 }
