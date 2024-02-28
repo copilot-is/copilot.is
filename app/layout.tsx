@@ -21,7 +21,7 @@ export const metadata: Metadata = {
   description: appConfig.product.description,
   icons: {
     icon: '/favicon.svg',
-    shortcut: '/favicon-16x16.png',
+    shortcut: '/favicon.png',
     apple: '/apple-touch-icon.png'
   }
 }
