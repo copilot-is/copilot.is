@@ -12,8 +12,8 @@
     "type-check": "tsc --noEmit",
     "format:write": "prettier --write \"{app,lib,components}/**/*.{ts,tsx,mdx}\" --cache",
     "format:check": "prettier --check \"{app,lib,components}**/*.{ts,tsx,mdx}\" --cache",
-    "db:push": "dotenv drizzle-kit push:pg",
-    "db:studio": "dotenv drizzle-kit studio"
+    "db:push": "drizzle-kit push:pg",
+    "db:studio": "drizzle-kit studio"
   },
   "dependencies": {
     "@auth/drizzle-adapter": "^0.3.17",
@@ -68,7 +68,6 @@
     "@types/react-syntax-highlighter": "^15.5.11",
     "@typescript-eslint/parser": "^6.21.0",
     "autoprefixer": "^10.4.17",
-    "dotenv-cli": "^7.3.0",
     "drizzle-kit": "^0.20.14",
     "eslint": "^8.57.0",
     "eslint-config-next": "14.0.3",
