@@ -1,14 +1,14 @@
 import { clsx, type ClassValue } from 'clsx'
 import { customAlphabet } from 'nanoid'
 import { twMerge } from 'tailwind-merge'
-import { type Message } from 'ai'
 import {
   type ChatCompletion,
   type ChatCompletionMessageParam
 } from 'openai/resources'
 import { type GenerateContentResult } from '@google/generative-ai'
 
-import { ModelProvider, type Usage } from '@/lib/types'
+import { Model, ModelProvider, Message, type Usage } from '@/lib/types'
+import { SupportedModels } from '@/lib/constant'
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
@@ -68,6 +68,11 @@ export function formatString(
   }
 
   return formattedString
+}
+
+export const providerFromModel = (value: Model): ModelProvider => {
+  const model = SupportedModels.find(m => m.value === value)
+  return model ? model.provider : 'openai'
 }
 
 export const buildOpenAIPrompt = (messages: Message[], prompt?: string) => {
@@ -134,7 +139,7 @@ export function buildGoogleGenAIUsage(usage: Usage): Usage {
 
 export function buildChatUsage(
   usage: Usage,
-  provider?: ModelProvider,
+  provider: ModelProvider,
   prompt?: string
 ): Usage | undefined {
   if (provider === 'openai') {

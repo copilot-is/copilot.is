@@ -8,6 +8,7 @@ import { appConfig } from '@/lib/appconfig'
 import { fontMono, fontSans } from '@/lib/fonts'
 import { TailwindIndicator } from '@/components/tailwind-indicator'
 import { Providers } from '@/components/providers'
+import { TRPCReactProvider } from '@/trpc/react'
 
 export const metadata: Metadata = {
   metadataBase: new URL(
@@ -46,18 +47,20 @@ export default function RootLayout({ children }: RootLayoutProps) {
           fontMono.variable
         )}
       >
-        <Toaster
-          toastOptions={{
-            style: {
-              maxWidth: 356,
-              wordBreak: 'break-all'
-            }
-          }}
-        />
-        <Providers attribute="class" defaultTheme="system" enableSystem>
-          {children}
-          <TailwindIndicator />
-        </Providers>
+        <TRPCReactProvider>
+          <Toaster
+            toastOptions={{
+              style: {
+                maxWidth: 356,
+                wordBreak: 'break-all'
+              }
+            }}
+          />
+          <Providers attribute="class" defaultTheme="system" enableSystem>
+            {children}
+            <TailwindIndicator />
+          </Providers>
+        </TRPCReactProvider>
       </body>
     </html>
   )

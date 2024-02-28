@@ -12,7 +12,6 @@ import {
 } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { useSettings } from '@/lib/hooks/use-settings'
 import { IconSettings } from '@/components/ui/icons'
 import { Tooltip } from '@/components/ui/tooltip'
 import {
@@ -22,9 +21,10 @@ import {
   SelectContent
 } from '@/components/ui/select'
 import { Slider } from '@/components/ui/slider'
-import { ExternalLink } from './external-link'
-import { Textarea } from './ui/textarea'
+import { ExternalLink } from '@/components/external-link'
+import { Textarea } from '@/components/ui/textarea'
 import { SupportedModels } from '@/lib/constant'
+import { useSettings } from '@/lib/hooks/use-settings'
 
 export const Settings = () => {
   const [open, setOpen] = React.useState(false)
@@ -48,7 +48,7 @@ export const Settings = () => {
       <Tooltip content="Settings">
         <DialogTrigger asChild>
           <Button variant="ghost" size="icon" className="hover:bg-background">
-            <IconSettings className="h-5 w-5" />
+            <IconSettings className="size-5" />
           </Button>
         </DialogTrigger>
       </Tooltip>
@@ -58,47 +58,53 @@ export const Settings = () => {
           <DialogDescription>Model Settings</DialogDescription>
         </DialogHeader>
         {allowCustomAPIKey && (
-          <fieldset>
-            <label className="block mb-1.5 text-sm font-bold" htmlFor="openai">
-              OpenAI API key
-            </label>
-            <Input
-              id="openai"
-              value={token?.openai ?? ''}
-              onChange={e => setToken('openai', e.target.value)}
-            />
-            <p className="text-sm text-muted-foreground mt-1">
-              If you have not obtained your OpenAI API key, you can do so at{' '}
-              <ExternalLink href="https://platform.openai.com/account/api-keys">
-                OpenAI
-              </ExternalLink>
-              . The token will be saved to your browser&apos;s local storage
-              under the name <code className="font-mono">ai-token</code>.{' '}
-              <ExternalLink href="https://platform.openai.com/account/usage">
-                View Account Usage
-              </ExternalLink>
-            </p>
-          </fieldset>
-        )}
-        {allowCustomAPIKey && (
-          <fieldset>
-            <label className="block mb-1.5 text-sm font-bold" htmlFor="google">
-              Google API key
-            </label>
-            <Input
-              id="google"
-              value={token?.google ?? ''}
-              onChange={e => setToken('google', e.target.value)}
-            />
-            <p className="text-sm text-muted-foreground mt-1">
-              If you have not obtained your Google API key, you can do so at{' '}
-              <ExternalLink href="https://makersuite.google.com/app/apikey">
-                Google AI Studio
-              </ExternalLink>
-              . The token will be saved to your browser&apos;s local storage
-              under the name <code className="font-mono">ai-token</code>.
-            </p>
-          </fieldset>
+          <>
+            <fieldset>
+              <label
+                className="block mb-1.5 text-sm font-bold"
+                htmlFor="openai"
+              >
+                OpenAI API key
+              </label>
+              <Input
+                id="openai"
+                value={token?.openai ?? ''}
+                onChange={e => setToken('openai', e.target.value)}
+              />
+              <p className="text-sm text-muted-foreground mt-1">
+                If you have not obtained your OpenAI API key, you can do so at{' '}
+                <ExternalLink href="https://platform.openai.com/account/api-keys">
+                  OpenAI
+                </ExternalLink>
+                . The token will be saved to your browser&apos;s local storage
+                under the name <code className="font-mono">ai-token</code>.{' '}
+                <ExternalLink href="https://platform.openai.com/account/usage">
+                  View Account Usage
+                </ExternalLink>
+              </p>
+            </fieldset>
+            <fieldset>
+              <label
+                className="block mb-1.5 text-sm font-bold"
+                htmlFor="google"
+              >
+                Google API key
+              </label>
+              <Input
+                id="google"
+                value={token?.google ?? ''}
+                onChange={e => setToken('google', e.target.value)}
+              />
+              <p className="text-sm text-muted-foreground mt-1">
+                If you have not obtained your Google API key, you can do so at{' '}
+                <ExternalLink href="https://makersuite.google.com/app/apikey">
+                  Google AI Studio
+                </ExternalLink>
+                . The token will be saved to your browser&apos;s local storage
+                under the name <code className="font-mono">ai-token</code>.
+              </p>
+            </fieldset>
+          </>
         )}
         <fieldset>
           <label className="block mb-1.5 text-sm font-bold">Model</label>

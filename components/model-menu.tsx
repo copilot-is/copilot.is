@@ -4,7 +4,7 @@ import * as React from 'react'
 import { toast } from 'react-hot-toast'
 import { useRouter } from 'next/navigation'
 
-import { ServerActionResult, type Chat, Model } from '@/lib/types'
+import { ServerActionResult, Model, type Chat } from '@/lib/types'
 import { IconGoogleAI, IconOpenAI } from '@/components/ui/icons'
 import { Button } from '@/components/ui/button'
 import {
@@ -18,7 +18,7 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { useSettings } from '@/lib/hooks/use-settings'
 import { SupportedModels } from '@/lib/constant'
-import { buildChatUsage } from '@/lib/utils'
+import { buildChatUsage, providerFromModel } from '@/lib/utils'
 
 interface ModelMenuProps {
   chat?: Chat
@@ -41,8 +41,7 @@ export function ModelMenu({ chat, updateChat }: ModelMenuProps) {
 
   const updateModel = async (value: Model) => {
     if (chat && value !== chat.usage.model) {
-      const provider = SupportedModels.find(m => m.value === value)?.provider
-
+      const provider = providerFromModel(value)
       const usage = buildChatUsage({ ...modelSettings, model: value }, provider)
 
       const result = await updateChat(chat.id, { usage })
@@ -51,8 +50,6 @@ export function ModelMenu({ chat, updateChat }: ModelMenuProps) {
         toast.error(result.error)
         return
       }
-
-      router.refresh()
     } else {
       setModel(value)
     }

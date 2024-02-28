@@ -3,7 +3,7 @@
 import * as React from 'react'
 
 import Link from 'next/link'
-import { usePathname } from 'next/navigation'
+import { useParams } from 'next/navigation'
 import { motion } from 'framer-motion'
 
 import { buttonVariants } from '@/components/ui/button'
@@ -20,16 +20,10 @@ interface SidebarItemProps {
 }
 
 export function SidebarItem({ index, chat, children }: SidebarItemProps) {
-  const pathname = usePathname()
-
-  const isActive = pathname === chat.path
-  const [newChatId, setNewChatId] = useLocalStorage<string | null>(
-    'new-chat-id',
-    null
-  )
+  const { id } = useParams()
+  const [newChatId, setNewChatId] = useLocalStorage<string>('new-chat-id')
+  const isActive = id === chat.id
   const shouldAnimate = index === 0 && isActive && newChatId === chat.id
-
-  if (!chat?.id) return null
 
   return (
     <motion.div
@@ -51,13 +45,13 @@ export function SidebarItem({ index, chat, children }: SidebarItemProps) {
         ease: 'easeIn'
       }}
     >
-      <Tooltip hidden={!chat.sharePath} content="This is a shared chat.">
-        <div className="absolute left-1 top-1 flex h-6 w-6 items-center justify-center">
-          {chat.sharePath ? <IconUsers /> : <IconMessage />}
+      <Tooltip hidden={!chat.shared} content="This is a shared chat.">
+        <div className="absolute left-1 top-1 flex size-6 items-center justify-center">
+          {chat.shared ? <IconUsers /> : <IconMessage />}
         </div>
       </Tooltip>
       <Link
-        href={chat.path}
+        href={`/chat/${chat.id}`}
         className={cn(
           buttonVariants({ variant: 'ghost' }),
           'w-full pl-8 pr-10 transition-colors hover:bg-zinc-200/40 dark:hover:bg-zinc-300/10',
@@ -93,7 +87,7 @@ export function SidebarItem({ index, chat, children }: SidebarItemProps) {
                   }}
                   onAnimationComplete={() => {
                     if (index === chat.title.length - 1) {
-                      setNewChatId(null)
+                      setNewChatId('')
                     }
                   }}
                 >
@@ -106,7 +100,7 @@ export function SidebarItem({ index, chat, children }: SidebarItemProps) {
           </span>
         </div>
       </Link>
-      <div className={cn('absolute right-1 top-1')}>{children}</div>
+      <div className='absolute right-1 top-1'>{children}</div>
     </motion.div>
   )
 }

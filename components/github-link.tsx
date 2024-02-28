@@ -1,5 +1,3 @@
-import * as React from 'react'
-
 import { cn } from '@/lib/utils'
 import { buttonVariants } from '@/components/ui/button'
 import { IconGitHub } from '@/components/ui/icons'
@@ -16,7 +14,7 @@ export function GithubLink() {
         href="https://github.com/copilot-is/copilot.is"
         target="_blank"
       >
-        <IconGitHub className="h-5 w-5" />
+        <IconGitHub className="size-5" />
       </a>
     </Tooltip>
   )

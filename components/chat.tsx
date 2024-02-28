@@ -5,7 +5,13 @@ import { toast } from 'react-hot-toast'
 import { usePathname, useRouter } from 'next/navigation'
 
 import { ServerActionResult, type Chat } from '@/lib/types'
-import { buildChatUsage, fetcher, formatString, messageId } from '@/lib/utils'
+import {
+  buildChatUsage,
+  fetcher,
+  formatString,
+  messageId,
+  providerFromModel
+} from '@/lib/utils'
 import { useLocalStorage } from '@/lib/hooks/use-local-storage'
 import { ChatList } from '@/components/chat-list'
 import { ChatPanel } from '@/components/chat-panel'
@@ -13,7 +19,7 @@ import { EmptyScreen } from '@/components/empty-screen'
 import { ChatScrollAnchor } from '@/components/chat-scroll-anchor'
 import { ChatHeader } from '@/components/chat-header'
 import { useSettings } from '@/lib/hooks/use-settings'
-import { KnowledgeCutOffDate, SupportedModels } from '@/lib/constant'
+import { KnowledgeCutOffDate } from '@/lib/constant'
 
 interface ChatProps {
   id: string
@@ -26,7 +32,7 @@ interface ChatProps {
 
 export function Chat({ id, chat, updateChat }: ChatProps) {
   const router = useRouter()
-  const path = usePathname()
+  const pathname = usePathname()
   const { title, usage, messages: initialMessages } = chat ?? {}
 
   const [_, setNewChatId] = useLocalStorage<string>('new-chat-id')
@@ -38,7 +44,7 @@ export function Chat({ id, chat, updateChat }: ChatProps) {
   const currentModel = currentUsage.model
   const cutoff =
     KnowledgeCutOffDate[currentModel] ?? KnowledgeCutOffDate.default
-  const provider = SupportedModels.find(m => m.value === currentModel)?.provider
+  const provider = providerFromModel(currentModel)
   const prompt = modelSettings.prompt
     ? formatString(modelSettings.prompt, {
         cutoff,
@@ -46,41 +52,47 @@ export function Chat({ id, chat, updateChat }: ChatProps) {
         time: currentTime
       })
     : undefined
-  const previewToken =
-    allowCustomAPIKey && provider ? token?.[provider] : undefined
+  const previewToken = allowCustomAPIKey ? token?.[provider] : undefined
   const chatUsage = buildChatUsage(currentUsage, provider, prompt)
-  const { messages, append, reload, stop, isLoading, input, setInput } =
-    useChat({
+  const {
+    isLoading,
+    append,
+    reload,
+    stop,
+    messages,
+    setMessages,
+    input,
+    setInput
+  } = useChat({
+    id,
+    initialMessages,
+    sendExtraMessageFields: true,
+    generateId: () => generateId,
+    body: {
       id,
-      initialMessages,
-      sendExtraMessageFields: true,
-      generateId: () => generateId,
-      body: {
-        id,
-        title,
-        generateId,
-        usage: {
-          ...chatUsage,
-          stream: true,
-          previewToken
-        }
-      },
-      async onResponse(response) {
-        if (response.status !== 200) {
-          setInput(input)
-          const json = await response.json()
-          toast.error(json.message)
-        }
-      },
-      async onFinish(message) {
-        if (!path.includes('chat')) {
-          window.history.pushState({}, '', `/chat/${id}`)
-          await generateTitle(id, input, message)
-          setNewChatId(id)
-          router.refresh()
-        }
+      title,
+      generateId,
+      usage: {
+        ...chatUsage,
+        stream: true,
+        previewToken
       }
-    })
+    },
+    onResponse(response) {
+      if (response.status !== 200) {
+        setInput(input)
+        toast.error(response.statusText)
+      }
+    },
+    async onFinish(message) {
+      if (!pathname.includes('chat')) {
+        window.history.pushState({}, '', `/chat/${id}`)
+        await generateTitle(id, input, message)
+        setNewChatId(id)
+        router.refresh()
+      }
+    }
+  })
 
   const generateTitle = async (id: string, input: string, message: Message) => {
     try {
@@ -121,9 +133,15 @@ export function Chat({ id, chat, updateChat }: ChatProps) {
     <>
       <ChatHeader chat={chat} updateChat={updateChat} />
       <div className="flex-1 py-4 md:pt-10">
-        {messages.length && provider ? (
+        {messages.length ? (
           <>
-            <ChatList messages={messages} provider={provider} />
+            <ChatList
+              id={id}
+              provider={provider}
+              messages={messages}
+              setMessages={setMessages}
+              updateChat={updateChat}
+            />
             <ChatScrollAnchor trackVisibility={isLoading} />
           </>
         ) : (

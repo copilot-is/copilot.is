@@ -1,13 +1,13 @@
 'use client'
 
 import * as React from 'react'
-import { type DialogProps } from '@radix-ui/react-dialog'
 import { toast } from 'react-hot-toast'
 
 import { ServerActionResult, type Chat } from '@/lib/types'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
+  DialogProps,
   DialogContent,
   DialogDescription,
   DialogFooter,
@@ -20,14 +20,17 @@ import { useCopyToClipboard } from '@/lib/hooks/use-copy-to-clipboard'
 interface ChatShareDialogProps extends DialogProps {
   chat?: Chat
   messages?: Chat['messages']
-  shareChat: (id: string) => ServerActionResult<Chat>
+  updateChat: (
+    id: string,
+    data: { [key: keyof Chat]: Chat[keyof Chat] }
+  ) => ServerActionResult<Chat>
   onCopy: () => void
 }
 
 export function ChatShareDialog({
   chat,
   messages,
-  shareChat,
+  updateChat,
   onCopy,
   ...props
 }: ChatShareDialogProps) {
@@ -80,20 +83,17 @@ export function ChatShareDialog({
             disabled={isSharePending}
             onClick={() => {
               startShareTransition(async () => {
-                if (!chat.sharePath) {
-                  const result = await shareChat(chat.id)
+                const sharePath = `/share/${chat.id}`
+                if (!chat.shared) {
+                  const result = await updateChat(chat.id, { shared: true })
 
                   if (result && 'error' in result) {
                     toast.error(result.error)
                     return
                   }
-
-                  if (result && result.sharePath) {
-                    copyShareLink(result.sharePath)
-                  }
-                } else {
-                  copyShareLink(chat.sharePath)
                 }
+
+                copyShareLink(sharePath)
               })
             }}
           >

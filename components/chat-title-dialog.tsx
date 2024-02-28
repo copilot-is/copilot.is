@@ -1,7 +1,6 @@
 'use client'
 
 import * as React from 'react'
-import { type DialogProps } from '@radix-ui/react-dialog'
 import { toast } from 'react-hot-toast'
 import { useRouter } from 'next/navigation'
 
@@ -9,6 +8,7 @@ import { ServerActionResult, type Chat } from '@/lib/types'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
+  DialogProps,
   DialogContent,
   DialogDescription,
   DialogFooter,
@@ -70,8 +70,7 @@ export function ChatTitleDialog({
                   return
                 }
 
-                toast.success('Chat new title saved')
-                router.refresh()
+                toast.success('Chat title saved')
                 onUpdate()
               })
             }}

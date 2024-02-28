@@ -18,7 +18,7 @@ import {
   AlertDialogTrigger
 } from '@/components/ui/alert-dialog'
 import { IconSpinner, IconTrash } from '@/components/ui/icons'
-import { Tooltip } from './ui/tooltip'
+import { Tooltip } from '@/components/ui/tooltip'
 
 interface ClearHistoryProps {
   isEnabled: boolean
@@ -29,9 +29,9 @@ export function ClearHistory({
   isEnabled = false,
   clearChats
 }: ClearHistoryProps) {
+  const router = useRouter()
   const [open, setOpen] = React.useState(false)
   const [isPending, startTransition] = React.useTransition()
-  const router = useRouter()
 
   return (
     <AlertDialog open={open} onOpenChange={setOpen}>
@@ -44,9 +44,9 @@ export function ClearHistory({
             disabled={!isEnabled || isPending}
           >
             {isPending ? (
-              <IconSpinner className="h-5 w-5" />
+              <IconSpinner className="size-5" />
             ) : (
-              <IconTrash className="h-5 w-5" />
+              <IconTrash className="size-5" />
             )}
           </Button>
         </AlertDialogTrigger>
@@ -74,6 +74,7 @@ export function ClearHistory({
                 }
 
                 router.push('/')
+                toast.success('All chat deleted')
                 setOpen(false)
               })
             }}

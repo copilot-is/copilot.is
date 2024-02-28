@@ -1,28 +1,42 @@
+'use client'
+
 // Inspired by Chatbot-UI and modified to fit the needs of this project
 // @see https://github.com/mckaywrigley/chatbot-ui/blob/main/components/Chat/ChatMessage.tsx
-import { type Message } from 'ai'
 import remarkGfm from 'remark-gfm'
 import remarkMath from 'remark-math'
 
-import { cn } from '@/lib/utils'
+import {
+  ServerActionResult,
+  Message,
+  ModelProvider,
+  type Chat
+} from '@/lib/types'
 import { CodeBlock } from '@/components/ui/codeblock'
 import { IconGoogleAI, IconOpenAI, IconUser } from '@/components/ui/icons'
 import { MemoizedReactMarkdown } from '@/components/markdown'
 import { ChatMessageActions } from '@/components/chat-message-actions'
 
 export interface ChatMessageProps {
+  chat: Pick<Chat, 'id' | 'messages'>
   message: Message
-  provider: string
+  provider: ModelProvider
+  setMessages?: (messages: Message[]) => void
+  updateChat?: (
+    id: string,
+    data: { [key: keyof Chat]: Chat[keyof Chat] }
+  ) => ServerActionResult<Chat>
 }
 
-export function ChatMessage({ message, provider, ...props }: ChatMessageProps) {
+export function ChatMessage({
+  chat,
+  message,
+  provider,
+  setMessages,
+  updateChat
+}: ChatMessageProps) {
   return (
-    <div className={cn('relative mb-4 flex items-start')} {...props}>
-      <div
-        className={cn(
-          'flex h-8 w-8 shrink-0 select-none items-center justify-center rounded-md border bg-background'
-        )}
-      >
+    <div className="relative mb-4 flex items-start">
+      <div className="flex size-8 shrink-0 select-none items-center justify-center rounded-md border bg-background">
         {message.role === 'user' ? <IconUser /> : null}
         {message.role !== 'user' && (
           <>
@@ -73,7 +87,12 @@ export function ChatMessage({ message, provider, ...props }: ChatMessageProps) {
         >
           {message.content}
         </MemoizedReactMarkdown>
-        <ChatMessageActions message={message} />
+        <ChatMessageActions
+          chat={chat}
+          message={message}
+          setMessages={setMessages}
+          updateChat={updateChat}
+        />
       </div>
     </div>
   )

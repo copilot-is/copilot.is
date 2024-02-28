@@ -1,13 +1,13 @@
 'use client'
 
 import * as React from 'react'
-import { useRouter } from 'next/navigation'
-import { type DialogProps } from '@radix-ui/react-dialog'
 import { toast } from 'react-hot-toast'
+import { useRouter } from 'next/navigation'
 
 import { ServerActionResult, type Chat } from '@/lib/types'
 import {
   AlertDialog,
+  AlertDialogProps,
   AlertDialogAction,
   AlertDialogCancel,
   AlertDialogContent,
@@ -18,20 +18,20 @@ import {
 } from '@/components/ui/alert-dialog'
 import { IconSpinner } from '@/components/ui/icons'
 
-interface ChatDeleteDialogProps extends DialogProps {
-  chat: Pick<Chat, 'id' | 'path'>
-  removeChat: (args: { id: string; path: string }) => ServerActionResult<void>
+interface ChatDeleteDialogProps extends AlertDialogProps {
+  chat: Pick<Chat, 'id'>
   onDelete: () => void
+  removeChat: (id: string) => ServerActionResult<void>
 }
 
 export function ChatDeleteDialog({
   chat,
-  removeChat,
   onDelete,
+  removeChat,
   ...props
 }: ChatDeleteDialogProps) {
   const router = useRouter()
-  const [isRemovePending, startRemoveTransition] = React.useTransition()
+  const [isPending, startTransition] = React.useTransition()
 
   return (
     <AlertDialog {...props}>
@@ -44,32 +44,26 @@ export function ChatDeleteDialog({
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel disabled={isRemovePending}>
-            Cancel
-          </AlertDialogCancel>
+          <AlertDialogCancel disabled={isPending}>Cancel</AlertDialogCancel>
           <AlertDialogAction
-            disabled={isRemovePending}
+            disabled={isPending}
             onClick={event => {
               event.preventDefault()
-              startRemoveTransition(async () => {
-                const result = await removeChat({
-                  id: chat.id,
-                  path: chat.path
-                })
+              startTransition(async () => {
+                const result = await removeChat(chat.id)
 
                 if (result && 'error' in result) {
                   toast.error(result.error)
                   return
                 }
 
-                router.refresh()
                 router.push('/')
-                onDelete()
                 toast.success('Chat deleted')
+                onDelete()
               })
             }}
           >
-            {isRemovePending && <IconSpinner className="mr-2 animate-spin" />}
+            {isPending && <IconSpinner className="mr-2 animate-spin" />}
             Delete
           </AlertDialogAction>
         </AlertDialogFooter>

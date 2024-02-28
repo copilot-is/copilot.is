@@ -18,7 +18,7 @@ export function Sidebar({ children }: SidebarProps) {
     <>
       {isMobile && isSidebarOpen && (
         <div
-          className="fixed z-20 left-0 top-0 w-full h-full bg-background/60 backdrop-blur-sm"
+          className="fixed z-20 left-0 top-0 size-full bg-background/60 backdrop-blur-sm"
           onClick={toggleSidebar}
         ></div>
       )}

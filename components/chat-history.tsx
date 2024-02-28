@@ -1,7 +1,7 @@
 import * as React from 'react'
 import Link from 'next/link'
 
-import { auth } from '@/auth'
+import { auth } from '@/server/auth'
 import { clearChats, getChats } from '@/app/actions'
 import { IconPlus } from '@/components/ui/icons'
 import { SidebarList } from '@/components/sidebar-list'
@@ -11,13 +11,9 @@ import { ThemeToggle } from '@/components/theme-toggle'
 import { UserMenu } from '@/components/user-menu'
 import { GithubLink } from '@/components/github-link'
 
-const loadChats = React.cache(async (userId?: string) => {
-  return await getChats(userId)
-})
-
 export async function ChatHistory() {
   const session = await auth()
-  const chats = await loadChats(session?.user.id)
+  const chats = await getChats()
 
   return (
     <>

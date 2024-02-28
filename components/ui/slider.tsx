@@ -11,7 +11,7 @@ const Slider = ({ ...props }: TooltipPrimitive.SliderProps) => (
     <TooltipPrimitive.Track className="bg-muted relative grow rounded-full h-2">
       <TooltipPrimitive.Range className="absolute bg-muted rounded-full h-full" />
     </TooltipPrimitive.Track>
-    <TooltipPrimitive.Thumb className="block w-5 h-5 bg-blue-600 shadow-sm rounded-full cursor-pointer" />
+    <TooltipPrimitive.Thumb className="block size-5 bg-blue-600 shadow-sm rounded-full cursor-pointer" />
   </TooltipPrimitive.Root>
 )
 

@@ -22,9 +22,9 @@ export function UserMenu({ user }: UserMenuProps) {
     <div className="flex items-center justify-center">
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button variant="ghost" size="icon" className='rounded-full'>
+          <Button variant="ghost" size="icon" className="rounded-full">
             <Image
-              className="w-7 h-7 transition-opacity duration-300 rounded-full select-none ring-1 ring-zinc-100/10 hover:opacity-80"
+              className="size-7 transition-opacity duration-300 rounded-full select-none ring-1 ring-zinc-100/10 hover:opacity-80"
               src={user?.image ? `${user.image}&s=60` : ''}
               alt={user?.name ?? 'Avatar'}
               height={48}

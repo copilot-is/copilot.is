@@ -16,11 +16,11 @@ export default async function ChatLayout({ children }: ChatLayoutProps) {
         availableModels={appConfig.supportedModels}
         allowCustomAPIKey={appConfig.allowCustomAPIKey}
       >
-        <div className="relative flex h-full w-full bg-muted/50">
+        <div className="relative flex size-full bg-muted/50">
           <Sidebar>
             <ChatHistory />
           </Sidebar>
-          <main className="flex flex-col h-full w-full pl-0 animate-in duration-300 ease-in-out overflow-auto peer-[[data-state=open]]:lg:pl-[250px] peer-[[data-state=open]]:xl:pl-[300px]">
+          <main className="flex flex-col size-full pl-0 animate-in duration-300 ease-in-out overflow-auto peer-[[data-state=open]]:lg:pl-[250px] peer-[[data-state=open]]:xl:pl-[300px]">
             {children}
           </main>
         </div>

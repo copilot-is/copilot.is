@@ -5,7 +5,7 @@ import { useTheme } from 'next-themes'
 
 import { Button } from '@/components/ui/button'
 import { IconMoon, IconSun, IconSunMoon } from '@/components/ui/icons'
-import { Tooltip } from './ui/tooltip'
+import { Tooltip } from '@/components/ui/tooltip'
 
 export function ThemeToggle() {
   const { theme, setTheme } = useTheme()
@@ -26,7 +26,7 @@ export function ThemeToggle() {
         disabled={isPending}
         variant="ghost"
         size="icon"
-        className='hover:bg-background'
+        className="hover:bg-background"
         onClick={() => {
           startTransition(() => {
             switch (theme) {
@@ -46,15 +46,15 @@ export function ThemeToggle() {
         {mounted ? (
           <>
             {theme === 'dark' ? (
-              <IconMoon className="transition-all h-5 w-5" />
+              <IconMoon className="transition-all size-5" />
             ) : theme === 'light' ? (
-              <IconSun className="transition-all h-5 w-5" />
+              <IconSun className="transition-all size-5" />
             ) : (
-              <IconSunMoon className="transition-all h-5 w-5" />
+              <IconSunMoon className="transition-all size-5" />
             )}
           </>
         ) : (
-          <IconSunMoon className="transition-all h-5 w-5" />
+          <IconSunMoon className="transition-all size-5" />
         )}
         <span className="sr-only">Toggle theme</span>
       </Button>

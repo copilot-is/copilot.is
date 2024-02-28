@@ -1,10 +1,17 @@
-import NextAuth, { type DefaultSession } from 'next-auth'
+import { DrizzleAdapter } from '@auth/drizzle-adapter'
+import NextAuth, {
+  type DefaultSession,
+  type Session,
+  type User
+} from 'next-auth'
 import GitHub from 'next-auth/providers/github'
 
+import { db } from './db'
+import { createTable } from './db/schema'
+
 declare module 'next-auth' {
-  interface Session {
+  interface Session extends DefaultSession {
     user: {
-      /** The user's id. */
       id: string
     } & DefaultSession['user']
   }
@@ -14,7 +21,9 @@ export const {
   handlers: { GET, POST },
   auth
 } = NextAuth({
+  debug: process.env.NODE_ENV === 'development' ? true : false,
   providers: [GitHub],
+  adapter: DrizzleAdapter(db, createTable),
   callbacks: {
     jwt({ token, profile }) {
       if (profile) {
@@ -23,9 +32,9 @@ export const {
       }
       return token
     },
-    session: ({ session, token }) => {
-      if (session?.user && token?.id) {
-        session.user.id = String(token.id)
+    session({ session, user }: { session: Session; user?: User }) {
+      if (session?.user && user?.id) {
+        session.user.id = user.id
       }
       return session
     },

@@ -1,15 +1,13 @@
 import OpenAI from 'openai'
-import { type ChatCompletion } from 'openai/resources'
 import { GoogleGenerativeAI } from '@google/generative-ai'
 import {
-  type Message,
   OpenAIStream,
   GoogleGenerativeAIStream,
   StreamingTextResponse
 } from 'ai'
 import { NextResponse } from 'next/server'
 
-import { auth } from '@/auth'
+import { auth } from '@/server/auth'
 import {
   nanoid,
   buildOpenAIUsage,
@@ -17,12 +15,12 @@ import {
   buildOpenAIPrompt,
   buildGoogleGenAIPrompt,
   buildGoogleGenAIMessages,
-  buildOpenAIMessages
+  buildOpenAIMessages,
+  providerFromModel
 } from '@/lib/utils'
-import { type Chat, Usage } from '@/lib/types'
-import { addChat } from '@/app/actions'
+import { Message, type Usage } from '@/lib/types'
 import { appConfig } from '@/lib/appconfig'
-import { SupportedModels } from '@/lib/constant'
+import { api } from '@/trpc/server'
 
 export const runtime = 'edge'
 
@@ -46,6 +44,13 @@ type PostData = {
 export async function POST(req: Request) {
   const session = await auth()
   const userId = session?.user.id
+
+  if (!userId) {
+    return new Response('Unauthorized', {
+      status: 401
+    })
+  }
+
   const json = await req.json()
   const { title = 'New Chat', messages, generateId, usage } = json as PostData
   const {
@@ -59,13 +64,7 @@ export async function POST(req: Request) {
     topP = 1,
     topK = 1
   } = usage
-  const provider = SupportedModels.find(m => m.value === model)?.provider
-
-  if (!userId) {
-    return new Response('Unauthorized', {
-      status: 401
-    })
-  }
+  const provider = providerFromModel(model)
 
   if (provider === 'openai') {
     if (!openai.apiKey && previewToken) {
@@ -86,23 +85,16 @@ export async function POST(req: Request) {
       if (!stream) {
         const response = await res.asResponse()
         const data = await response.json()
-        return NextResponse.json(buildOpenAIMessages(data as ChatCompletion))
+        return NextResponse.json(buildOpenAIMessages(data))
       }
 
       const resStream = await res.asResponse()
       const aiStream = OpenAIStream(resStream, {
         async onCompletion(completion) {
           const id = json.id ?? nanoid()
-          const createdAt = Date.now()
-          const updatedAt = Date.now()
-          const path = `/chat/${id}`
-          const payload: Chat = {
+          const payload = {
             id,
-            path,
             title,
-            userId,
-            createdAt,
-            updatedAt,
             messages: [
               ...messages,
               {
@@ -110,10 +102,10 @@ export async function POST(req: Request) {
                 content: completion,
                 role: 'assistant'
               }
-            ],
+            ] as [Message],
             usage: buildOpenAIUsage(usage)
           }
-          await addChat(payload)
+          await api.chat.create.mutate(payload)
         }
       })
 
@@ -122,10 +114,15 @@ export async function POST(req: Request) {
       if (err instanceof OpenAI.APIError) {
         const status = err.status
         const error = err.error as Record<string, any>
-        return NextResponse.json({ status, ...error }, { status })
+        return new Response(error.message, {
+          status: status,
+          statusText: error.message
+        })
       } else {
-        const status = 500
-        return NextResponse.json({ status, message: err.message }, { status })
+        return new Response(err.message, {
+          status: 500,
+          statusText: err.message
+        })
       }
     }
   }
@@ -158,16 +155,9 @@ export async function POST(req: Request) {
       const aiStream = GoogleGenerativeAIStream(resStream, {
         onCompletion: async (completion: string) => {
           const id = json.id ?? nanoid()
-          const createdAt = Date.now()
-          const updatedAt = Date.now()
-          const path = `/chat/${id}`
-          const payload: Chat = {
+          const payload = {
             id,
-            path,
             title,
-            userId,
-            createdAt,
-            updatedAt,
             messages: [
               ...messages,
               {
@@ -175,18 +165,20 @@ export async function POST(req: Request) {
                 content: completion,
                 role: 'assistant'
               }
-            ],
+            ] as [Message],
             usage: buildGoogleGenAIUsage(usage)
           }
-          await addChat(payload)
+          await api.chat.create.mutate(payload)
         }
       })
 
       return new StreamingTextResponse(aiStream)
     } catch (err: any) {
-      const status = 500
       const message = err.message.replace('[GoogleGenerativeAI Error]: ', '')
-      return NextResponse.json({ status, message }, { status })
+      return new Response(message, {
+        status: 500,
+        statusText: message
+      })
     }
   }
 }

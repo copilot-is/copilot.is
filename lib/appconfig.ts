@@ -5,6 +5,10 @@ export interface AppConfig {
     description?: string
     url?: string
   }
+  readonly db: {
+    url: string
+    prefix: string
+  }
   readonly openai: {
     apiKey: string
     apiUrl?: string
@@ -24,6 +28,10 @@ export const appConfig: AppConfig = {
     subtitle: process.env.PRODUCT_SUBTITLE || 'AI Chatbot',
     description: process.env.PRODUCT_DESCRIPTION,
     url: process.env.PRODUCT_URL
+  },
+  db: {
+    url: process.env.POSTGRES_URL || '',
+    prefix: process.env.DATABASE_PREFIX || ''
   },
   openai: {
     apiKey: process.env.OPENAI_API_KEY || '',

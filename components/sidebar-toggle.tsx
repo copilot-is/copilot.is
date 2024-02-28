@@ -15,10 +15,10 @@ export function SidebarToggle() {
       <Button
         variant="ghost"
         size="icon"
-        className="-ml-2 h-9 w-9 p-0"
+        className="-ml-2 size-9 p-0"
         onClick={toggleSidebar}
       >
-        <IconSidebar className="h-6 w-6" />
+        <IconSidebar className="size-6" />
         <span className="sr-only">Toggle Sidebar</span>
       </Button>
     </Tooltip>

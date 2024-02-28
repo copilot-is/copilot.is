@@ -1,12 +1,13 @@
-import { UseChatHelpers } from 'ai/react'
 import * as React from 'react'
+import Link from 'next/link'
+import { UseChatHelpers } from 'ai/react'
 import Textarea from 'react-textarea-autosize'
 
-import { Button } from '@/components/ui/button'
+import { cn } from '@/lib/utils'
+import { Button, buttonVariants } from '@/components/ui/button'
 import { IconArrowElbow, IconPlus } from '@/components/ui/icons'
 import { Tooltip } from '@/components/ui/tooltip'
 import { useEnterSubmit } from '@/lib/hooks/use-enter-submit'
-import { useRouter } from 'next/navigation'
 
 export interface PromptProps
   extends Pick<UseChatHelpers, 'input' | 'setInput'> {
@@ -15,14 +16,13 @@ export interface PromptProps
 }
 
 export function PromptForm({
-  onSubmit,
   input,
   setInput,
-  isLoading
+  isLoading,
+  onSubmit
 }: PromptProps) {
   const { formRef, onKeyDown } = useEnterSubmit()
   const inputRef = React.useRef<HTMLTextAreaElement>(null)
-  const router = useRouter()
 
   React.useEffect(() => {
     if (inputRef.current) {
@@ -44,19 +44,16 @@ export function PromptForm({
     >
       <div className="relative flex max-h-60 w-full grow flex-col overflow-hidden bg-background px-10 sm:rounded-md sm:border sm:px-14">
         <Tooltip content="New Chat" align="center" side="top">
-          <Button
-            variant="outline"
-            size="icon"
-            className="absolute left-0 top-4 rounded-full sm:left-4"
-            onClick={e => {
-              e.preventDefault()
-              router.refresh()
-              router.push('/')
-            }}
+          <Link
+            className={cn(
+              buttonVariants({ variant: 'outline', size: 'icon' }),
+              'absolute left-0 top-4 rounded-full sm:left-4'
+            )}
+            href="/"
           >
             <IconPlus />
             <span className="sr-only">New Chat</span>
-          </Button>
+          </Link>
         </Tooltip>
         <Textarea
           ref={inputRef}

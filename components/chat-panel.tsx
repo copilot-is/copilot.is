@@ -1,6 +1,6 @@
 import { type UseChatHelpers } from 'ai/react'
 
-import { shareChat } from '@/app/actions'
+import { updateChat } from '@/app/actions'
 import { PromptForm } from '@/components/prompt-form'
 import { ButtonScrollToBottom } from '@/components/button-scroll-to-bottom'
 import { ChatRegenerate } from '@/components/chat-regenerate'
@@ -43,7 +43,7 @@ export function ChatPanel({
             stop={stop}
             reload={reload}
           />
-          <ChatShare chat={chat} messages={messages} shareChat={shareChat} />
+          <ChatShare chat={chat} messages={messages} updateChat={updateChat} />
         </div>
         <div className="space-y-4 border-t bg-background px-4 py-2 shadow-lg sm:rounded-t-xl sm:border md:py-4">
           <PromptForm

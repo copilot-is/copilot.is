@@ -17,20 +17,22 @@ import {
   DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu'
 import { ChatShareDialog } from '@/components/chat-share-dialog'
-import { ChatDeleteDialog } from './chat-delete-dialog'
-import { ChatTitleDialog } from './chat-title-dialog'
-import { updateChat } from '@/app/actions'
+import { ChatDeleteDialog } from '@/components/chat-delete-dialog'
+import { ChatTitleDialog } from '@/components/chat-title-dialog'
 
 interface SidebarActionsProps {
   chat: Chat
-  removeChat: (args: { id: string; path: string }) => ServerActionResult<void>
-  shareChat: (id: string) => ServerActionResult<Chat>
+  removeChat: (id: string) => ServerActionResult<void>
+  updateChat: (
+    id: string,
+    data: { [key: keyof Chat]: Chat[keyof Chat] }
+  ) => ServerActionResult<Chat>
 }
 
 export function SidebarActions({
   chat,
   removeChat,
-  shareChat
+  updateChat
 }: SidebarActionsProps) {
   const [deleteDialogOpen, setDeleteDialogOpen] = React.useState(false)
   const [shareDialogOpen, setShareDialogOpen] = React.useState(false)
@@ -43,7 +45,7 @@ export function SidebarActions({
           <Button
             variant="ghost"
             size="icon"
-            className="h-6 w-6 hover:bg-background data-[state=open]:bg-background outline-none"
+            className="size-6 hover:bg-background data-[state=open]:bg-background outline-none"
           >
             <IconDotsThreeVertical />
           </Button>
@@ -65,7 +67,7 @@ export function SidebarActions({
       </DropdownMenu>
       <ChatShareDialog
         chat={chat}
-        shareChat={shareChat}
+        updateChat={updateChat}
         open={shareDialogOpen}
         onOpenChange={setShareDialogOpen}
         onCopy={() => setShareDialogOpen(false)}

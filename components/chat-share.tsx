@@ -5,15 +5,18 @@ import { useState } from 'react'
 import { type Chat, ServerActionResult } from '@/lib/types'
 import { Button } from '@/components/ui/button'
 import { IconShare } from '@/components/ui/icons'
-import { ChatShareDialog } from './chat-share-dialog'
+import { ChatShareDialog } from '@/components/chat-share-dialog'
 
 interface ChatShareProps {
   chat?: Chat
   messages?: Chat['messages']
-  shareChat: (id: string) => ServerActionResult<Chat>
+  updateChat: (
+    id: string,
+    data: { [key: keyof Chat]: Chat[keyof Chat] }
+  ) => ServerActionResult<Chat>
 }
 
-export function ChatShare({ chat, messages = [], shareChat }: ChatShareProps) {
+export function ChatShare({ chat, messages = [], updateChat }: ChatShareProps) {
   const [shareDialogOpen, setShareDialogOpen] = useState(false)
 
   if (!chat && !messages.length) {
@@ -36,7 +39,7 @@ export function ChatShare({ chat, messages = [], shareChat }: ChatShareProps) {
         onCopy={() => setShareDialogOpen(false)}
         chat={chat}
         messages={messages}
-        shareChat={shareChat}
+        updateChat={updateChat}
       />
     </>
   )

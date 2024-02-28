@@ -5,7 +5,7 @@ export interface SidebarListProps {
   chats?: Chat[]
 }
 
-export async function SidebarList({ chats }: SidebarListProps) {
+export function SidebarList({ chats }: SidebarListProps) {
   return (
     <div className="flex-1 overflow-auto">
       {chats?.length ? (
