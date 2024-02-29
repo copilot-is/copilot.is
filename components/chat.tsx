@@ -96,7 +96,14 @@ export function Chat({ id, chat, updateChat }: ChatProps) {
 
   const generateTitle = async (id: string, input: string, message: Message) => {
     try {
-      const genUsage = buildChatUsage(currentUsage, provider)
+      const genModel = {
+        openai: 'gpt-3.5-turbo',
+        google: 'gemini-pro'
+      }
+      const genUsage = buildChatUsage(
+        { ...currentUsage, model: genModel[provider] },
+        provider
+      )
       if (input && message && message.content) {
         const data = await fetcher('/api/chat', {
           method: 'POST',
