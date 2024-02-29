@@ -2,7 +2,6 @@
 
 import * as React from 'react'
 import { toast } from 'react-hot-toast'
-import { useRouter } from 'next/navigation'
 
 import { ServerActionResult, type Chat } from '@/lib/types'
 import { Button } from '@/components/ui/button'
@@ -33,7 +32,6 @@ export function ChatTitleDialog({
   onUpdate,
   ...props
 }: ChatTitleDialogProps) {
-  const router = useRouter()
   const [isPending, startTransition] = React.useTransition()
   const [title, setTitle] = React.useState(chat.title)
 
@@ -45,7 +43,7 @@ export function ChatTitleDialog({
     <Dialog {...props}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Edit chat title</DialogTitle>
+          <DialogTitle>Rename title</DialogTitle>
           <DialogDescription>Give chat rename a new title.</DialogDescription>
         </DialogHeader>
         <Input

@@ -34,9 +34,9 @@ export function SidebarActions({
   removeChat,
   updateChat
 }: SidebarActionsProps) {
-  const [deleteDialogOpen, setDeleteDialogOpen] = React.useState(false)
   const [shareDialogOpen, setShareDialogOpen] = React.useState(false)
-  const [editDialogOpen, setEditDialogOpen] = React.useState(false)
+  const [titleDialogOpen, setTitleDialogOpen] = React.useState(false)
+  const [deleteDialogOpen, setDeleteDialogOpen] = React.useState(false)
 
   return (
     <>
@@ -55,9 +55,9 @@ export function SidebarActions({
             <IconShare className="mr-2" />
             Share
           </DropdownMenuItem>
-          <DropdownMenuItem onClick={() => setEditDialogOpen(true)}>
+          <DropdownMenuItem onClick={() => setTitleDialogOpen(true)}>
             <IconEdit className="mr-2" />
-            Edit
+            Rename
           </DropdownMenuItem>
           <DropdownMenuItem onClick={() => setDeleteDialogOpen(true)}>
             <IconTrash className="mr-2" />
@@ -80,11 +80,11 @@ export function SidebarActions({
         onDelete={() => setDeleteDialogOpen(false)}
       />
       <ChatTitleDialog
-        open={editDialogOpen}
-        onOpenChange={setEditDialogOpen}
-        onUpdate={() => setEditDialogOpen(false)}
         chat={chat}
         updateChat={updateChat}
+        open={titleDialogOpen}
+        onOpenChange={setTitleDialogOpen}
+        onUpdate={() => setTitleDialogOpen(false)}
       />
     </>
   )
