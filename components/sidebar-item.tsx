@@ -27,7 +27,7 @@ export function SidebarItem({ index, chat, children }: SidebarItemProps) {
 
   return (
     <motion.div
-      className="group relative h-8"
+      className="relative h-8"
       variants={{
         initial: {
           height: 0,

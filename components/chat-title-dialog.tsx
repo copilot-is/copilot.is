@@ -47,7 +47,7 @@ export function ChatTitleDialog({
           <DialogDescription>Give chat rename a new title.</DialogDescription>
         </DialogHeader>
         <Input
-          defaultValue={chat.title}
+          defaultValue={title}
           onChange={e => setTitle(e.target.value)}
           required
         />
