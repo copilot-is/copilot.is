@@ -2,10 +2,12 @@
 
 import * as React from 'react'
 import { toast } from 'react-hot-toast'
-import { useRouter } from 'next/navigation'
 
-import { ServerActionResult, Model, type Chat } from '@/lib/types'
-import { IconGoogleAI, IconOpenAI } from '@/components/ui/icons'
+import { Model, type Chat } from '@/lib/types'
+import {
+  IconGoogleAI,
+  IconOpenAI
+} from '@/components/ui/icons'
 import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
@@ -19,17 +21,13 @@ import {
 import { useSettings } from '@/lib/hooks/use-settings'
 import { SupportedModels } from '@/lib/constant'
 import { buildChatUsage, providerFromModel } from '@/lib/utils'
+import { updateChat } from '@/app/actions'
 
 interface ModelMenuProps {
   chat?: Chat
-  updateChat: (
-    id: string,
-    data: { [key: keyof Chat]: Chat[keyof Chat] }
-  ) => ServerActionResult<Chat>
 }
 
-export function ModelMenu({ chat, updateChat }: ModelMenuProps) {
-  const router = useRouter()
+export function ModelMenu({ chat }: ModelMenuProps) {
   const { availableModels, model, setModel, modelSettings } = useSettings()
   const [isPending, startTransition] = React.useTransition()
   const allowedModels = availableModels

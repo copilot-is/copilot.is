@@ -4,7 +4,7 @@ import * as React from 'react'
 import { toast } from 'react-hot-toast'
 import { useRouter } from 'next/navigation'
 
-import { ServerActionResult, type Chat } from '@/lib/types'
+import { type Chat } from '@/lib/types'
 import {
   AlertDialog,
   AlertDialogProps,
@@ -17,17 +17,16 @@ import {
   AlertDialogTitle
 } from '@/components/ui/alert-dialog'
 import { IconSpinner } from '@/components/ui/icons'
+import { removeChat } from '@/app/actions'
 
 interface ChatDeleteDialogProps extends AlertDialogProps {
   chat: Pick<Chat, 'id'>
-  onDelete: () => void
-  removeChat: (id: string) => ServerActionResult<void>
+  onClose: () => void
 }
 
 export function ChatDeleteDialog({
   chat,
-  onDelete,
-  removeChat,
+  onClose,
   ...props
 }: ChatDeleteDialogProps) {
   const router = useRouter()
@@ -59,7 +58,7 @@ export function ChatDeleteDialog({
 
                 router.push('/')
                 toast.success('Chat deleted')
-                onDelete()
+                onClose()
               })
             }}
           >

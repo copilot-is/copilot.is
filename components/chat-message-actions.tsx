@@ -3,7 +3,7 @@
 import * as React from 'react'
 import { toast } from 'react-hot-toast'
 
-import { ServerActionResult, Message, type Chat } from '@/lib/types'
+import { Message, type Chat } from '@/lib/types'
 import { useCopyToClipboard } from '@/lib/hooks/use-copy-to-clipboard'
 import { Button } from '@/components/ui/button'
 import { Tooltip } from '@/components/ui/tooltip'
@@ -33,22 +33,18 @@ import {
   AlertDialogHeader,
   AlertDialogTitle
 } from '@/components/ui/alert-dialog'
+import { updateChat } from '@/app/actions'
 
 interface ChatMessageActionsProps {
   chat: Pick<Chat, 'id' | 'messages'>
   message: Message
   setMessages?: (messages: Message[]) => void
-  updateChat?: (
-    id: string,
-    data: { [key: keyof Chat]: Chat[keyof Chat] }
-  ) => ServerActionResult<Chat>
 }
 
 export function ChatMessageActions({
   chat,
   message,
-  setMessages,
-  updateChat
+  setMessages
 }: ChatMessageActionsProps) {
   const { isCopied, copyToClipboard } = useCopyToClipboard({ timeout: 3000 })
   const [content, setContent] = React.useState(message.content)
@@ -74,7 +70,7 @@ export function ChatMessageActions({
           <span className="sr-only">Copy message</span>
         </Button>
       </Tooltip>
-      {updateChat && setMessages && (
+      {setMessages && (
         <>
           <Tooltip content="Edit message">
             <Button

@@ -3,7 +3,7 @@
 import * as React from 'react'
 import { toast } from 'react-hot-toast'
 
-import { ServerActionResult, type Chat } from '@/lib/types'
+import { type Chat } from '@/lib/types'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
@@ -16,22 +16,18 @@ import {
 } from '@/components/ui/dialog'
 import { IconSpinner } from '@/components/ui/icons'
 import { useCopyToClipboard } from '@/lib/hooks/use-copy-to-clipboard'
+import { updateChat } from '@/app/actions'
 
 interface ChatShareDialogProps extends DialogProps {
   chat?: Chat
   messages?: Chat['messages']
-  updateChat: (
-    id: string,
-    data: { [key: keyof Chat]: Chat[keyof Chat] }
-  ) => ServerActionResult<Chat>
-  onCopy: () => void
+  onClose: () => void
 }
 
 export function ChatShareDialog({
   chat,
   messages,
-  updateChat,
-  onCopy,
+  onClose,
   ...props
 }: ChatShareDialogProps) {
   const { copyToClipboard } = useCopyToClipboard({ timeout: 1000 })
@@ -42,7 +38,6 @@ export function ChatShareDialog({
       const url = new URL(window.location.href)
       url.pathname = sharePath
       copyToClipboard(url.toString())
-      onCopy()
       toast.success('Share link copied to clipboard', {
         style: {
           borderRadius: '10px',
@@ -55,8 +50,9 @@ export function ChatShareDialog({
           secondary: 'black'
         }
       })
+      onClose()
     },
-    [copyToClipboard, onCopy]
+    [copyToClipboard, onClose]
   )
 
   if (!chat) {

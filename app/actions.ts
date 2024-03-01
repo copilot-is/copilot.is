@@ -21,23 +21,41 @@ export async function updateChat(
   id: string,
   payload: { [key: keyof Chat]: Chat[keyof Chat] }
 ) {
-  const chat = await api.chat.update.mutate({ id, chat: payload })
+  try {
+    const chat = await api.chat.update.mutate({ id, chat: payload })
 
-  revalidatePath('/')
-  revalidatePath(`/chat/${id}`)
+    revalidatePath('/')
+    revalidatePath(`/chat/${id}`)
 
-  return chat as Chat
+    return chat as Chat
+  } catch (err: any) {
+    return {
+      error: err.message
+    }
+  }
 }
 
 export async function removeChat(id: string) {
-  await api.chat.delete.mutate({ id })
+  try {
+    await api.chat.delete.mutate({ id })
 
-  revalidatePath('/')
-  revalidatePath(`/chat/${id}`)
+    revalidatePath('/')
+    revalidatePath(`/chat/${id}`)
+  } catch (err: any) {
+    return {
+      error: err.message
+    }
+  }
 }
 
 export async function clearChats() {
-  await api.chat.deleteAll.mutate()
+  try {
+    await api.chat.deleteAll.mutate()
 
-  revalidatePath('/')
+    revalidatePath('/')
+  } catch (err: any) {
+    return {
+      error: err.message
+    }
+  }
 }

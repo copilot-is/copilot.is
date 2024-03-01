@@ -3,7 +3,7 @@
 import * as React from 'react'
 import { toast } from 'react-hot-toast'
 
-import { ServerActionResult, type Chat } from '@/lib/types'
+import { type Chat } from '@/lib/types'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
@@ -16,20 +16,16 @@ import {
 } from '@/components/ui/dialog'
 import { IconSpinner } from '@/components/ui/icons'
 import { Input } from '@/components/ui/input'
+import { updateChat } from '@/app/actions'
 
 interface ChatTitleDialogProps extends DialogProps {
   chat: Pick<Chat, 'id' | 'title'>
-  updateChat: (
-    id: string,
-    data: { [key: keyof Chat]: Chat[keyof Chat] }
-  ) => ServerActionResult<Chat>
-  onUpdate: () => void
+  onClose: () => void
 }
 
 export function ChatTitleDialog({
   chat,
-  updateChat,
-  onUpdate,
+  onClose,
   ...props
 }: ChatTitleDialogProps) {
   const [isPending, startTransition] = React.useTransition()
@@ -69,7 +65,7 @@ export function ChatTitleDialog({
                 }
 
                 toast.success('Chat title saved')
-                onUpdate()
+                onClose()
               })
             }}
           >

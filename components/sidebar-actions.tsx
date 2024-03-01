@@ -2,7 +2,7 @@
 
 import * as React from 'react'
 
-import { type Chat, ServerActionResult } from '@/lib/types'
+import { type Chat } from '@/lib/types'
 import { Button } from '@/components/ui/button'
 import {
   IconDotsThreeVertical,
@@ -22,18 +22,9 @@ import { ChatTitleDialog } from '@/components/chat-title-dialog'
 
 interface SidebarActionsProps {
   chat: Chat
-  removeChat: (id: string) => ServerActionResult<void>
-  updateChat: (
-    id: string,
-    data: { [key: keyof Chat]: Chat[keyof Chat] }
-  ) => ServerActionResult<Chat>
 }
 
-export function SidebarActions({
-  chat,
-  removeChat,
-  updateChat
-}: SidebarActionsProps) {
+export function SidebarActions({ chat }: SidebarActionsProps) {
   const [shareDialogOpen, setShareDialogOpen] = React.useState(false)
   const [titleDialogOpen, setTitleDialogOpen] = React.useState(false)
   const [deleteDialogOpen, setDeleteDialogOpen] = React.useState(false)
@@ -67,24 +58,21 @@ export function SidebarActions({
       </DropdownMenu>
       <ChatShareDialog
         chat={chat}
-        updateChat={updateChat}
         open={shareDialogOpen}
         onOpenChange={setShareDialogOpen}
-        onCopy={() => setShareDialogOpen(false)}
+        onClose={() => setShareDialogOpen(false)}
       />
       <ChatDeleteDialog
         chat={chat}
-        removeChat={removeChat}
         open={deleteDialogOpen}
         onOpenChange={setDeleteDialogOpen}
-        onDelete={() => setDeleteDialogOpen(false)}
+        onClose={() => setDeleteDialogOpen(false)}
       />
       <ChatTitleDialog
         chat={chat}
-        updateChat={updateChat}
         open={titleDialogOpen}
         onOpenChange={setTitleDialogOpen}
-        onUpdate={() => setTitleDialogOpen(false)}
+        onClose={() => setTitleDialogOpen(false)}
       />
     </>
   )

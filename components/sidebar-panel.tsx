@@ -2,7 +2,7 @@ import * as React from 'react'
 import Link from 'next/link'
 
 import { auth } from '@/server/auth'
-import { clearChats, getChats } from '@/app/actions'
+import { getChats } from '@/app/actions'
 import { IconPlus } from '@/components/ui/icons'
 import { SidebarList } from '@/components/sidebar-list'
 import { ClearHistory } from '@/components/clear-history'
@@ -11,7 +11,7 @@ import { ThemeToggle } from '@/components/theme-toggle'
 import { UserMenu } from '@/components/user-menu'
 import { GithubLink } from '@/components/github-link'
 
-export async function ChatHistory() {
+export async function SidebarPanel() {
   const session = await auth()
   const chats = await getChats()
 
@@ -48,7 +48,7 @@ export async function ChatHistory() {
           <GithubLink />
           <ThemeToggle />
           <Settings />
-          <ClearHistory clearChats={clearChats} isEnabled={chats?.length > 0} />
+          <ClearHistory isEnabled={chats?.length > 0} />
         </div>
       </div>
     </>

@@ -5,12 +5,7 @@
 import remarkGfm from 'remark-gfm'
 import remarkMath from 'remark-math'
 
-import {
-  ServerActionResult,
-  Message,
-  ModelProvider,
-  type Chat
-} from '@/lib/types'
+import { Message, ModelProvider, type Chat } from '@/lib/types'
 import { CodeBlock } from '@/components/ui/codeblock'
 import { IconGoogleAI, IconOpenAI, IconUser } from '@/components/ui/icons'
 import { MemoizedReactMarkdown } from '@/components/markdown'
@@ -21,18 +16,13 @@ export interface ChatMessageProps {
   message: Message
   provider: ModelProvider
   setMessages?: (messages: Message[]) => void
-  updateChat?: (
-    id: string,
-    data: { [key: keyof Chat]: Chat[keyof Chat] }
-  ) => ServerActionResult<Chat>
 }
 
 export function ChatMessage({
   chat,
   message,
   provider,
-  setMessages,
-  updateChat
+  setMessages
 }: ChatMessageProps) {
   return (
     <div className="relative mb-4 flex items-start">
@@ -91,7 +81,6 @@ export function ChatMessage({
           chat={chat}
           message={message}
           setMessages={setMessages}
-          updateChat={updateChat}
         />
       </div>
     </div>

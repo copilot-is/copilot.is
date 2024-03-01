@@ -10,13 +10,9 @@ import { ChatShareDialog } from '@/components/chat-share-dialog'
 interface ChatShareProps {
   chat?: Chat
   messages?: Chat['messages']
-  updateChat: (
-    id: string,
-    data: { [key: keyof Chat]: Chat[keyof Chat] }
-  ) => ServerActionResult<Chat>
 }
 
-export function ChatShare({ chat, messages = [], updateChat }: ChatShareProps) {
+export function ChatShare({ chat, messages = [] }: ChatShareProps) {
   const [shareDialogOpen, setShareDialogOpen] = useState(false)
 
   if (!chat && !messages.length) {
@@ -34,12 +30,11 @@ export function ChatShare({ chat, messages = [], updateChat }: ChatShareProps) {
         Share
       </Button>
       <ChatShareDialog
-        open={shareDialogOpen}
-        onOpenChange={setShareDialogOpen}
-        onCopy={() => setShareDialogOpen(false)}
         chat={chat}
         messages={messages}
-        updateChat={updateChat}
+        open={shareDialogOpen}
+        onOpenChange={setShareDialogOpen}
+        onClose={() => setShareDialogOpen(false)}
       />
     </>
   )

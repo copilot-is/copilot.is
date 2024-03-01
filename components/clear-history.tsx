@@ -4,7 +4,6 @@ import * as React from 'react'
 import { useRouter } from 'next/navigation'
 import { toast } from 'react-hot-toast'
 
-import { ServerActionResult } from '@/lib/types'
 import { Button } from '@/components/ui/button'
 import {
   AlertDialog,
@@ -19,16 +18,13 @@ import {
 } from '@/components/ui/alert-dialog'
 import { IconSpinner, IconTrash } from '@/components/ui/icons'
 import { Tooltip } from '@/components/ui/tooltip'
+import { clearChats } from '@/app/actions'
 
 interface ClearHistoryProps {
   isEnabled: boolean
-  clearChats: () => ServerActionResult<void>
 }
 
-export function ClearHistory({
-  isEnabled = false,
-  clearChats
-}: ClearHistoryProps) {
+export function ClearHistory({ isEnabled = false }: ClearHistoryProps) {
   const router = useRouter()
   const [open, setOpen] = React.useState(false)
   const [isPending, startTransition] = React.useTransition()

@@ -1,12 +1,7 @@
 import * as React from 'react'
 
 import { cn } from '@/lib/utils'
-import {
-  ServerActionResult,
-  Message,
-  ModelProvider,
-  type Chat
-} from '@/lib/types'
+import { Message, ModelProvider } from '@/lib/types'
 import { Separator } from '@/components/ui/separator'
 import { ChatMessage } from '@/components/chat-message'
 
@@ -15,10 +10,6 @@ export interface ChatListProps extends React.ComponentProps<'div'> {
   messages: Message[]
   provider: ModelProvider
   setMessages?: (messages: Message[]) => void
-  updateChat?: (
-    id: string,
-    data: { [key: keyof Chat]: Chat[keyof Chat] }
-  ) => ServerActionResult<Chat>
 }
 
 export function ChatList({
@@ -26,8 +17,7 @@ export function ChatList({
   messages,
   provider,
   className,
-  setMessages,
-  updateChat
+  setMessages
 }: ChatListProps) {
   if (!messages.length) {
     return null
@@ -42,7 +32,6 @@ export function ChatList({
             message={message}
             provider={provider}
             setMessages={setMessages}
-            updateChat={updateChat}
           />
           {index < messages.length - 1 && (
             <Separator className="my-4 md:my-8" />

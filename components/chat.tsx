@@ -4,7 +4,7 @@ import { useChat, type Message } from 'ai/react'
 import { toast } from 'react-hot-toast'
 import { usePathname, useRouter } from 'next/navigation'
 
-import { ServerActionResult, type Chat } from '@/lib/types'
+import { type Chat } from '@/lib/types'
 import {
   buildChatUsage,
   fetcher,
@@ -20,17 +20,14 @@ import { ChatScrollAnchor } from '@/components/chat-scroll-anchor'
 import { ChatHeader } from '@/components/chat-header'
 import { useSettings } from '@/lib/hooks/use-settings'
 import { KnowledgeCutOffDate } from '@/lib/constant'
+import { updateChat } from '@/app/actions'
 
 interface ChatProps {
   id: string
   chat?: Chat
-  updateChat: (
-    id: string,
-    data: { [key: keyof Chat]: Chat[keyof Chat] }
-  ) => ServerActionResult<Chat>
 }
 
-export function Chat({ id, chat, updateChat }: ChatProps) {
+export function Chat({ id, chat }: ChatProps) {
   const router = useRouter()
   const pathname = usePathname()
   const { title, usage, messages: initialMessages } = chat ?? {}
@@ -138,7 +135,7 @@ export function Chat({ id, chat, updateChat }: ChatProps) {
 
   return (
     <>
-      <ChatHeader chat={chat} updateChat={updateChat} />
+      <ChatHeader chat={chat} />
       <div className="flex-1 py-4 md:pt-10">
         {messages.length ? (
           <>
@@ -147,7 +144,6 @@ export function Chat({ id, chat, updateChat }: ChatProps) {
               provider={provider}
               messages={messages}
               setMessages={setMessages}
-              updateChat={updateChat}
             />
             <ChatScrollAnchor trackVisibility={isLoading} />
           </>
