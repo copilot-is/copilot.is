@@ -28,14 +28,14 @@ export const chats = createTable(
   {
     id: varchar('id', { length: 255 }).notNull().primaryKey(),
     title: varchar('title', { length: 255 }).notNull(),
-    userId: varchar('userId', { length: 255 })
+    messages: json('messages').$type<Chat['messages']>().notNull(),
+    sharing: boolean('sharing').notNull().default(false),
+    usage: json('usage').$type<Chat['usage']>().notNull(),
+    userId: varchar('user_id', { length: 255 })
       .notNull()
       .references(() => users.id, { onDelete: 'cascade' }),
     createdAt: timestamp('created_at').notNull().defaultNow(),
-    updatedAt: timestamp('updated_at').notNull().defaultNow(),
-    shared: boolean('shared').notNull().default(false),
-    messages: json('messages').$type<Chat['messages']>().notNull(),
-    usage: json('usage').$type<Chat['usage']>().notNull()
+    updatedAt: timestamp('updated_at').notNull().defaultNow()
   },
   chat => ({
     userIdIdx: index('chat_userId_idx').on(chat.userId)

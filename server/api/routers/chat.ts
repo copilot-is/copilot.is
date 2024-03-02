@@ -79,7 +79,7 @@ export const chatRouter = createTRPCRouter({
         id: z.string(),
         chat: z.object({
           title: z.string().trim().min(1).max(255).optional(),
-          shared: z.boolean().optional(),
+          sharing: z.boolean().optional(),
           messages: z
             .array(
               z.object({
@@ -141,7 +141,7 @@ export const chatRouter = createTRPCRouter({
         where: and(
           eq(chats.userId, ctx.session.user.id),
           eq(chats.id, input.id),
-          eq(chats.shared, true)
+          eq(chats.sharing, true)
         )
       })
     })

@@ -10,7 +10,7 @@ export interface Chat extends Record<string, any> {
   updatedAt: Date
   userId: string
   messages: Message[]
-  shared: boolean
+  sharing: boolean
   usage: Usage
 }
 

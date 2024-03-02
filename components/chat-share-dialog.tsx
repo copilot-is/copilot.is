@@ -65,7 +65,7 @@ export function ChatShareDialog({
         <DialogHeader>
           <DialogTitle>Share link to chat</DialogTitle>
           <DialogDescription>
-            Anyone with the URL will be able to view the shared chat.
+            Anyone with the URL will be able to view the sharing chat.
           </DialogDescription>
         </DialogHeader>
         <div className="p-4 space-y-1 text-sm border rounded-md">
@@ -80,8 +80,8 @@ export function ChatShareDialog({
             onClick={() => {
               startShareTransition(async () => {
                 const sharePath = `/share/${chat.id}`
-                if (!chat.shared) {
-                  const result = await updateChat(chat.id, { shared: true })
+                if (!chat.sharing) {
+                  const result = await updateChat(chat.id, { sharing: true })
 
                   if (result && 'error' in result) {
                     toast.error(result.error)
