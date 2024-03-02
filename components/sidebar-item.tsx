@@ -45,9 +45,9 @@ export function SidebarItem({ index, chat, children }: SidebarItemProps) {
         ease: 'easeIn'
       }}
     >
-      <Tooltip hidden={!chat.shared} content="This is a shared chat.">
+      <Tooltip hidden={!chat.sharing} content="This is a sharing chat.">
         <div className="absolute left-1 top-1 flex size-6 items-center justify-center">
-          {chat.shared ? <IconUsers /> : <IconMessage />}
+          {chat.sharing ? <IconUsers /> : <IconMessage />}
         </div>
       </Tooltip>
       <Link
@@ -100,7 +100,7 @@ export function SidebarItem({ index, chat, children }: SidebarItemProps) {
           </span>
         </div>
       </Link>
-      <div className='absolute right-1 top-1'>{children}</div>
+      <div className="absolute right-1 top-1">{children}</div>
     </motion.div>
   )
 }
