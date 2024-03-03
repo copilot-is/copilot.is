@@ -1,4 +1,4 @@
-import { type Model, ModelProvider } from '@/lib/types'
+import { type Model, ModelProvider, ChatCategory } from '@/lib/types'
 
 export const KnowledgeCutOffDate: Record<string, string> = {
   default: '2021-09',
@@ -55,3 +55,11 @@ export const SupportedModels: {
 
 export const SystemPrompt =
   '\nYou are ChatGPT, a large language model trained by OpenAI.\nKnowledge cutoff: {cutoff}\nCurrent model: {model}\nCurrent time: {time}\nLatex inline: $x^2$ \nLatex block: $$e=mc^2$$\n\n'
+
+export const ChatCategories: ChatCategory[] = [
+  'Today',
+  'Yesterday',
+  'Previous 7 Days',
+  'Previous Month',
+  'Older'
+]

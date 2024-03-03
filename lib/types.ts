@@ -3,6 +3,13 @@ import { ChatCompletionCreateParamsBase } from 'openai/resources/chat/completion
 
 export type Message = AIMessage
 
+export type ChatCategory =
+  | 'Today'
+  | 'Yesterday'
+  | 'Previous 7 Days'
+  | 'Previous Month'
+  | 'Older'
+
 export interface Chat extends Record<string, any> {
   id: string
   title: string
