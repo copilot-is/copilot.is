@@ -32,6 +32,7 @@ export function ChatShareDialog({
 }: ChatShareDialogProps) {
   const { copyToClipboard } = useCopyToClipboard({ timeout: 1000 })
   const [isSharePending, startShareTransition] = React.useTransition()
+  const [isDeletePending, startDeleteTransition] = React.useTransition()
 
   const copyShareLink = React.useCallback(
     async (sharePath: string) => {
@@ -75,8 +76,35 @@ export function ChatShareDialog({
           </div>
         </div>
         <DialogFooter className="items-center">
+          {chat.sharing && (
+            <Button
+              variant="link"
+              disabled={isDeletePending}
+              onClick={() => {
+                startDeleteTransition(async () => {
+                  const result = await updateChat(chat.id, { sharing: false })
+
+                  if (result && 'error' in result) {
+                    toast.error(result.error)
+                    return
+                  }
+
+                  toast.success('Shared link deleted success')
+                })
+              }}
+            >
+              {isDeletePending ? (
+                <>
+                  <IconSpinner className="mr-2 animate-spin" />
+                  Deleting...
+                </>
+              ) : (
+                <>Delete share link</>
+              )}
+            </Button>
+          )}
           <Button
-            disabled={isSharePending}
+            disabled={isSharePending || isDeletePending}
             onClick={() => {
               startShareTransition(async () => {
                 const sharePath = `/share/${chat.id}`

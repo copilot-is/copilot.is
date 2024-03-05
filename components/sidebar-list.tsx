@@ -1,8 +1,9 @@
 'use client'
 
-import { Chat, ChatCategory } from '@/lib/types'
+import * as React from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 
+import { Chat, ChatCategory } from '@/lib/types'
 import { SidebarActions } from '@/components/sidebar-actions'
 import { SidebarItem } from '@/components/sidebar-item'
 import { ChatCategories } from '@/lib/constant'
@@ -13,7 +14,8 @@ export interface SidebarListProps {
 
 export function SidebarList({ chats }: SidebarListProps) {
   const getSortedChats = (data: Chat[], category: ChatCategory) => {
-    const todayStart = new Date(new Date().setHours(0, 0, 0, 0))
+    const now = new Date()
+    const todayStart = new Date(now.setHours(0, 0, 0, 0))
     const yesterdayStart = new Date(
       new Date().setDate(todayStart.getDate() - 1)
     )
@@ -54,7 +56,7 @@ export function SidebarList({ chats }: SidebarListProps) {
               const sortedChats = getSortedChats(chats, category)
               return (
                 sortedChats.length && (
-                  <>
+                  <React.Fragment key={category}>
                     <h2 className="px-2 text-xs text-muted-foreground">
                       {category}
                     </h2>
@@ -74,7 +76,7 @@ export function SidebarList({ chats }: SidebarListProps) {
                           </motion.div>
                         )
                     )}
-                  </>
+                  </React.Fragment>
                 )
               )
             })}

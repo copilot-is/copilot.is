@@ -24,7 +24,7 @@ function IconGoogleAI({ className, ...props }: React.ComponentProps<'svg'>) {
       xmlns="http://www.w3.org/2000/svg"
       fill="currentColor"
       viewBox="0 0 28 28"
-      className={cn('size-5', className)}
+      className={cn('size-4', className)}
       {...props}
     >
       <path
@@ -40,9 +40,9 @@ function IconGoogleAI({ className, ...props }: React.ComponentProps<'svg'>) {
           gradientUnits="userSpaceOnUse"
           gradientTransform="translate(2.77876 11.3795) rotate(18.6832) scale(29.8025 238.737)"
         >
-          <stop offset="0.0671246" stop-color="#9168C0" />
-          <stop offset="0.342551" stop-color="#5684D1" />
-          <stop offset="0.672076" stop-color="#1BA1E3" />
+          <stop offset="0.0671246" stopColor="#9168C0" />
+          <stop offset="0.342551" stopColor="#5684D1" />
+          <stop offset="0.672076" stopColor="#1BA1E3" />
         </radialGradient>
       </defs>
     </svg>
@@ -448,6 +448,87 @@ function IconEdit({ className, ...props }: React.ComponentProps<'svg'>) {
   )
 }
 
+function IconSlidersHorizontal({
+  className,
+  ...props
+}: React.ComponentProps<'svg'>) {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      fill="currentColor"
+      className={cn('size-4', className)}
+      viewBox="0 0 256 256"
+      {...props}
+    >
+      <rect width="256" height="256" fill="none" />
+      <circle
+        cx="104"
+        cy="80"
+        r="24"
+        fill="none"
+        stroke="currentColor"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth="16"
+      />
+      <circle
+        cx="168"
+        cy="176"
+        r="24"
+        fill="none"
+        stroke="currentColor"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth="16"
+      />
+      <line
+        x1="128"
+        y1="80"
+        x2="216"
+        y2="80"
+        fill="none"
+        stroke="currentColor"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth="16"
+      />
+      <line
+        x1="40"
+        y1="80"
+        x2="80"
+        y2="80"
+        fill="none"
+        stroke="currentColor"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth="16"
+      />
+      <line
+        x1="192"
+        y1="176"
+        x2="216"
+        y2="176"
+        fill="none"
+        stroke="currentColor"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth="16"
+      />
+      <line
+        x1="40"
+        y1="176"
+        x2="144"
+        y2="176"
+        fill="none"
+        stroke="currentColor"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        strokeWidth="16"
+      />
+    </svg>
+  )
+}
+
 export {
   IconOpenAI,
   IconGoogleAI,
@@ -477,5 +558,6 @@ export {
   IconCircle,
   IconSettings,
   IconDotsThreeVertical,
-  IconEdit
+  IconEdit,
+  IconSlidersHorizontal
 }

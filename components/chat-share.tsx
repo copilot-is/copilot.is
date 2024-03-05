@@ -1,8 +1,8 @@
 'use client'
 
-import { useState } from 'react'
+import * as React from 'react'
 
-import { type Chat, ServerActionResult } from '@/lib/types'
+import { type Chat } from '@/lib/types'
 import { Button } from '@/components/ui/button'
 import { IconShare } from '@/components/ui/icons'
 import { ChatShareDialog } from '@/components/chat-share-dialog'
@@ -12,10 +12,10 @@ interface ChatShareProps {
   messages?: Chat['messages']
 }
 
-export function ChatShare({ chat, messages = [] }: ChatShareProps) {
-  const [shareDialogOpen, setShareDialogOpen] = useState(false)
+export function ChatShare({ chat, messages }: ChatShareProps) {
+  const [shareDialogOpen, setShareDialogOpen] = React.useState(false)
 
-  if (!chat && !messages.length) {
+  if (!chat || !messages?.length) {
     return null
   }
 
