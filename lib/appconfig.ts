@@ -39,14 +39,14 @@ export const appConfig: AppConfig = {
   },
   openai: {
     apiKey: process.env.OPENAI_API_KEY || '',
-    baseURL: process.env.OPENAI_API_URL
+    baseURL: process.env.OPENAI_BASE_URL
   },
   google: {
     apiKey: process.env.GOOGLE_API_KEY || ''
   },
   anthropic: {
     apiKey: process.env.ANTHROPIC_API_KEY || '',
-    baseURL: process.env.ANTHROPIC_API_URL
+    baseURL: process.env.ANTHROPIC_BASE_URL
   },
   defaultModel: process.env.DEFAULT_MODEL,
   supportedModels: process.env.SUPPORTED_MODELS?.split(','),
