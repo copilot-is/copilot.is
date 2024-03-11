@@ -4,10 +4,7 @@ import * as React from 'react'
 import { toast } from 'react-hot-toast'
 
 import { Model, type Chat } from '@/lib/types'
-import {
-  IconGoogleAI,
-  IconOpenAI
-} from '@/components/ui/icons'
+import { IconClaudeAI, IconGoogleAI, IconOpenAI } from '@/components/ui/icons'
 import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
@@ -60,6 +57,7 @@ export function ModelMenu({ chat }: ModelMenuProps) {
           <Button variant="ghost" className="px-2">
             {selectedModel?.provider === 'openai' && <IconOpenAI />}
             {selectedModel?.provider === 'google' && <IconGoogleAI />}
+            {selectedModel?.provider === 'anthropic' && <IconClaudeAI />}
             <span className="ml-2">{selectedModel?.text}</span>
           </Button>
         </DropdownMenuTrigger>
@@ -67,7 +65,7 @@ export function ModelMenu({ chat }: ModelMenuProps) {
           <DropdownMenuLabel>Model</DropdownMenuLabel>
           <DropdownMenuSeparator />
           <DropdownMenuRadioGroup
-            className="overflow-auto max-h-64"
+            className="overflow-auto max-h-80"
             value={selectedModel?.value}
             onValueChange={value => {
               startTransition(async () => {
@@ -77,7 +75,10 @@ export function ModelMenu({ chat }: ModelMenuProps) {
           >
             {allowedModels.map(model => (
               <DropdownMenuRadioItem key={model.value} value={model.value}>
-                {model.text}
+                {model.provider === 'openai' && <IconOpenAI />}
+                {model.provider === 'google' && <IconGoogleAI />}
+                {model.provider === 'anthropic' && <IconClaudeAI />}
+                <span className="ml-2">{model.text}</span>
               </DropdownMenuRadioItem>
             ))}
           </DropdownMenuRadioGroup>

@@ -6,12 +6,11 @@ import Link from 'next/link'
 import { useParams } from 'next/navigation'
 import { motion } from 'framer-motion'
 
-import { buttonVariants } from '@/components/ui/button'
-import { IconMessage, IconUsers } from '@/components/ui/icons'
-import { Tooltip } from '@/components/ui/tooltip'
-import { useLocalStorage } from '@/lib/hooks/use-local-storage'
 import { type Chat } from '@/lib/types'
-import { cn } from '@/lib/utils'
+import { cn, providerFromModel } from '@/lib/utils'
+import { useLocalStorage } from '@/lib/hooks/use-local-storage'
+import { buttonVariants } from '@/components/ui/button'
+import { IconClaudeAI, IconGoogleAI, IconOpenAI } from '@/components/ui/icons'
 
 interface SidebarItemProps {
   index: number
@@ -24,6 +23,7 @@ export function SidebarItem({ index, chat, children }: SidebarItemProps) {
   const [newChatId, setNewChatId] = useLocalStorage<string>('new-chat-id')
   const isActive = id === chat.id
   const shouldAnimate = index === 0 && isActive && newChatId === chat.id
+  const provider = providerFromModel(chat.usage.model)
 
   return (
     <motion.div
@@ -45,11 +45,11 @@ export function SidebarItem({ index, chat, children }: SidebarItemProps) {
         ease: 'easeIn'
       }}
     >
-      <Tooltip hidden={!chat.sharing} content="This is a sharing chat.">
-        <div className="absolute left-1 top-1 flex size-6 items-center justify-center">
-          {chat.sharing ? <IconUsers /> : <IconMessage />}
-        </div>
-      </Tooltip>
+      <div className="absolute left-1 top-1 flex size-6 items-center justify-center">
+        {provider === 'openai' && <IconOpenAI />}
+        {provider === 'google' && <IconGoogleAI />}
+        {provider === 'anthropic' && <IconClaudeAI />}
+      </div>
       <Link
         href={`/chat/${chat.id}`}
         className={cn(

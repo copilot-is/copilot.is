@@ -51,6 +51,7 @@ export function Chat({ id, chat }: ChatProps) {
     : undefined
   const previewToken = allowCustomAPIKey ? token?.[provider] : undefined
   const chatUsage = buildChatUsage(currentUsage, provider, prompt)
+  const api = '/api/chat/' + provider
   const {
     isLoading,
     append,
@@ -62,6 +63,7 @@ export function Chat({ id, chat }: ChatProps) {
     setInput
   } = useChat({
     id,
+    api,
     initialMessages,
     sendExtraMessageFields: true,
     generateId: () => generateId,
@@ -95,14 +97,15 @@ export function Chat({ id, chat }: ChatProps) {
     try {
       const genModel = {
         openai: 'gpt-3.5-turbo',
-        google: 'gemini-pro'
+        google: 'gemini-pro',
+        anthropic: 'claude-instant-1.2'
       }
       const genUsage = buildChatUsage(
         { ...currentUsage, model: genModel[provider] },
         provider
       )
       if (input && message && message.content) {
-        const data = await fetcher('/api/chat', {
+        const data = await fetcher(`/api/chat/${provider}`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json'
@@ -129,7 +132,7 @@ export function Chat({ id, chat }: ChatProps) {
         }
       }
     } catch (err) {
-      // XXX
+      toast.error('Generate title failed')
     }
   }
 

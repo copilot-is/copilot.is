@@ -7,7 +7,12 @@ import remarkMath from 'remark-math'
 
 import { Message, ModelProvider, type Chat } from '@/lib/types'
 import { CodeBlock } from '@/components/ui/codeblock'
-import { IconGoogleAI, IconOpenAI, IconUser } from '@/components/ui/icons'
+import {
+  IconClaudeAI,
+  IconGoogleAI,
+  IconOpenAI,
+  IconUser
+} from '@/components/ui/icons'
 import { MemoizedReactMarkdown } from '@/components/markdown'
 import { ChatMessageActions } from '@/components/chat-message-actions'
 
@@ -32,6 +37,7 @@ export function ChatMessage({
           <>
             {provider === 'openai' && <IconOpenAI />}
             {provider === 'google' && <IconGoogleAI />}
+            {provider === 'anthropic' && <IconClaudeAI />}
           </>
         )}
       </div>

@@ -1,13 +1,8 @@
 import { clsx, type ClassValue } from 'clsx'
 import { customAlphabet } from 'nanoid'
 import { twMerge } from 'tailwind-merge'
-import {
-  type ChatCompletion,
-  type ChatCompletionMessageParam
-} from 'openai/resources'
-import { type GenerateContentResult } from '@google/generative-ai'
 
-import { Model, ModelProvider, Message, type Usage } from '@/lib/types'
+import { Model, ModelProvider, type Usage } from '@/lib/types'
 import { SupportedModels } from '@/lib/constant'
 
 export function cn(...inputs: ClassValue[]) {
@@ -75,37 +70,14 @@ export const providerFromModel = (value: Model): ModelProvider => {
   return model ? model.provider : 'openai'
 }
 
-export const buildOpenAIPrompt = (messages: Message[], prompt?: string) => {
-  const systemMessage = { role: 'system', content: prompt } as Message
-  const mergedMessages = prompt ? [systemMessage, ...messages] : messages
-
-  return mergedMessages.map(
-    ({ role, content, name, function_call }) =>
-      ({
-        role,
-        content,
-        ...(name !== undefined && { name }),
-        ...(function_call !== undefined && { function_call })
-      }) as ChatCompletionMessageParam
-  )
-}
-
-export const buildGoogleGenAIPrompt = (messages: Message[]) => ({
-  contents: messages
-    .filter(message => message.role === 'user' || message.role === 'assistant')
-    .map(message => ({
-      role: message.role === 'user' ? 'user' : 'model',
-      parts: [{ text: message.content }]
-    }))
-})
-
 export function buildOpenAIUsage(usage: Usage, prompt?: string): Usage {
   const fields: string[] = [
     'model',
     'temperature',
     'frequencyPenalty',
     'presencePenalty',
-    'topP'
+    'topP',
+    'maxTokens'
   ]
 
   const newUsage = {} as Usage
@@ -124,7 +96,21 @@ export function buildOpenAIUsage(usage: Usage, prompt?: string): Usage {
 }
 
 export function buildGoogleGenAIUsage(usage: Usage): Usage {
-  const fields: string[] = ['model', 'temperature', 'topP', 'topK']
+  const fields: string[] = ['model', 'temperature', 'topP', 'topK', 'maxTokens']
+
+  const newUsage = {} as Usage
+
+  fields.forEach(field => {
+    if (usage[field] !== null && usage[field] !== '') {
+      newUsage[field] = usage[field]
+    }
+  })
+
+  return newUsage
+}
+
+export function buildAnthropicUsage(usage: Usage): Usage {
+  const fields: string[] = ['model', 'temperature', 'topP', 'topK', 'maxTokens']
 
   const newUsage = {} as Usage
 
@@ -150,42 +136,9 @@ export function buildChatUsage(
     return buildGoogleGenAIUsage(usage)
   }
 
+  if (provider === 'anthropic') {
+    return buildAnthropicUsage(usage)
+  }
+
   return
-}
-
-export function buildOpenAIMessages(result: ChatCompletion): Message[] {
-  const messages: Message[] = []
-
-  result.choices.forEach(choice => {
-    const { message } = choice
-
-    const role = message.role
-    const content = message.content || ''
-
-    messages.push({ id: messageId(), role, content })
-  })
-
-  return messages
-}
-
-export function buildGoogleGenAIMessages(
-  result: GenerateContentResult
-): Message[] {
-  const messages: Message[] = []
-
-  result.response.candidates?.forEach(candidate => {
-    const { content } = candidate
-
-    const parts = content.parts[0].text || ''
-    const role = content.role === 'user' ? 'user' : 'assistant'
-
-    const message: Message = {
-      id: messageId(),
-      role,
-      content: parts
-    }
-    messages.push(message)
-  })
-
-  return messages
 }

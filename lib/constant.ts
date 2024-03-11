@@ -50,7 +50,24 @@ export const SupportedModels: {
     provider: 'openai'
   },
   { text: 'Gemini Pro', value: 'gemini-pro', provider: 'google' },
-  { text: 'Gemini Pro Vision', value: 'gemini-pro-vision', provider: 'google' }
+  { text: 'Gemini Pro Vision', value: 'gemini-pro-vision', provider: 'google' },
+  {
+    text: 'Claude 3 Opus',
+    value: 'claude-3-opus-20240229',
+    provider: 'anthropic'
+  },
+  {
+    text: 'Claude 3 Sonnet',
+    value: 'claude-3-sonnet-20240229',
+    provider: 'anthropic'
+  },
+  { text: 'Claude 2.1', value: 'claude-2.1', provider: 'anthropic' },
+  { text: 'Claude 2', value: 'claude-2.0', provider: 'anthropic' },
+  {
+    text: 'Claude Instant 1.2',
+    value: 'claude-instant-1.2',
+    provider: 'anthropic'
+  }
 ]
 
 export const SystemPrompt =

@@ -90,6 +90,7 @@ export function ChatShareDialog({
                   }
 
                   toast.success('Shared link deleted success')
+                  onClose()
                 })
               }}
             >
@@ -99,7 +100,7 @@ export function ChatShareDialog({
                   Deleting...
                 </>
               ) : (
-                <>Delete share link</>
+                <>Delete this share link</>
               )}
             </Button>
           )}

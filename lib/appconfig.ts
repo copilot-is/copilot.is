@@ -11,11 +11,15 @@ export interface AppConfig {
   }
   readonly openai: {
     apiKey: string
-    apiUrl?: string
+    baseURL?: string
   }
   readonly google: {
     apiKey: string
-    apiUrl?: string
+    baseURL?: string
+  }
+  readonly anthropic: {
+    apiKey: string
+    baseURL?: string
   }
   readonly defaultModel?: string
   readonly supportedModels?: string[]
@@ -35,10 +39,14 @@ export const appConfig: AppConfig = {
   },
   openai: {
     apiKey: process.env.OPENAI_API_KEY || '',
-    apiUrl: process.env.OPENAI_API_URL
+    baseURL: process.env.OPENAI_API_URL
   },
   google: {
     apiKey: process.env.GOOGLE_API_KEY || ''
+  },
+  anthropic: {
+    apiKey: process.env.ANTHROPIC_API_KEY || '',
+    baseURL: process.env.ANTHROPIC_API_URL
   },
   defaultModel: process.env.DEFAULT_MODEL,
   supportedModels: process.env.SUPPORTED_MODELS?.split(','),

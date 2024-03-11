@@ -142,10 +142,7 @@ export const Settings = () => {
           />
         </fieldset>
         <fieldset>
-          <label
-            className="block mb-1.5 text-sm font-bold"
-            htmlFor="temperature"
-          >
+          <label className="block mb-1.5 text-sm font-bold">
             Temperature:
             <span className="text-sm text-muted-foreground ml-1.5">
               {modelSettings.temperature}
@@ -173,10 +170,7 @@ export const Settings = () => {
           </div>
         </fieldset>
         <fieldset>
-          <label
-            className="block mb-1.5 text-sm font-bold"
-            htmlFor="presencePenalty"
-          >
+          <label className="block mb-1.5 text-sm font-bold">
             Presence Penalty:
             <span className="text-sm text-muted-foreground ml-1.5">
               {modelSettings.presencePenalty}
@@ -192,7 +186,7 @@ export const Settings = () => {
           </label>
           <Slider
             value={[modelSettings.presencePenalty]}
-            min={0}
+            min={-2}
             max={2}
             step={0.1}
             onValueChange={value =>
@@ -201,10 +195,7 @@ export const Settings = () => {
           />
         </fieldset>
         <fieldset>
-          <label
-            className="block mb-1.5 text-sm font-bold"
-            htmlFor="frequencyPenalty"
-          >
+          <label className="block mb-1.5 text-sm font-bold">
             Frequency Penalty:
             <span className="text-sm text-muted-foreground ml-1.5">
               {modelSettings.frequencyPenalty}
@@ -220,7 +211,7 @@ export const Settings = () => {
           </label>
           <Slider
             value={[modelSettings.frequencyPenalty]}
-            min={0}
+            min={-2}
             max={2}
             step={0.1}
             onValueChange={value =>
@@ -229,7 +220,7 @@ export const Settings = () => {
           />
         </fieldset>
         <fieldset>
-          <label className="block mb-1.5 text-sm font-bold" htmlFor="topP">
+          <label className="block mb-1.5 text-sm font-bold">
             Top P:
             <span className="text-sm text-muted-foreground ml-1.5">
               {modelSettings.topP}
@@ -252,7 +243,7 @@ export const Settings = () => {
           />
         </fieldset>
         <fieldset>
-          <label className="block mb-1.5 text-sm font-bold" htmlFor="topK">
+          <label className="block mb-1.5 text-sm font-bold">
             Top K:
             <span className="text-sm text-muted-foreground ml-1.5">
               {modelSettings.topK} (Gemini Only)
@@ -272,6 +263,29 @@ export const Settings = () => {
             max={50}
             step={1}
             onValueChange={value => setModelSettings('topK', value[0])}
+          />
+        </fieldset>
+        <fieldset>
+          <label className="block mb-1.5 text-sm font-bold">
+            Max Tokens:
+            <span className="text-sm text-muted-foreground ml-1.5">
+              {modelSettings.maxTokens}
+            </span>
+            <Button
+              variant="link"
+              size="xs"
+              className="text-sm"
+              onClick={() => setModelSettings('maxTokens', null)}
+            >
+              Reset to default
+            </Button>
+          </label>
+          <Slider
+            value={[modelSettings.maxTokens]}
+            min={1024}
+            max={512000}
+            step={1}
+            onValueChange={value => setModelSettings('maxTokens', value[0])}
           />
         </fieldset>
       </DialogContent>

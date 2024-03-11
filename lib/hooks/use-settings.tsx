@@ -55,7 +55,8 @@ export const SettingsProvider = ({
     frequencyPenalty: 0,
     presencePenalty: 0,
     topP: 1,
-    topK: 1
+    topK: 1,
+    maxTokens: 4096
   }
   const [modelSettings, setModelSettings, modelSettingsLoading] =
     useLocalStorage<SettingsContextProps['modelSettings']>(
