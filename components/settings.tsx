@@ -104,6 +104,28 @@ export const Settings = () => {
                 under the name <code className="font-mono">ai-token</code>.
               </p>
             </fieldset>
+            <fieldset>
+              <label
+                className="block mb-1.5 text-sm font-bold"
+                htmlFor="anthropic"
+              >
+                Anthropic API key
+              </label>
+              <Input
+                id="anthropic"
+                value={token?.anthropic ?? ''}
+                onChange={e => setToken('anthropic', e.target.value)}
+              />
+              <p className="text-sm text-muted-foreground mt-1">
+                If you have not obtained your Anthropic API key, you can do so
+                at{' '}
+                <ExternalLink href="https://console.anthropic.com/settings/keys">
+                  Anthropic Console
+                </ExternalLink>
+                . The token will be saved to your browser&apos;s local storage
+                under the name <code className="font-mono">ai-token</code>.
+              </p>
+            </fieldset>
           </>
         )}
         <fieldset>
