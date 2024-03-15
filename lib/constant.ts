@@ -61,6 +61,11 @@ export const SupportedModels: {
     value: 'claude-3-sonnet-20240229',
     provider: 'anthropic'
   },
+  {
+    text: 'Claude 3 Haiku',
+    value: 'claude-3-haiku-20240307',
+    provider: 'anthropic'
+  },
   { text: 'Claude 2.1', value: 'claude-2.1', provider: 'anthropic' },
   { text: 'Claude 2', value: 'claude-2.0', provider: 'anthropic' },
   {

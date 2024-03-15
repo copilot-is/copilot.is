@@ -98,7 +98,7 @@ export function Chat({ id, chat }: ChatProps) {
       const genModel = {
         openai: 'gpt-3.5-turbo',
         google: 'gemini-pro',
-        anthropic: 'claude-instant-1.2'
+        anthropic: 'claude-3-haiku-20240307'
       }
       const genUsage = buildChatUsage(
         { ...currentUsage, model: genModel[provider] },
