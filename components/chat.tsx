@@ -95,7 +95,7 @@ export function Chat({ id, chat }: ChatProps) {
         anthropic: 'claude-3-haiku-20240307'
       }
       const genUsage = buildChatUsage({
-        ...chatUsage,
+        ...currentUsage,
         model: genModel[provider],
         prompt: undefined,
         previewToken
