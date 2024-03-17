@@ -70,19 +70,26 @@ export const providerFromModel = (value: Model): ModelProvider => {
   return model ? model.provider : 'openai'
 }
 
-export function buildOpenAIUsage(usage: Usage): Usage {
-  const fields: string[] = [
-    'model',
-    'temperature',
-    'frequencyPenalty',
-    'presencePenalty',
-    'topP',
-    'maxTokens'
-  ]
+export function buildChatUsage(usage: Usage): Usage {
+  const generalFields = ['model', 'stream', 'previewToken']
+  const providerFields = {
+    openai: [
+      'temperature',
+      'frequencyPenalty',
+      'presencePenalty',
+      'topP',
+      'maxTokens'
+    ],
+    google: ['temperature', 'topP', 'topK', 'maxTokens'],
+    anthropic: ['temperature', 'topP', 'topK', 'maxTokens']
+  }
+
+  const provider = providerFromModel(usage.model)
+  const fields = generalFields.concat(providerFields[provider])
 
   const newUsage = {} as Usage
 
-  if (usage.prompt) {
+  if (provider === 'openai' && usage.prompt) {
     const model = usage.model
     const time = new Date().toLocaleString()
     const cutoff = KnowledgeCutOffDate[model] ?? KnowledgeCutOffDate.default
@@ -94,57 +101,15 @@ export function buildOpenAIUsage(usage: Usage): Usage {
     newUsage['prompt'] = systemPrompt
   }
 
-  fields.forEach(field => {
-    if (usage[field] !== null && usage[field] !== '') {
+  for (const field of fields) {
+    if (
+      usage[field] !== undefined &&
+      usage[field] !== null &&
+      usage[field] !== ''
+    ) {
       newUsage[field] = usage[field]
     }
-  })
-
-  return newUsage
-}
-
-export function buildGoogleGenAIUsage(usage: Usage): Usage {
-  const fields: string[] = ['model', 'temperature', 'topP', 'topK', 'maxTokens']
-
-  const newUsage = {} as Usage
-
-  fields.forEach(field => {
-    if (usage[field] !== null && usage[field] !== '') {
-      newUsage[field] = usage[field]
-    }
-  })
-
-  return newUsage
-}
-
-export function buildAnthropicUsage(usage: Usage): Usage {
-  const fields: string[] = ['model', 'temperature', 'topP', 'topK', 'maxTokens']
-
-  const newUsage = {} as Usage
-
-  fields.forEach(field => {
-    if (usage[field] !== null && usage[field] !== '') {
-      newUsage[field] = usage[field]
-    }
-  })
-
-  return newUsage
-}
-
-export function buildChatUsage(usage: Usage): Usage | undefined {
-  const provider = providerFromModel(usage.model)
-
-  if (provider === 'openai') {
-    return buildOpenAIUsage(usage)
   }
 
-  if (provider === 'google') {
-    return buildGoogleGenAIUsage(usage)
-  }
-
-  if (provider === 'anthropic') {
-    return buildAnthropicUsage(usage)
-  }
-
-  return undefined
+  return newUsage
 }

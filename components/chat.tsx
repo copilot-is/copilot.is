@@ -38,11 +38,16 @@ export function Chat({ id, chat }: ChatProps) {
   const currentUsage = usage
     ? { ...usage, prompt: modelSettings.prompt }
     : { ...modelSettings, model }
-  const chatUsage = buildChatUsage(currentUsage)
+
   const provider = providerFromModel(currentUsage.model)
   const previewToken = allowCustomAPIKey
     ? token?.[provider] || undefined
     : undefined
+  const chatUsage = buildChatUsage({
+    ...currentUsage,
+    stream: true,
+    previewToken
+  })
   const api = '/api/chat/' + provider
   const {
     isLoading,
@@ -63,11 +68,7 @@ export function Chat({ id, chat }: ChatProps) {
       id,
       title,
       generateId,
-      usage: {
-        ...chatUsage,
-        stream: true,
-        previewToken
-      }
+      usage: chatUsage
     },
     async onResponse(response) {
       if (response.status !== 200) {
@@ -96,7 +97,8 @@ export function Chat({ id, chat }: ChatProps) {
       const genUsage = buildChatUsage({
         ...chatUsage,
         model: genModel[provider],
-        prompt: undefined
+        prompt: undefined,
+        previewToken
       })
       if (input && message && message.content) {
         const data = await fetcher(`/api/chat/${provider}`, {
@@ -113,10 +115,7 @@ export function Chat({ id, chat }: ChatProps) {
                 content: GenerateTitlePrompt
               }
             ],
-            usage: {
-              ...genUsage,
-              previewToken
-            }
+            usage: genUsage
           })
         })
 

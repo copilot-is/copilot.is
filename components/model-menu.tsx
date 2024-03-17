@@ -36,7 +36,11 @@ export function ModelMenu({ chat }: ModelMenuProps) {
 
   const updateModel = async (value: Model) => {
     if (chat && chat.usage.model !== value) {
-      const usage = buildChatUsage({ ...modelSettings, model: value })
+      const usage = buildChatUsage({
+        ...modelSettings,
+        model: value,
+        prompt: undefined
+      })
       const result = await updateChat(chat.id, { usage })
       if (result && 'error' in result) {
         toast.error(result.error)
