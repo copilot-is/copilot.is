@@ -46,8 +46,9 @@ export async function POST(req: Request) {
   const session = await auth()
 
   if (!session || !session.user) {
-    return new Response('Unauthorized', {
-      status: 401
+    return new NextResponse('Unauthorized', {
+      status: 401,
+      statusText: 'Unauthorized'
     })
   }
 
@@ -117,12 +118,12 @@ export async function POST(req: Request) {
     if (err instanceof Anthropic.APIError) {
       const status = err.status
       const error = err.error as Record<string, any>
-      return new Response(error.message, {
+      return new NextResponse(error.message, {
         status: status,
         statusText: error.message
       })
     } else {
-      return new Response(err.message, {
+      return new NextResponse(err.message, {
         status: 500,
         statusText: err.message
       })
