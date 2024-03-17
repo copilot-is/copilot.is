@@ -15,7 +15,7 @@ export function SidebarToggle() {
       <Button
         variant="ghost"
         size="icon"
-        className="-ml-2 size-9 p-0"
+        className="size-9"
         onClick={toggleSidebar}
       >
         <IconSidebar className="size-6" />

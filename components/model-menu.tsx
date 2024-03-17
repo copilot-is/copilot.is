@@ -19,12 +19,14 @@ import { useSettings } from '@/lib/hooks/use-settings'
 import { SupportedModels } from '@/lib/constant'
 import { buildChatUsage } from '@/lib/utils'
 import { updateChat } from '@/app/actions'
+import { useMediaQuery } from '@/lib/hooks/use-media-query'
 
 interface ModelMenuProps {
   chat?: Chat
 }
 
 export function ModelMenu({ chat }: ModelMenuProps) {
+  const isMobile = useMediaQuery('(max-width: 1023px)')
   const { availableModels, model, setModel, modelSettings } = useSettings()
   const [isPending, startTransition] = React.useTransition()
   const allowedModels = availableModels
@@ -52,17 +54,17 @@ export function ModelMenu({ chat }: ModelMenuProps) {
   }
 
   return (
-    <div className="flex items-center justify-between">
+    <div className="flex flex-1 px-1 items-center justify-center lg:justify-between">
       <DropdownMenu>
         <DropdownMenuTrigger disabled={isPending} asChild>
-          <Button variant="ghost" className="px-2">
+          <Button variant="ghost" className="px-2 data-[state=open]:bg-accent">
             {selectedModel?.provider === 'openai' && <IconOpenAI />}
             {selectedModel?.provider === 'google' && <IconGoogleAI />}
             {selectedModel?.provider === 'anthropic' && <IconClaudeAI />}
             <span className="ml-2">{selectedModel?.text}</span>
           </Button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent sideOffset={8} align="start">
+        <DropdownMenuContent align={isMobile ? 'center' : 'start'}>
           <DropdownMenuLabel>Model</DropdownMenuLabel>
           <DropdownMenuSeparator />
           <DropdownMenuRadioGroup

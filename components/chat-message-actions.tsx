@@ -63,7 +63,7 @@ export function ChatMessageActions({
   }
 
   return (
-    <div className="flex items-center justify-end md:absolute md:right-0 md:top-0">
+    <div className="flex items-center justify-end lg:absolute lg:right-0 lg:top-0">
       <Tooltip content="Copy message">
         <Button variant="ghost" size="icon" onClick={onCopy}>
           {isCopied ? <IconCheck /> : <IconCopy />}
