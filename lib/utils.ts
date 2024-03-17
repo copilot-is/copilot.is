@@ -3,7 +3,7 @@ import { customAlphabet } from 'nanoid'
 import { twMerge } from 'tailwind-merge'
 
 import { Model, ModelProvider, type Usage } from '@/lib/types'
-import { SupportedModels } from '@/lib/constant'
+import { KnowledgeCutOffDate, SupportedModels } from '@/lib/constant'
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
@@ -70,7 +70,7 @@ export const providerFromModel = (value: Model): ModelProvider => {
   return model ? model.provider : 'openai'
 }
 
-export function buildOpenAIUsage(usage: Usage, prompt?: string): Usage {
+export function buildOpenAIUsage(usage: Usage): Usage {
   const fields: string[] = [
     'model',
     'temperature',
@@ -82,8 +82,16 @@ export function buildOpenAIUsage(usage: Usage, prompt?: string): Usage {
 
   const newUsage = {} as Usage
 
-  if (prompt) {
-    newUsage['prompt'] = prompt
+  if (usage.prompt) {
+    const model = usage.model
+    const time = new Date().toLocaleString()
+    const cutoff = KnowledgeCutOffDate[model] ?? KnowledgeCutOffDate.default
+    const systemPrompt = formatString(usage.prompt, {
+      cutoff,
+      model,
+      time
+    })
+    newUsage['prompt'] = systemPrompt
   }
 
   fields.forEach(field => {
@@ -123,13 +131,11 @@ export function buildAnthropicUsage(usage: Usage): Usage {
   return newUsage
 }
 
-export function buildChatUsage(
-  usage: Usage,
-  provider: ModelProvider,
-  prompt?: string
-): Usage | undefined {
+export function buildChatUsage(usage: Usage): Usage | undefined {
+  const provider = providerFromModel(usage.model)
+
   if (provider === 'openai') {
-    return buildOpenAIUsage(usage, prompt)
+    return buildOpenAIUsage(usage)
   }
 
   if (provider === 'google') {
@@ -140,5 +146,5 @@ export function buildChatUsage(
     return buildAnthropicUsage(usage)
   }
 
-  return
+  return undefined
 }

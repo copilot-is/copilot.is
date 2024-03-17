@@ -78,6 +78,9 @@ export const SupportedModels: {
 export const SystemPrompt =
   '\nYou are ChatGPT, a large language model trained by OpenAI.\nKnowledge cutoff: {cutoff}\nCurrent model: {model}\nCurrent time: {time}\nLatex inline: $x^2$ \nLatex block: $$e=mc^2$$\n\n'
 
+export const GenerateTitlePrompt =
+  'Please generate a four to five word title summarizing our conversation without any lead-in, punctuation, quotation marks, periods, symbols, bold text, or additional text. Remove enclosing quotation marks.'
+
 export const ChatCategories: ChatCategory[] = [
   'Today',
   'Yesterday',

@@ -17,7 +17,7 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { useSettings } from '@/lib/hooks/use-settings'
 import { SupportedModels } from '@/lib/constant'
-import { buildChatUsage, providerFromModel } from '@/lib/utils'
+import { buildChatUsage } from '@/lib/utils'
 import { updateChat } from '@/app/actions'
 
 interface ModelMenuProps {
@@ -35,12 +35,9 @@ export function ModelMenu({ chat }: ModelMenuProps) {
   )
 
   const updateModel = async (value: Model) => {
-    if (chat && value !== chat.usage.model) {
-      const provider = providerFromModel(value)
-      const usage = buildChatUsage({ ...modelSettings, model: value }, provider)
-
+    if (chat && chat.usage.model !== value) {
+      const usage = buildChatUsage({ ...modelSettings, model: value })
       const result = await updateChat(chat.id, { usage })
-
       if (result && 'error' in result) {
         toast.error(result.error)
         return

@@ -268,7 +268,7 @@ export const Settings = () => {
           <label className="block mb-1.5 text-sm font-bold">
             Top K:
             <span className="text-sm text-muted-foreground ml-1.5">
-              {modelSettings.topK} (Gemini Only)
+              {modelSettings.topK}
             </span>
             <Button
               variant="link"

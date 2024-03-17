@@ -6,11 +6,10 @@ import { usePathname, useRouter } from 'next/navigation'
 
 import { type Chat } from '@/lib/types'
 import {
-  buildChatUsage,
   fetcher,
-  formatString,
   messageId,
-  providerFromModel
+  providerFromModel,
+  buildChatUsage
 } from '@/lib/utils'
 import { useLocalStorage } from '@/lib/hooks/use-local-storage'
 import { ChatList } from '@/components/chat-list'
@@ -19,8 +18,8 @@ import { EmptyScreen } from '@/components/empty-screen'
 import { ChatScrollAnchor } from '@/components/chat-scroll-anchor'
 import { ChatHeader } from '@/components/chat-header'
 import { useSettings } from '@/lib/hooks/use-settings'
-import { KnowledgeCutOffDate } from '@/lib/constant'
 import { updateChat } from '@/app/actions'
+import { GenerateTitlePrompt } from '@/lib/constant'
 
 interface ChatProps {
   id: string
@@ -36,21 +35,14 @@ export function Chat({ id, chat }: ChatProps) {
   const { allowCustomAPIKey, model, token, modelSettings } = useSettings()
 
   const generateId = messageId()
-  const currentTime = new Date().toLocaleString()
-  const currentUsage = usage ?? { ...modelSettings, model }
-  const currentModel = currentUsage.model
-  const cutoff =
-    KnowledgeCutOffDate[currentModel] ?? KnowledgeCutOffDate.default
-  const provider = providerFromModel(currentModel)
-  const prompt = modelSettings.prompt
-    ? formatString(modelSettings.prompt, {
-        cutoff,
-        model: currentModel,
-        time: currentTime
-      })
+  const currentUsage = usage
+    ? { ...usage, prompt: modelSettings.prompt }
+    : { ...modelSettings, model }
+  const chatUsage = buildChatUsage(currentUsage)
+  const provider = providerFromModel(currentUsage.model)
+  const previewToken = allowCustomAPIKey
+    ? token?.[provider] || undefined
     : undefined
-  const previewToken = allowCustomAPIKey ? token?.[provider] : undefined
-  const chatUsage = buildChatUsage(currentUsage, provider, prompt)
   const api = '/api/chat/' + provider
   const {
     isLoading,
@@ -100,10 +92,10 @@ export function Chat({ id, chat }: ChatProps) {
         google: 'gemini-pro',
         anthropic: 'claude-3-haiku-20240307'
       }
-      const genUsage = buildChatUsage(
-        { ...currentUsage, model: genModel[provider] },
-        provider
-      )
+      const genUsage = buildChatUsage({
+        ...chatUsage,
+        model: genModel[provider]
+      })
       if (input && message && message.content) {
         const data = await fetcher(`/api/chat/${provider}`, {
           method: 'POST',
@@ -116,8 +108,7 @@ export function Chat({ id, chat }: ChatProps) {
               { role: message.role, content: message.content },
               {
                 role: 'user',
-                content:
-                  'Please generate a four to five word title summarizing our conversation without any lead-in, punctuation, quotation marks, periods, symbols, bold text, or additional text. Remove enclosing quotation marks.'
+                content: GenerateTitlePrompt
               }
             ],
             usage: {
