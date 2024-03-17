@@ -95,7 +95,8 @@ export function Chat({ id, chat }: ChatProps) {
       }
       const genUsage = buildChatUsage({
         ...chatUsage,
-        model: genModel[provider]
+        model: genModel[provider],
+        prompt: undefined
       })
       if (input && message && message.content) {
         const data = await fetcher(`/api/chat/${provider}`, {
