@@ -61,10 +61,7 @@ export async function POST(req: Request) {
   const session = await auth()
 
   if (!session || !session.user) {
-    return new NextResponse('Unauthorized', {
-      status: 401,
-      statusText: 'Unauthorized'
-    })
+    return NextResponse.json({ message: 'Unauthorized' }, { status: 401 })
   }
 
   const json = await req.json()
@@ -136,15 +133,9 @@ export async function POST(req: Request) {
     if (err instanceof OpenAI.APIError) {
       const status = err.status
       const error = err.error as Record<string, any>
-      return new NextResponse(error.message, {
-        status: status,
-        statusText: error.message
-      })
+      return NextResponse.json({ message: error.message }, { status })
     } else {
-      return new NextResponse(err.message, {
-        status: 500,
-        statusText: err.message
-      })
+      return NextResponse.json({ message: err.message }, { status: 500 })
     }
   }
 }

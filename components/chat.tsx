@@ -69,10 +69,11 @@ export function Chat({ id, chat }: ChatProps) {
         previewToken
       }
     },
-    onResponse(response) {
+    async onResponse(response) {
       if (response.status !== 200) {
         setInput(input)
-        toast.error(response.statusText)
+        const json = await response.json()
+        toast.error(json.message)
       }
     },
     async onFinish(message) {

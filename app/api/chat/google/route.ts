@@ -49,10 +49,7 @@ export async function POST(req: Request) {
   const session = await auth()
 
   if (!session || !session.user) {
-    return new NextResponse('Unauthorized', {
-      status: 401,
-      statusText: 'Unauthorized'
-    })
+    return NextResponse.json({ message: 'Unauthorized' }, { status: 401 })
   }
 
   const json = await req.json()
@@ -120,10 +117,6 @@ export async function POST(req: Request) {
 
     return new StreamingTextResponse(aiStream)
   } catch (err: any) {
-    const message = err.message
-    return new NextResponse(message, {
-      status: 500,
-      statusText: message
-    })
+    return NextResponse.json({ message: err.message }, { status: 500 })
   }
 }
