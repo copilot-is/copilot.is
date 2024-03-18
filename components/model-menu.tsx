@@ -22,7 +22,7 @@ import { updateChat } from '@/app/actions'
 import { useMediaQuery } from '@/lib/hooks/use-media-query'
 
 interface ModelMenuProps {
-  chat?: Chat
+  chat?: Pick<Chat, 'id' | 'usage'>
 }
 
 export function ModelMenu({ chat }: ModelMenuProps) {
