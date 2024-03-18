@@ -4,7 +4,12 @@ import * as React from 'react'
 import { toast } from 'react-hot-toast'
 
 import { Model, type Chat } from '@/lib/types'
-import { IconClaudeAI, IconGoogleAI, IconOpenAI } from '@/components/ui/icons'
+import {
+  IconCaretDown,
+  IconClaudeAI,
+  IconGoogleAI,
+  IconOpenAI
+} from '@/components/ui/icons'
 import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
@@ -61,7 +66,8 @@ export function ModelMenu({ chat }: ModelMenuProps) {
             {selectedModel?.provider === 'openai' && <IconOpenAI />}
             {selectedModel?.provider === 'google' && <IconGoogleAI />}
             {selectedModel?.provider === 'anthropic' && <IconClaudeAI />}
-            <span className="ml-2">{selectedModel?.text}</span>
+            <span className="ml-2 mr-1">{selectedModel?.text}</span>
+            <IconCaretDown className="flex size-3" />
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align={isMobile ? 'center' : 'start'}>
