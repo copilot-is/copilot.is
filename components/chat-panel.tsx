@@ -19,6 +19,7 @@ export interface ChatPanelProps
     | 'setInput'
   > {
   chat?: Chat
+  vision: boolean
 }
 
 export function ChatPanel({
@@ -29,7 +30,8 @@ export function ChatPanel({
   append,
   reload,
   input,
-  setInput
+  setInput,
+  vision
 }: ChatPanelProps) {
   return (
     <div className="sticky inset-x-0 bottom-0 w-full">
@@ -46,6 +48,10 @@ export function ChatPanel({
         </div>
         <div className="space-y-4 border-t bg-background px-4 py-2 shadow-lg sm:rounded-t-xl sm:border md:py-4">
           <PromptForm
+            vision={vision}
+            input={input}
+            setInput={setInput}
+            isLoading={isLoading}
             onSubmit={async value => {
               await append({
                 id: messageId(),
@@ -53,9 +59,6 @@ export function ChatPanel({
                 role: 'user'
               })
             }}
-            input={input}
-            setInput={setInput}
-            isLoading={isLoading}
           />
         </div>
       </div>

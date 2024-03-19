@@ -9,6 +9,7 @@ export const KnowledgeCutOffDate: Record<string, string> = {
 export const SupportedModels: {
   text: string
   value: Model
+  vision?: boolean
   provider: ModelProvider
 }[] = [
   {
@@ -19,6 +20,7 @@ export const SupportedModels: {
   {
     text: 'GPT-4 Vision Preview',
     value: 'gpt-4-vision-preview',
+    vision: true,
     provider: 'openai'
   },
   { text: 'GPT-4', value: 'gpt-4', provider: 'openai' },
@@ -50,20 +52,28 @@ export const SupportedModels: {
     provider: 'openai'
   },
   { text: 'Gemini Pro', value: 'gemini-pro', provider: 'google' },
-  { text: 'Gemini Pro Vision', value: 'gemini-pro-vision', provider: 'google' },
+  {
+    text: 'Gemini Pro Vision',
+    value: 'gemini-pro-vision',
+    vision: true,
+    provider: 'google'
+  },
   {
     text: 'Claude 3 Opus',
     value: 'claude-3-opus-20240229',
+    vision: true,
     provider: 'anthropic'
   },
   {
     text: 'Claude 3 Sonnet',
     value: 'claude-3-sonnet-20240229',
+    vision: true,
     provider: 'anthropic'
   },
   {
     text: 'Claude 3 Haiku',
     value: 'claude-3-haiku-20240307',
+    vision: true,
     provider: 'anthropic'
   },
   { text: 'Claude 2.1', value: 'claude-2.1', provider: 'anthropic' },

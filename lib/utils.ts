@@ -70,6 +70,11 @@ export const providerFromModel = (value: Model): ModelProvider => {
   return model ? model.provider : 'openai'
 }
 
+export const isVisionModel = (value: Model): boolean => {
+  const model = SupportedModels.find(m => m.value === value)
+  return model?.vision ?? false
+}
+
 export function buildChatUsage(usage: Usage): Usage {
   const generalFields = ['model', 'stream', 'previewToken']
   const providerFields = {

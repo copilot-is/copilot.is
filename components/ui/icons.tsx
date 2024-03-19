@@ -151,7 +151,7 @@ function IconArrowElbow({ className, ...props }: React.ComponentProps<'svg'>) {
       className={cn('size-4', className)}
       {...props}
     >
-      <path d="M200 32v144a8 8 0 0 1-8 8H67.31l34.35 34.34a8 8 0 0 1-11.32 11.32l-48-48a8 8 0 0 1 0-11.32l48-48a8 8 0 0 1 11.32 11.32L67.31 168H184V32a8 8 0 0 1 16 0Z" />
+      <path d="M200,32V176a8,8,0,0,1-8,8H67.31l34.35,34.34a8,8,0,0,1-11.32,11.32l-48-48a8,8,0,0,1,0-11.32l48-48a8,8,0,0,1,11.32,11.32L67.31,168H184V32a8,8,0,0,1,16,0Z"></path>
     </svg>
   )
 }
@@ -483,71 +483,7 @@ function IconSlidersHorizontal({
       viewBox="0 0 256 256"
       {...props}
     >
-      <rect width="256" height="256" fill="none" />
-      <circle
-        cx="104"
-        cy="80"
-        r="24"
-        fill="none"
-        stroke="currentColor"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth="16"
-      />
-      <circle
-        cx="168"
-        cy="176"
-        r="24"
-        fill="none"
-        stroke="currentColor"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth="16"
-      />
-      <line
-        x1="128"
-        y1="80"
-        x2="216"
-        y2="80"
-        fill="none"
-        stroke="currentColor"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth="16"
-      />
-      <line
-        x1="40"
-        y1="80"
-        x2="80"
-        y2="80"
-        fill="none"
-        stroke="currentColor"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth="16"
-      />
-      <line
-        x1="192"
-        y1="176"
-        x2="216"
-        y2="176"
-        fill="none"
-        stroke="currentColor"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth="16"
-      />
-      <line
-        x1="40"
-        y1="176"
-        x2="144"
-        y2="176"
-        fill="none"
-        stroke="currentColor"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth="16"
-      />
+      <path d="M40,88H73a32,32,0,0,0,62,0h81a8,8,0,0,0,0-16H135a32,32,0,0,0-62,0H40a8,8,0,0,0,0,16Zm64-24A16,16,0,1,1,88,80,16,16,0,0,1,104,64ZM216,168H199a32,32,0,0,0-62,0H40a8,8,0,0,0,0,16h97a32,32,0,0,0,62,0h17a8,8,0,0,0,0-16Zm-48,24a16,16,0,1,1,16-16A16,16,0,0,1,168,192Z"></path>
     </svg>
   )
 }
@@ -561,38 +497,7 @@ function IconPlusCircle({ className, ...props }: React.ComponentProps<'svg'>) {
       viewBox="0 0 256 256"
       {...props}
     >
-      <rect width="256" height="256" fill="none" />
-      <circle
-        cx="128"
-        cy="128"
-        r="96"
-        fill="none"
-        stroke="currentColor"
-        strokeMiterlimit="10"
-        strokeWidth="16"
-      />
-      <line
-        x1="88"
-        y1="128"
-        x2="168"
-        y2="128"
-        fill="none"
-        stroke="currentColor"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth="16"
-      />
-      <line
-        x1="128"
-        y1="88"
-        x2="128"
-        y2="168"
-        fill="none"
-        stroke="currentColor"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth="16"
-      />
+      <path d="M128,24A104,104,0,1,0,232,128,104.11,104.11,0,0,0,128,24Zm0,192a88,88,0,1,1,88-88A88.1,88.1,0,0,1,128,216Zm48-88a8,8,0,0,1-8,8H136v32a8,8,0,0,1-16,0V136H88a8,8,0,0,1,0-16h32V88a8,8,0,0,1,16,0v32h32A8,8,0,0,1,176,128Z"></path>
     </svg>
   )
 }
@@ -606,15 +511,21 @@ function IconCaretDown({ className, ...props }: React.ComponentProps<'svg'>) {
       viewBox="0 0 256 256"
       {...props}
     >
-      <rect width="256" height="256" fill="none" />
-      <polyline
-        points="208 96 128 176 48 96"
-        fill="none"
-        stroke="currentColor"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth="16"
-      />
+      <path d="M213.66,101.66l-80,80a8,8,0,0,1-11.32,0l-80-80A8,8,0,0,1,53.66,90.34L128,164.69l74.34-74.35a8,8,0,0,1,11.32,11.32Z"></path>
+    </svg>
+  )
+}
+
+function IconPaperclip({ className, ...props }: React.ComponentProps<'svg'>) {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      fill="currentColor"
+      className={cn('size-4', className)}
+      viewBox="0 0 256 256"
+      {...props}
+    >
+      <path d="M209.66,122.34a8,8,0,0,1,0,11.32l-82.05,82a56,56,0,0,1-79.2-79.21L147.67,35.73a40,40,0,1,1,56.61,56.55L105,193A24,24,0,1,1,71,159L154.3,74.38A8,8,0,1,1,165.7,85.6L82.39,170.31a8,8,0,1,0,11.27,11.36L192.93,81A24,24,0,1,0,159,47L59.76,147.68a40,40,0,1,0,56.53,56.62l82.06-82A8,8,0,0,1,209.66,122.34Z"></path>
     </svg>
   )
 }
@@ -652,5 +563,6 @@ export {
   IconEdit,
   IconSlidersHorizontal,
   IconPlusCircle,
-  IconCaretDown
+  IconCaretDown,
+  IconPaperclip
 }

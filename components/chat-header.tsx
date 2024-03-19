@@ -15,7 +15,7 @@ interface ChatHeaderProps {
 
 export function ChatHeader({ chat }: ChatHeaderProps) {
   return (
-    <div className="sticky overflow-hidden inset-x-0 top-0 z-10 flex items-center w-full h-12 px-4 lg:px-2 shrink-0 border-b bg-gradient-to-b from-background/10 via-background/50 to-background/80 backdrop-blur-xl">
+    <div className="sticky overflow-hidden inset-x-0 top-0 z-10 flex items-center w-full h-12 px-2 shrink-0 border-b bg-gradient-to-b from-background/10 via-background/50 to-background/80 backdrop-blur-xl">
       <SidebarToggle />
       <ModelMenu chat={chat} />
       <Link

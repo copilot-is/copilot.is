@@ -8,6 +8,7 @@ import { type Chat } from '@/lib/types'
 import {
   fetcher,
   messageId,
+  isVisionModel,
   providerFromModel,
   buildChatUsage
 } from '@/lib/utils'
@@ -29,17 +30,17 @@ interface ChatProps {
 export function Chat({ id, chat }: ChatProps) {
   const router = useRouter()
   const pathname = usePathname()
-  const { title, usage, messages: initialMessages } = chat ?? {}
-
+  const generateId = messageId()
   const [_, setNewChatId] = useLocalStorage<string>('new-chat-id')
   const { allowCustomAPIKey, model, token, modelSettings } = useSettings()
 
-  const generateId = messageId()
+  const { title, usage, messages: initialMessages } = chat ?? {}
   const currentUsage = usage
     ? { ...usage, prompt: modelSettings.prompt }
     : { ...modelSettings, model }
-
-  const provider = providerFromModel(currentUsage.model)
+  const currentModel = currentUsage.model
+  const vision = isVisionModel(currentModel)
+  const provider = providerFromModel(currentModel)
   const previewToken = allowCustomAPIKey
     ? token?.[provider] || undefined
     : undefined
@@ -148,6 +149,7 @@ export function Chat({ id, chat }: ChatProps) {
       </div>
       <ChatPanel
         chat={chat}
+        vision={vision}
         messages={messages}
         isLoading={isLoading}
         stop={stop}
