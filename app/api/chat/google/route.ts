@@ -1,6 +1,7 @@
 import {
   GoogleGenerativeAI,
-  type GenerateContentResult
+  type GenerateContentResult,
+  type GenerateContentRequest
 } from '@google/generative-ai'
 import { GoogleGenerativeAIStream, StreamingTextResponse } from 'ai'
 import { NextResponse } from 'next/server'
@@ -13,7 +14,9 @@ import { api } from '@/trpc/server'
 
 export const runtime = 'edge'
 
-const buildGoogleGenAIPrompt = (messages: Message[]) => ({
+const buildGoogleGenAIPrompt = (
+  messages: Message[]
+): GenerateContentRequest => ({
   contents: messages
     .filter(message => message.role === 'user' || message.role === 'assistant')
     .map(message => ({
