@@ -19,7 +19,7 @@ const buildAnthropicPrompt = (messages: Message[]) => {
   })) as MessageParam[]
 }
 
-const buildAnthropicMessages = (result: Anthropic.Messages.Message) => {
+const buildAnthropicMessages = (result: Anthropic.Message) => {
   return result.content.map(message => {
     return {
       id: messageId(),
