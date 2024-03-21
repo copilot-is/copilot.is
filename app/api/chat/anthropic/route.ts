@@ -1,6 +1,6 @@
 import Anthropic from '@anthropic-ai/sdk'
-import { MessageParam, MessageStreamEvent } from '@anthropic-ai/sdk/resources'
 import { Stream } from '@anthropic-ai/sdk/streaming'
+import { MessageParam, MessageStreamEvent } from '@anthropic-ai/sdk/resources'
 import { AnthropicStream, StreamingTextResponse } from 'ai'
 import { NextResponse } from 'next/server'
 
@@ -79,7 +79,7 @@ export async function POST(req: Request) {
     })
 
     if (!stream) {
-      const response = res as Anthropic.Messages.Message
+      const response = res as Anthropic.Message
       return NextResponse.json(buildAnthropicMessages(response))
     }
 
