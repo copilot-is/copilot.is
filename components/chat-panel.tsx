@@ -55,6 +55,7 @@ export function ChatPanel({
             onSubmit={async value => {
               await append({
                 id: messageId(),
+                // @ts-ignore
                 content: value,
                 role: 'user'
               })

@@ -3,6 +3,7 @@ import { z } from 'zod'
 
 import { createTRPCRouter, protectedProcedure } from '@/server/api/trpc'
 import { chats } from '@/server/db/schema'
+import { Message, type Usage } from '@/lib/types'
 
 export const chatRouter = createTRPCRouter({
   create: protectedProcedure
@@ -22,7 +23,20 @@ export const chatRouter = createTRPCRouter({
                 'data',
                 'tool'
               ]),
-              content: z.string()
+              content: z.union([
+                z.string(),
+                z.array(
+                  z
+                    .object({
+                      type: z.enum(['text', 'image']),
+                      text: z.string().optional(),
+                      data: z.string().optional()
+                    })
+                    .refine(data => (data.text || data.data) !== undefined, {
+                      message: 'Either text or data must be provided'
+                    })
+                )
+              ])
             })
           )
           .nonempty(),
@@ -44,12 +58,12 @@ export const chatRouter = createTRPCRouter({
           id: input.id,
           title: input.title,
           userId: ctx.session.user.id,
-          messages: input.messages,
-          usage: input.usage
+          messages: input.messages as Message[],
+          usage: input.usage as Usage
         })
         .onConflictDoUpdate({
           target: chats.id,
-          set: { messages: input.messages }
+          set: { messages: input.messages as Message[] }
         })
     }),
 
@@ -93,7 +107,20 @@ export const chatRouter = createTRPCRouter({
                   'data',
                   'tool'
                 ]),
-                content: z.string()
+                content: z.union([
+                  z.string(),
+                  z.array(
+                    z
+                      .object({
+                        type: z.enum(['text', 'image']),
+                        text: z.string().optional(),
+                        data: z.string().optional()
+                      })
+                      .refine(data => (data.text || data.data) !== undefined, {
+                        message: 'Either text or data must be provided'
+                      })
+                  )
+                ])
               })
             )
             .optional(),
@@ -112,9 +139,15 @@ export const chatRouter = createTRPCRouter({
       })
     )
     .mutation(async ({ ctx, input }) => {
+      const updates: Record<string, any> = {}
+      if ('title' in input.chat) updates.title = input.chat.title
+      if ('sharing' in input.chat) updates.sharing = input.chat.sharing
+      if ('messages' in input.chat) updates.messages = input.chat.messages
+      if ('usage' in input.chat) updates.usage = input.chat.usage
+
       return await ctx.db
         .update(chats)
-        .set({ ...input.chat })
+        .set(updates)
         .where(
           and(eq(chats.id, input.id), eq(chats.userId, ctx.session.user.id))
         )

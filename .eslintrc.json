@@ -9,7 +9,8 @@
   "plugins": ["tailwindcss"],
   "rules": {
     "tailwindcss/no-custom-classname": "off",
-    "tailwindcss/classnames-order": "off"
+    "tailwindcss/classnames-order": "off",
+    "@next/next/no-img-element": "off"
   },
   "settings": {
     "tailwindcss": {

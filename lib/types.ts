@@ -1,7 +1,17 @@
 import { type Message as AIMessage } from 'ai'
 import { ChatCompletionCreateParamsBase } from 'openai/resources/chat/completions'
 
-export type Message = AIMessage
+export interface MessageContentDetail {
+  type: 'text' | 'image'
+  text?: string
+  data?: string
+}
+
+export type MessageContent = string | MessageContentDetail[]
+
+export type Message = AIMessage & {
+  content: MessageContent
+}
 
 export type ChatCategory =
   | 'Today'
@@ -69,3 +79,9 @@ export type ServerActionResult<Result> = Promise<
       error: string
     }
 >
+
+export interface FileInfo extends Record<string, any> {
+  name: string
+  type: string
+  data: string
+}

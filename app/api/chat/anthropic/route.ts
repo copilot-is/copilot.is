@@ -5,17 +5,47 @@ import { AnthropicStream, StreamingTextResponse } from 'ai'
 import { NextResponse } from 'next/server'
 
 import { auth } from '@/server/auth'
-import { messageId, nanoid } from '@/lib/utils'
-import { Message, type Usage } from '@/lib/types'
+import {
+  getBase64FromDataURL,
+  getMediaTypeFromDataURL,
+  messageId,
+  nanoid
+} from '@/lib/utils'
+import { Message, MessageContent, type Usage } from '@/lib/types'
 import { appConfig } from '@/lib/appconfig'
 import { api } from '@/trpc/server'
 
 export const runtime = 'edge'
 
+const extractContent = (content: MessageContent) => {
+  if (Array.isArray(content)) {
+    return content
+      .map(c => {
+        if (c.type === 'text') {
+          return c
+        } else {
+          return (
+            c.type === 'image' &&
+            c.data && {
+              type: 'image',
+              source: {
+                type: 'base64',
+                media_type: getMediaTypeFromDataURL(c.data),
+                data: getBase64FromDataURL(c.data)
+              }
+            }
+          )
+        }
+      })
+      .filter(Boolean)
+  }
+  return content
+}
+
 const buildAnthropicPrompt = (messages: Message[]) => {
   return messages.map(message => ({
     role: message.role,
-    content: message.content
+    content: extractContent(message.content)
   })) as MessageParam[]
 }
 
@@ -115,7 +145,7 @@ export async function POST(req: Request) {
     if (err instanceof Anthropic.APIError) {
       const status = err.status
       const error = err.error as Record<string, any>
-      return NextResponse.json({ message: error.message }, { status })
+      return NextResponse.json({ message: error.error.message }, { status })
     } else {
       return NextResponse.json({ message: err.message }, { status: 500 })
     }

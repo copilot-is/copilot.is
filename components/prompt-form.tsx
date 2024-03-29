@@ -3,15 +3,21 @@ import { UseChatHelpers } from 'ai/react'
 import Textarea from 'react-textarea-autosize'
 
 import { Button } from '@/components/ui/button'
-import { IconArrowElbow, IconPaperclip } from '@/components/ui/icons'
+import { IconArrowElbow } from '@/components/ui/icons'
 import { Tooltip } from '@/components/ui/tooltip'
 import { useEnterSubmit } from '@/lib/hooks/use-enter-submit'
+import { Upload } from '@/components/upload'
+import {
+  MessageContent,
+  type MessageContentDetail,
+  type FileInfo
+} from '@/lib/types'
 
 export interface PromptProps
   extends Pick<UseChatHelpers, 'input' | 'setInput'> {
   vision: boolean
   isLoading: boolean
-  onSubmit: (value: string) => void
+  onSubmit: (value: MessageContent) => void
 }
 
 export function PromptForm({
@@ -22,11 +28,7 @@ export function PromptForm({
   onSubmit
 }: PromptProps) {
   const { formRef, onKeyDown } = useEnterSubmit()
-  const fileRef = React.useRef<HTMLInputElement>(null)
-
-  const handleClick = () => {
-    fileRef.current?.click()
-  }
+  const [files, setFiles] = React.useState<FileInfo[]>([])
 
   return (
     <form
@@ -37,30 +39,30 @@ export function PromptForm({
           return
         }
         setInput('')
-        await onSubmit(input)
+        setFiles([])
+
+        const content =
+          vision && files.length > 0
+            ? ([
+                {
+                  type: 'text',
+                  text: input
+                } as MessageContentDetail
+              ].concat(
+                files.map(
+                  file =>
+                    ({
+                      type: 'image',
+                      data: file.data
+                    }) as MessageContentDetail
+                )
+              ) as MessageContent)
+            : input
+        await onSubmit(content)
       }}
     >
       <div className="flex grow max-h-60 w-full items-start justify-between space-x-2 overflow-hidden bg-background py-4 sm:px-4 sm:rounded-md sm:border">
-        {vision && (
-          <Tooltip content="Upload docs or images" align="center" side="top">
-            <Button
-              variant="ghost"
-              size="icon"
-              className="rounded-md bg-accent/60"
-              onClick={handleClick}
-            >
-              <input
-                ref={fileRef}
-                tabIndex={-1}
-                className="hidden"
-                type="file"
-                multiple
-              />
-              <IconPaperclip className="size-5" />
-              <span className="sr-only">Upload docs or images</span>
-            </Button>
-          </Tooltip>
-        )}
+        <Upload value={files} vision={vision} onChange={setFiles} />
         <Textarea
           autoFocus
           tabIndex={0}

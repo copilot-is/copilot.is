@@ -6,7 +6,6 @@ import { usePathname, useRouter } from 'next/navigation'
 
 import { type Chat } from '@/lib/types'
 import {
-  fetcher,
   messageId,
   isVisionModel,
   providerFromModel,
@@ -21,6 +20,7 @@ import { ChatHeader } from '@/components/chat-header'
 import { useSettings } from '@/lib/hooks/use-settings'
 import { updateChat } from '@/app/actions'
 import { GenerateTitlePrompt } from '@/lib/constant'
+import { api } from '@/lib/api'
 
 interface ChatProps {
   id: string
@@ -49,7 +49,6 @@ export function Chat({ id, chat }: ChatProps) {
     stream: true,
     previewToken
   })
-  const api = '/api/chat/' + provider
   const {
     isLoading,
     append,
@@ -61,7 +60,7 @@ export function Chat({ id, chat }: ChatProps) {
     setInput
   } = useChat({
     id,
-    api,
+    api: '/api/chat/' + provider,
     initialMessages,
     sendExtraMessageFields: true,
     generateId: () => generateId,
@@ -89,43 +88,33 @@ export function Chat({ id, chat }: ChatProps) {
   })
 
   const generateTitle = async (id: string, input: string, message: Message) => {
-    try {
-      const genModel = {
-        openai: 'gpt-3.5-turbo',
-        google: 'gemini-pro',
-        anthropic: 'claude-3-haiku-20240307'
+    const genModel = {
+      openai: 'gpt-3.5-turbo',
+      google: 'gemini-pro',
+      anthropic: 'claude-3-haiku-20240307'
+    }
+    const genMessages = [
+      { role: 'user', content: input },
+      { role: message.role, content: message.content },
+      {
+        role: 'user',
+        content: GenerateTitlePrompt
       }
-      const genUsage = buildChatUsage({
-        ...currentUsage,
-        model: genModel[provider],
-        prompt: undefined,
-        previewToken
-      })
-      if (input && message && message.content) {
-        const data = await fetcher(`/api/chat/${provider}`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({
-            messages: [
-              { role: 'user', content: input },
-              { role: message.role, content: message.content },
-              {
-                role: 'user',
-                content: GenerateTitlePrompt
-              }
-            ],
-            usage: genUsage
-          })
-        })
+    ] as Message[]
+    const genUsage = buildChatUsage({
+      ...currentUsage,
+      model: genModel[provider],
+      prompt: undefined,
+      previewToken
+    })
 
-        if (data.length && data[0]?.content) {
-          await updateChat(id, { title: data[0]?.content })
-        }
-      }
-    } catch (err) {
-      toast.error('Generate title failed')
+    const data = await api.createChat(provider, {
+      messages: genMessages,
+      usage: genUsage
+    })
+
+    if (data.length && data[0]?.content) {
+      await updateChat(id, { title: data[0]?.content })
     }
   }
 

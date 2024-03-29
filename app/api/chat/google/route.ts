@@ -1,4 +1,5 @@
 import {
+  Part,
   GoogleGenerativeAI,
   type GenerateContentResult,
   type GenerateContentRequest
@@ -7,21 +8,52 @@ import { GoogleGenerativeAIStream, StreamingTextResponse } from 'ai'
 import { NextResponse } from 'next/server'
 
 import { auth } from '@/server/auth'
-import { nanoid, messageId } from '@/lib/utils'
-import { Message, type Usage } from '@/lib/types'
+import {
+  nanoid,
+  messageId,
+  getBase64FromDataURL,
+  getMediaTypeFromDataURL,
+  isVisionModel
+} from '@/lib/utils'
+import { Message, MessageContent, type Usage } from '@/lib/types'
 import { appConfig } from '@/lib/appconfig'
 import { api } from '@/trpc/server'
 
 export const runtime = 'edge'
 
+const extractContent = (content: MessageContent): Part[] => {
+  if (Array.isArray(content)) {
+    const parts = content
+      .map(c => {
+        if (c.type === 'text') {
+          return { text: c.text }
+        } else {
+          return (
+            c.type === 'image' &&
+            c.data && {
+              inlineData: {
+                mimeType: getMediaTypeFromDataURL(c.data),
+                data: getBase64FromDataURL(c.data)
+              }
+            }
+          )
+        }
+      })
+      .filter(Boolean)
+    return parts as Part[]
+  }
+  return [{ text: content }]
+}
+
 const buildGoogleGenAIPrompt = (
-  messages: Message[]
+  messages: Message[],
+  vision: boolean = false
 ): GenerateContentRequest => ({
-  contents: messages
+  contents: (vision ? [messages[messages.length - 1]] : messages)
     .filter(message => message.role === 'user' || message.role === 'assistant')
     .map(message => ({
       role: message.role === 'user' ? 'user' : 'model',
-      parts: [{ text: message.content }]
+      parts: extractContent(message.content)
     }))
 })
 
@@ -82,15 +114,17 @@ export async function POST(req: Request) {
       }
     })
 
+    const vision = isVisionModel(model)
+
     if (!stream) {
       const genContent = await res.generateContent(
-        buildGoogleGenAIPrompt(messages)
+        buildGoogleGenAIPrompt(messages, vision)
       )
       return NextResponse.json(buildGoogleGenAIMessages(genContent))
     }
 
     const resStream = await res.generateContentStream(
-      buildGoogleGenAIPrompt(messages)
+      buildGoogleGenAIPrompt(messages, vision)
     )
     const aiStream = GoogleGenerativeAIStream(resStream, {
       onCompletion: async (completion: string) => {

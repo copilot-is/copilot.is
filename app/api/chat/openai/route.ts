@@ -8,11 +8,34 @@ import { NextResponse } from 'next/server'
 
 import { auth } from '@/server/auth'
 import { nanoid, messageId } from '@/lib/utils'
-import { Message, type Usage } from '@/lib/types'
+import { Message, MessageContent, type Usage } from '@/lib/types'
 import { appConfig } from '@/lib/appconfig'
 import { api } from '@/trpc/server'
 
 export const runtime = 'edge'
+
+const extractContent = (content: MessageContent) => {
+  if (Array.isArray(content)) {
+    return content
+      .map(c => {
+        if (c.type === 'text') {
+          return c
+        } else {
+          return (
+            c.type === 'image' &&
+            c.data && {
+              type: 'image_url',
+              image_url: {
+                url: c.data
+              }
+            }
+          )
+        }
+      })
+      .filter(Boolean)
+  }
+  return content
+}
 
 const buildOpenAIPrompt = (messages: Message[], prompt?: string) => {
   const systemMessage = { role: 'system', content: prompt } as Message
@@ -22,7 +45,7 @@ const buildOpenAIPrompt = (messages: Message[], prompt?: string) => {
     ({ role, content, name, function_call }) =>
       ({
         role,
-        content,
+        content: extractContent(content),
         ...(name !== undefined && { name }),
         ...(function_call !== undefined && { function_call })
       }) as ChatCompletionMessageParam

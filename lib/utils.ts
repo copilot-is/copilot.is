@@ -18,28 +18,6 @@ export const nanoid = customAlphabet(
 // Message id
 export const messageId = () => nanoid(6)
 
-export async function fetcher<JSON = any>(
-  input: RequestInfo,
-  init?: RequestInit
-): Promise<JSON> {
-  const res = await fetch(input, init)
-
-  if (!res.ok) {
-    const json = await res.json()
-    if (json.error) {
-      const error = new Error(json.error) as Error & {
-        status: number
-      }
-      error.status = res.status
-      throw error
-    } else {
-      throw new Error('An unexpected error occurred')
-    }
-  }
-
-  return res.json()
-}
-
 export function formatDate(input: string | number | Date): string {
   const date = new Date(input)
   return date.toLocaleDateString('en-US', {
@@ -117,4 +95,14 @@ export function buildChatUsage(usage: Usage): Usage {
   }
 
   return newUsage
+}
+
+export function getMediaTypeFromDataURL(dataURL: string): string | null {
+  const matches = dataURL.match(/^data:([A-Za-z-+\/]+);base64/)
+  return matches ? matches[1] : null
+}
+
+export function getBase64FromDataURL(dataURL: string): string | null {
+  const matches = dataURL.match(/^data:[A-Za-z-+\/]+;base64,(.*)$/)
+  return matches ? matches[1] : null
 }
