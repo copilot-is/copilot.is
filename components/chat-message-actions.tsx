@@ -59,7 +59,17 @@ export function ChatMessageActions({
 
   const onCopy = () => {
     if (isCopied) return
-    copyToClipboard(message.content)
+    copyToClipboard(
+      Array.isArray(content)
+        ? content
+            .map(c => {
+              if (c.type === 'text') {
+                return c.text
+              }
+            })
+            .join('\n\n')
+        : content
+    )
   }
 
   return (
@@ -76,7 +86,7 @@ export function ChatMessageActions({
             <Button
               variant="ghost"
               size="icon"
-              disabled={isEditPending}
+              disabled={isEditPending || Array.isArray(content)}
               onClick={() => setEditDialogOpen(true)}
             >
               <IconEdit />
@@ -139,7 +149,11 @@ export function ChatMessageActions({
             <Button
               variant="ghost"
               size="icon"
-              disabled={isDeletePending}
+              disabled={
+                isDeletePending ||
+                Array.isArray(content) ||
+                chat.messages.length === 1
+              }
               onClick={() => setDeleteDialogOpen(true)}
             >
               <IconTrash />
