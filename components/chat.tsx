@@ -122,11 +122,11 @@ export function Chat({ id, chat }: ChatProps) {
 
   return (
     <main
-      className="group size-full pl-0 overflow-auto duration-300 ease-in-out peer-[[data-state=open]]:lg:pl-[250px] peer-[[data-state=open]]:xl:pl-[300px]"
+      className="group flex flex-col size-full pl-0 overflow-auto duration-300 ease-in-out peer-[[data-state=open]]:lg:pl-[250px] peer-[[data-state=open]]:xl:pl-[300px]"
       ref={scrollRef}
     >
       <ChatHeader chat={chat} />
-      <div className="pb-36 lg:pb-40 pt-16 xl:pt-20" ref={messagesRef}>
+      <div className="flex-1 pb-36 lg:pb-40 pt-16 xl:pt-20" ref={messagesRef}>
         {messages.length ? (
           <ChatList
             id={id}
