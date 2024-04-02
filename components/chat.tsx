@@ -122,7 +122,7 @@ export function Chat({ id, chat }: ChatProps) {
 
   return (
     <main
-      className="group size-full pl-0 overflow-auto animate-in duration-300 ease-in-out peer-[[data-state=open]]:lg:pl-[250px] peer-[[data-state=open]]:xl:pl-[300px]"
+      className="group size-full pl-0 overflow-auto duration-300 ease-in-out peer-[[data-state=open]]:lg:pl-[250px] peer-[[data-state=open]]:xl:pl-[300px]"
       ref={scrollRef}
     >
       <ChatHeader chat={chat} />

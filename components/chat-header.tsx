@@ -1,5 +1,3 @@
-'use client'
-
 import Link from 'next/link'
 
 import { cn } from '@/lib/utils'
@@ -15,7 +13,7 @@ interface ChatHeaderProps {
 
 export function ChatHeader({ chat }: ChatHeaderProps) {
   return (
-    <div className="fixed overflow-hidden inset-x-0 top-0 z-10 flex items-center w-full h-12 shrink-0 border-b bg-background animate-in duration-300 ease-in-out peer-[[data-state=open]]:group-[]:lg:pl-[250px] peer-[[data-state=open]]:group-[]:xl:pl-[300px]">
+    <div className="fixed inset-x-0 top-0 z-10 flex items-center w-full h-12 shrink-0 border-b bg-background animate-in duration-300 ease-in-out peer-[[data-state=open]]:group-[]:lg:pl-[250px] peer-[[data-state=open]]:group-[]:xl:pl-[300px]">
       <SidebarToggle />
       <ModelMenu chat={chat} />
       <Link
