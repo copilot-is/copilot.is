@@ -20,6 +20,8 @@ export interface ChatPanelProps
   > {
   chat?: Chat
   vision: boolean
+  isAtBottom: boolean
+  scrollToBottom: () => void
 }
 
 export function ChatPanel({
@@ -31,12 +33,18 @@ export function ChatPanel({
   reload,
   input,
   setInput,
-  vision
+  vision,
+  isAtBottom,
+  scrollToBottom
 }: ChatPanelProps) {
   return (
-    <div className="sticky inset-x-0 bottom-0 w-full">
-      <ButtonScrollToBottom />
-      <div className="mx-auto max-w-4xl md:px-4">
+    <div className="fixed inset-x-0 bottom-0 w-full animate-in duration-300 ease-in-out peer-[[data-state=open]]:group-[]:lg:pl-[250px] peer-[[data-state=open]]:group-[]:xl:pl-[300px]">
+      <ButtonScrollToBottom
+        isAtBottom={isAtBottom}
+        scrollToBottom={scrollToBottom}
+      />
+
+      <div className="mx-auto max-w-4xl md:px-3">
         <div className="flex items-center justify-center py-3 space-x-3">
           <ChatRegenerate
             isLoading={isLoading}

@@ -20,9 +20,7 @@ export default async function ChatLayout({ children }: ChatLayoutProps) {
           <Sidebar>
             <SidebarPanel />
           </Sidebar>
-          <main className="flex flex-col size-full pl-0 animate-in duration-300 ease-in-out overflow-auto peer-[[data-state=open]]:lg:pl-[250px] peer-[[data-state=open]]:xl:pl-[300px]">
-            {children}
-          </main>
+          {children}
         </div>
       </SettingsProvider>
     </SidebarProvider>

@@ -15,9 +15,9 @@ import { useLocalStorage } from '@/lib/hooks/use-local-storage'
 import { ChatList } from '@/components/chat-list'
 import { ChatPanel } from '@/components/chat-panel'
 import { EmptyScreen } from '@/components/empty-screen'
-import { ChatScrollAnchor } from '@/components/chat-scroll-anchor'
 import { ChatHeader } from '@/components/chat-header'
 import { useSettings } from '@/lib/hooks/use-settings'
+import { useScrollAnchor } from '@/lib/hooks/use-scroll-anchor'
 import { updateChat } from '@/app/actions'
 import { GenerateTitlePrompt } from '@/lib/constant'
 import { api } from '@/lib/api'
@@ -33,6 +33,8 @@ export function Chat({ id, chat }: ChatProps) {
   const generateId = messageId()
   const [_, setNewChatId] = useLocalStorage<string>('new-chat-id')
   const { allowCustomAPIKey, model, token, modelSettings } = useSettings()
+  const { messagesRef, scrollRef, visibilityRef, isAtBottom, scrollToBottom } =
+    useScrollAnchor()
 
   const { title, usage, messages: initialMessages } = chat ?? {}
   const currentUsage = usage
@@ -119,22 +121,23 @@ export function Chat({ id, chat }: ChatProps) {
   }
 
   return (
-    <>
+    <main
+      className="group size-full pl-0 overflow-auto animate-in duration-300 ease-in-out peer-[[data-state=open]]:lg:pl-[250px] peer-[[data-state=open]]:xl:pl-[300px]"
+      ref={scrollRef}
+    >
       <ChatHeader chat={chat} />
-      <div className="flex-1 py-4 md:pt-10">
+      <div className="pb-36 lg:pb-40 pt-16 xl:pt-20" ref={messagesRef}>
         {messages.length ? (
-          <>
-            <ChatList
-              id={id}
-              provider={provider}
-              messages={messages}
-              setMessages={setMessages}
-            />
-            <ChatScrollAnchor trackVisibility={isLoading} />
-          </>
+          <ChatList
+            id={id}
+            provider={provider}
+            messages={messages}
+            setMessages={setMessages}
+          />
         ) : (
           <EmptyScreen provider={provider} setInput={setInput} />
         )}
+        <div className="h-px w-full" ref={visibilityRef} />
       </div>
       <ChatPanel
         chat={chat}
@@ -146,7 +149,9 @@ export function Chat({ id, chat }: ChatProps) {
         reload={reload}
         input={input}
         setInput={setInput}
+        isAtBottom={isAtBottom}
+        scrollToBottom={scrollToBottom}
       />
-    </>
+    </main>
   )
 }

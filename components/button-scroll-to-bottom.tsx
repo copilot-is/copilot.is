@@ -1,20 +1,27 @@
 'use client'
 
 import { cn } from '@/lib/utils'
-import { useAtBottom } from '@/lib/hooks/use-at-bottom'
 import { Button, type ButtonProps } from '@/components/ui/button'
 import { IconArrowDown } from '@/components/ui/icons'
 
-export function ButtonScrollToBottom({ className, ...props }: ButtonProps) {
-  const { isAtBottom, scrollToBottom } = useAtBottom()
+interface ButtonScrollToBottomProps extends ButtonProps {
+  isAtBottom: boolean
+  scrollToBottom: () => void
+}
 
+export function ButtonScrollToBottom({
+  className,
+  isAtBottom,
+  scrollToBottom,
+  ...props
+}: ButtonScrollToBottomProps) {
   return (
     <Button
       variant="outline"
       size="icon"
       className={cn(
         'absolute right-4 top-3 z-10 bg-background transition-opacity duration-300 sm:right-8',
-        isAtBottom ? 'opacity-0' : 'opacity-100',
+        isAtBottom ? 'opacity-0 cursor-default' : 'opacity-100',
         className
       )}
       onClick={scrollToBottom}
