@@ -64,13 +64,13 @@ export const getSupportedModels = (
     anthropic: anthropicModels?.split(',') || []
   }
 
-  const supportedModelValues = SupportedModels.filter(({ value, provider }) => {
+  const supportedModels = SupportedModels.filter(({ value, provider }) => {
     return providers[provider]?.length
       ? providers[provider].includes(value)
       : true
   }).map(({ value }) => value)
 
-  return supportedModelValues.length > 0 ? supportedModelValues : undefined
+  return supportedModels.length > 0 ? supportedModels : undefined
 }
 
 export function buildChatUsage(usage: Usage): Usage {
