@@ -1,3 +1,5 @@
+import { SupportedModels } from '@/lib/constant'
+
 export interface AppConfig {
   readonly product: {
     name: string
@@ -12,17 +14,19 @@ export interface AppConfig {
   readonly openai: {
     apiKey: string
     baseURL?: string
+    models?: string
   }
   readonly google: {
     apiKey: string
     baseURL?: string
+    models?: string
   }
   readonly anthropic: {
     apiKey: string
     baseURL?: string
+    models?: string
   }
   readonly defaultModel?: string
-  readonly supportedModels?: string[]
   readonly allowCustomAPIKey: boolean
 }
 
@@ -39,16 +43,18 @@ export const appConfig: AppConfig = {
   },
   openai: {
     apiKey: process.env.OPENAI_API_KEY || '',
-    baseURL: process.env.OPENAI_BASE_URL
+    baseURL: process.env.OPENAI_BASE_URL,
+    models: process.env.OPENAI_MODELS
   },
   google: {
-    apiKey: process.env.GOOGLE_API_KEY || ''
+    apiKey: process.env.GOOGLE_API_KEY || '',
+    models: process.env.GOOGLE_MODELS
   },
   anthropic: {
     apiKey: process.env.ANTHROPIC_API_KEY || '',
-    baseURL: process.env.ANTHROPIC_BASE_URL
+    baseURL: process.env.ANTHROPIC_BASE_URL,
+    models: process.env.ANTHROPIC_MODELS
   },
   defaultModel: process.env.DEFAULT_MODEL,
-  supportedModels: process.env.SUPPORTED_MODELS?.split(','),
   allowCustomAPIKey: process.env.ALLOW_CUSTOM_API_KEY === 'false' ? false : true
 }

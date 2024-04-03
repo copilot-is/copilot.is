@@ -87,7 +87,7 @@ export function ModelMenu({ chat }: ModelMenuProps) {
                 {model.provider === 'openai' && <IconOpenAI />}
                 {model.provider === 'google' && <IconGoogleAI />}
                 {model.provider === 'anthropic' && <IconClaudeAI />}
-                <span className="ml-2">{model.text}</span>
+                <span className="ml-2 mr-3">{model.text}</span>
               </DropdownMenuRadioItem>
             ))}
           </DropdownMenuRadioGroup>

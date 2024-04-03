@@ -13,12 +13,22 @@ export const SupportedModels: {
   provider: ModelProvider
 }[] = [
   {
-    text: 'GPT-4 1106 Preview',
+    text: 'GPT-4 0125',
+    value: 'gpt-4-0125-preview',
+    provider: 'openai'
+  },
+  {
+    text: 'GPT-4 Turbo',
+    value: 'gpt-4-turbo-preview',
+    provider: 'openai'
+  },
+  {
+    text: 'GPT-4 1106',
     value: 'gpt-4-1106-preview',
     provider: 'openai'
   },
   {
-    text: 'GPT-4 Vision Preview',
+    text: 'GPT-4 Vision',
     value: 'gpt-4-vision-preview',
     vision: true,
     provider: 'openai'
@@ -29,11 +39,6 @@ export const SupportedModels: {
   { text: 'GPT-4 32k', value: 'gpt-4-32k', provider: 'openai' },
   { text: 'GPT-4 32k 0314', value: 'gpt-4-32k-0314', provider: 'openai' },
   { text: 'GPT-4 32k 0613', value: 'gpt-4-32k-0613', provider: 'openai' },
-  {
-    text: 'GPT-3.5 Turbo 1106',
-    value: 'gpt-3.5-turbo-1106',
-    provider: 'openai'
-  },
   { text: 'GPT-3.5 Turbo', value: 'gpt-3.5-turbo', provider: 'openai' },
   { text: 'GPT-3.5 Turbo 16k', value: 'gpt-3.5-turbo-16k', provider: 'openai' },
   {
@@ -44,6 +49,16 @@ export const SupportedModels: {
   {
     text: 'GPT-3.5 Turbo 0613',
     value: 'gpt-3.5-turbo-0613',
+    provider: 'openai'
+  },
+  {
+    text: 'GPT-3.5 Turbo 1106',
+    value: 'gpt-3.5-turbo-1106',
+    provider: 'openai'
+  },
+  {
+    text: 'GPT-3.5 Turbo 0125',
+    value: 'gpt-3.5-turbo-0125',
     provider: 'openai'
   },
   {
