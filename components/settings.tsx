@@ -61,7 +61,7 @@ export const Settings = () => {
           <>
             <fieldset>
               <label
-                className="block mb-1.5 text-sm font-bold"
+                className="mb-1.5 block text-sm font-bold"
                 htmlFor="openai"
               >
                 OpenAI API key
@@ -71,7 +71,7 @@ export const Settings = () => {
                 value={token?.openai ?? ''}
                 onChange={e => setToken('openai', e.target.value)}
               />
-              <p className="text-sm text-muted-foreground mt-1">
+              <p className="text-muted-foreground mt-1 text-sm">
                 If you have not obtained your OpenAI API key, you can do so at{' '}
                 <ExternalLink href="https://platform.openai.com/account/api-keys">
                   OpenAI
@@ -85,7 +85,7 @@ export const Settings = () => {
             </fieldset>
             <fieldset>
               <label
-                className="block mb-1.5 text-sm font-bold"
+                className="mb-1.5 block text-sm font-bold"
                 htmlFor="google"
               >
                 Google API key
@@ -95,7 +95,7 @@ export const Settings = () => {
                 value={token?.google ?? ''}
                 onChange={e => setToken('google', e.target.value)}
               />
-              <p className="text-sm text-muted-foreground mt-1">
+              <p className="text-muted-foreground mt-1 text-sm">
                 If you have not obtained your Google API key, you can do so at{' '}
                 <ExternalLink href="https://makersuite.google.com/app/apikey">
                   Google AI Studio
@@ -106,7 +106,7 @@ export const Settings = () => {
             </fieldset>
             <fieldset>
               <label
-                className="block mb-1.5 text-sm font-bold"
+                className="mb-1.5 block text-sm font-bold"
                 htmlFor="anthropic"
               >
                 Anthropic API key
@@ -116,7 +116,7 @@ export const Settings = () => {
                 value={token?.anthropic ?? ''}
                 onChange={e => setToken('anthropic', e.target.value)}
               />
-              <p className="text-sm text-muted-foreground mt-1">
+              <p className="text-muted-foreground mt-1 text-sm">
                 If you have not obtained your Anthropic API key, you can do so
                 at{' '}
                 <ExternalLink href="https://console.anthropic.com/settings/keys">
@@ -129,7 +129,7 @@ export const Settings = () => {
           </>
         )}
         <fieldset>
-          <label className="block mb-1.5 text-sm font-bold">Model</label>
+          <label className="mb-1.5 block text-sm font-bold">Model</label>
           <Select value={model} onValueChange={setModel}>
             <SelectTrigger>{selectedModel}</SelectTrigger>
             <SelectContent>
@@ -142,9 +142,9 @@ export const Settings = () => {
           </Select>
         </fieldset>
         <fieldset>
-          <label className="block mb-1.5 text-sm font-bold" htmlFor="prompt">
+          <label className="mb-1.5 block text-sm font-bold" htmlFor="prompt">
             System Prompt
-            <span className="text-sm text-muted-foreground ml-1.5">
+            <span className="text-muted-foreground ml-1.5 text-sm">
               (GPT Only)
             </span>
             <Button
@@ -164,9 +164,9 @@ export const Settings = () => {
           />
         </fieldset>
         <fieldset>
-          <label className="block mb-1.5 text-sm font-bold">
+          <label className="mb-1.5 block text-sm font-bold">
             Temperature:
-            <span className="text-sm text-muted-foreground ml-1.5">
+            <span className="text-muted-foreground ml-1.5 text-sm">
               {modelSettings.temperature}
             </span>
             <Button
@@ -192,9 +192,9 @@ export const Settings = () => {
           </div>
         </fieldset>
         <fieldset>
-          <label className="block mb-1.5 text-sm font-bold">
+          <label className="mb-1.5 block text-sm font-bold">
             Presence Penalty:
-            <span className="text-sm text-muted-foreground ml-1.5">
+            <span className="text-muted-foreground ml-1.5 text-sm">
               {modelSettings.presencePenalty}
             </span>
             <Button
@@ -217,9 +217,9 @@ export const Settings = () => {
           />
         </fieldset>
         <fieldset>
-          <label className="block mb-1.5 text-sm font-bold">
+          <label className="mb-1.5 block text-sm font-bold">
             Frequency Penalty:
-            <span className="text-sm text-muted-foreground ml-1.5">
+            <span className="text-muted-foreground ml-1.5 text-sm">
               {modelSettings.frequencyPenalty}
             </span>
             <Button
@@ -242,9 +242,9 @@ export const Settings = () => {
           />
         </fieldset>
         <fieldset>
-          <label className="block mb-1.5 text-sm font-bold">
+          <label className="mb-1.5 block text-sm font-bold">
             Top P:
-            <span className="text-sm text-muted-foreground ml-1.5">
+            <span className="text-muted-foreground ml-1.5 text-sm">
               {modelSettings.topP}
             </span>
             <Button
@@ -265,9 +265,9 @@ export const Settings = () => {
           />
         </fieldset>
         <fieldset>
-          <label className="block mb-1.5 text-sm font-bold">
+          <label className="mb-1.5 block text-sm font-bold">
             Top K:
-            <span className="text-sm text-muted-foreground ml-1.5">
+            <span className="text-muted-foreground ml-1.5 text-sm">
               {modelSettings.topK}
             </span>
             <Button
@@ -288,9 +288,9 @@ export const Settings = () => {
           />
         </fieldset>
         <fieldset>
-          <label className="block mb-1.5 text-sm font-bold">
+          <label className="mb-1.5 block text-sm font-bold">
             Max Tokens:
-            <span className="text-sm text-muted-foreground ml-1.5">
+            <span className="text-muted-foreground ml-1.5 text-sm">
               {modelSettings.maxTokens}
             </span>
             <Button

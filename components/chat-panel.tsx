@@ -38,14 +38,14 @@ export function ChatPanel({
   scrollToBottom
 }: ChatPanelProps) {
   return (
-    <div className="fixed inset-x-0 bottom-0 w-full animate-in duration-300 ease-in-out peer-[[data-state=open]]:group-[]:lg:pl-[250px] peer-[[data-state=open]]:group-[]:xl:pl-[300px]">
+    <div className="animate-in fixed inset-x-0 bottom-0 w-full duration-300 ease-in-out peer-[[data-state=open]]:group-[]:lg:pl-[250px] peer-[[data-state=open]]:group-[]:xl:pl-[300px]">
       <ButtonScrollToBottom
         isAtBottom={isAtBottom}
         scrollToBottom={scrollToBottom}
       />
 
       <div className="mx-auto max-w-4xl md:px-3">
-        <div className="flex items-center justify-center py-3 space-x-3">
+        <div className="flex items-center justify-center space-x-3 py-3">
           <ChatRegenerate
             isLoading={isLoading}
             hasMessages={!!messages?.length}
@@ -54,7 +54,7 @@ export function ChatPanel({
           />
           <ChatShare chat={chat} messages={messages} />
         </div>
-        <div className="space-y-4 border-t bg-background px-4 py-2 shadow-lg sm:rounded-t-xl sm:border md:py-4">
+        <div className="bg-background space-y-4 border-t px-4 py-2 shadow-lg sm:rounded-t-xl sm:border md:py-4">
           <PromptForm
             vision={vision}
             input={input}

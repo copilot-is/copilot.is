@@ -91,7 +91,7 @@ export function Upload({ vision, value = [], onChange }: UploadProps) {
           type="button"
           variant="ghost"
           size="icon"
-          className="rounded-md bg-accent/60"
+          className="bg-accent/60 rounded-md"
           disabled={isUploadPending}
           onClick={() => {
             fileRef.current?.click()
@@ -124,15 +124,15 @@ export function Upload({ vision, value = [], onChange }: UploadProps) {
             <img
               src={file.data}
               alt={file.name}
-              className="size-8 overflow-hidden border rounded-md cursor-pointer"
+              className="size-8 cursor-pointer overflow-hidden rounded-md border"
             />
             {isDeletePending && (
-              <div className="absolute inset-0 size-full bg-accent/60 rounded-md flex items-center justify-center"></div>
+              <div className="bg-accent/60 absolute inset-0 flex size-full items-center justify-center rounded-md"></div>
             )}
             <Button
               type="button"
               variant={'ghost'}
-              className="size-4 bg-accent hover:bg-red-700 hover:text-white border rounded-full p-0 absolute -top-1.5 -right-1.5"
+              className="bg-accent absolute -right-1.5 -top-1.5 size-4 rounded-full border p-0 hover:bg-red-700 hover:text-white"
               disabled={isDeletePending}
               onClick={() => {
                 startDeleteTransition(() => {

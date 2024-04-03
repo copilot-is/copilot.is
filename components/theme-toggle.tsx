@@ -46,15 +46,15 @@ export function ThemeToggle() {
         {mounted ? (
           <>
             {theme === 'dark' ? (
-              <IconMoon className="transition-all size-5" />
+              <IconMoon className="size-5 transition-all" />
             ) : theme === 'light' ? (
-              <IconSun className="transition-all size-5" />
+              <IconSun className="size-5 transition-all" />
             ) : (
-              <IconSunMoon className="transition-all size-5" />
+              <IconSunMoon className="size-5 transition-all" />
             )}
           </>
         ) : (
-          <IconSunMoon className="transition-all size-5" />
+          <IconSunMoon className="size-5 transition-all" />
         )}
         <span className="sr-only">Toggle theme</span>
       </Button>

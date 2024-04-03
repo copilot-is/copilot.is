@@ -16,7 +16,7 @@ export default async function ChatLayout({ children }: ChatLayoutProps) {
         availableModels={appConfig.supportedModels}
         allowCustomAPIKey={appConfig.allowCustomAPIKey}
       >
-        <div className="relative flex size-full bg-muted/50">
+        <div className="bg-muted/50 relative flex size-full">
           <Sidebar>
             <SidebarPanel />
           </Sidebar>

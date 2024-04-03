@@ -59,10 +59,10 @@ export function ModelMenu({ chat }: ModelMenuProps) {
   }
 
   return (
-    <div className="flex flex-1 px-1 items-center justify-center lg:justify-between">
+    <div className="flex flex-1 items-center justify-center px-1 lg:justify-between">
       <DropdownMenu>
         <DropdownMenuTrigger disabled={isPending} asChild>
-          <Button variant="ghost" className="px-2 data-[state=open]:bg-accent">
+          <Button variant="ghost" className="data-[state=open]:bg-accent px-2">
             {selectedModel?.provider === 'openai' && <IconOpenAI />}
             {selectedModel?.provider === 'google' && <IconGoogleAI />}
             {selectedModel?.provider === 'anthropic' && <IconClaudeAI />}
@@ -74,7 +74,7 @@ export function ModelMenu({ chat }: ModelMenuProps) {
           <DropdownMenuLabel>Model</DropdownMenuLabel>
           <DropdownMenuSeparator />
           <DropdownMenuRadioGroup
-            className="overflow-auto max-h-80"
+            className="max-h-80 overflow-auto"
             value={selectedModel?.value}
             onValueChange={value => {
               startTransition(async () => {

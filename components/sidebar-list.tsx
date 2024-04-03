@@ -57,7 +57,7 @@ export function SidebarList({ chats }: SidebarListProps) {
               return (
                 sortedChats.length && (
                   <React.Fragment key={category}>
-                    <h2 className="px-2 text-xs text-muted-foreground">
+                    <h2 className="text-muted-foreground px-2 text-xs">
                       {category}
                     </h2>
                     {sortedChats.map(
@@ -84,7 +84,7 @@ export function SidebarList({ chats }: SidebarListProps) {
         </div>
       ) : (
         <div className="p-8 text-center">
-          <p className="text-sm text-muted-foreground">No chat history</p>
+          <p className="text-muted-foreground text-sm">No chat history</p>
         </div>
       )}
     </div>

@@ -31,7 +31,7 @@ export function ChatMessage({
 }: ChatMessageProps) {
   return (
     <div className="relative mb-4 flex items-start">
-      <div className="flex size-8 shrink-0 select-none items-center justify-center rounded-md border bg-background">
+      <div className="bg-background flex size-8 shrink-0 select-none items-center justify-center rounded-md border">
         {message.role === 'user' ? <IconUser /> : null}
         {message.role !== 'user' && (
           <>
@@ -41,9 +41,9 @@ export function ChatMessage({
           </>
         )}
       </div>
-      <div className="flex-1 ml-4 mt-1 overflow-hidden">
+      <div className="ml-4 mt-1 flex-1 overflow-hidden">
         {Array.isArray(message.content) && message.content.length > 0 && (
-          <div className="flex space-x-2 mb-2">
+          <div className="mb-2 flex space-x-2">
             {message.content.map((c, i) => {
               if (c.type !== 'text') {
                 return (
@@ -54,7 +54,7 @@ export function ChatMessage({
                         width={0}
                         height={0}
                         loading="lazy"
-                        className="max-w-xs w-full h-auto mt-0 mb-3"
+                        className="mb-3 mt-0 h-auto w-full max-w-xs"
                         src={c.data}
                       />
                     </div>
@@ -66,14 +66,14 @@ export function ChatMessage({
         )}
 
         <MemoizedReactMarkdown
-          className="prose break-words dark:prose-invert prose-p:leading-relaxed prose-pre:p-0"
+          className="prose dark:prose-invert prose-p:leading-relaxed prose-pre:p-0 break-words"
           remarkPlugins={[remarkGfm, remarkMath]}
           components={{
             p({ children }) {
               return <p className="mb-2 last:mb-0">{children}</p>
             },
             img({ node, ...props }) {
-              return <img alt="" className="max-w-[70%] mt-0 mb-3" {...props} />
+              return <img alt="" className="mb-3 mt-0 max-w-[70%]" {...props} />
             },
             code({ node, className, children, ...props }) {
               const childArray = React.Children.toArray(children)

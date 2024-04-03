@@ -13,14 +13,14 @@ interface ChatHeaderProps {
 
 export function ChatHeader({ chat }: ChatHeaderProps) {
   return (
-    <div className="fixed inset-x-0 top-0 z-10 flex items-center w-full h-12 shrink-0 border-b bg-background animate-in duration-300 ease-in-out peer-[[data-state=open]]:group-[]:lg:pl-[250px] peer-[[data-state=open]]:group-[]:xl:pl-[300px]">
+    <div className="bg-background animate-in fixed inset-x-0 top-0 z-10 flex h-12 w-full shrink-0 items-center border-b duration-300 ease-in-out peer-[[data-state=open]]:group-[]:lg:pl-[250px] peer-[[data-state=open]]:group-[]:xl:pl-[300px]">
       <SidebarToggle />
       <ModelMenu chat={chat} />
       <Link
         href="/"
         className={cn(
           buttonVariants({ variant: 'ghost', size: 'icon' }),
-          'size-9 mr-2 lg:hidden'
+          'mr-2 size-9 lg:hidden'
         )}
       >
         <IconPlusCircle className="size-6" />

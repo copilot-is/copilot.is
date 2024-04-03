@@ -36,7 +36,7 @@ export function SidebarActions({ chat }: SidebarActionsProps) {
           <Button
             variant="ghost"
             size="icon"
-            className="size-6 hover:bg-background data-[state=open]:bg-background outline-none"
+            className="hover:bg-background data-[state=open]:bg-background size-6 outline-none"
           >
             <IconDotsThreeVertical />
           </Button>

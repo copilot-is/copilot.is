@@ -61,7 +61,7 @@ export function PromptForm({
         await onSubmit(content)
       }}
     >
-      <div className="flex grow max-h-60 w-full items-start justify-between space-x-2 overflow-hidden bg-background py-4 sm:px-4 sm:rounded-md sm:border">
+      <div className="bg-background flex max-h-60 w-full grow items-start justify-between space-x-2 overflow-hidden py-4 sm:rounded-md sm:border sm:px-4">
         <Upload value={files} vision={vision} onChange={setFiles} />
         <Textarea
           autoFocus

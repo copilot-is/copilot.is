@@ -20,7 +20,7 @@ export async function SidebarPanel() {
       <div className="flex p-3">
         <Link
           href="/"
-          className="flex w-full items-center rounded-md text-sm font-medium ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input hover:text-accent-foreground py-2 h-10 bg-zinc-50 px-4 shadow-none transition-colors hover:bg-zinc-200/40 dark:bg-zinc-900 dark:hover:bg-zinc-300/10"
+          className="ring-offset-background focus-visible:ring-ring border-input hover:text-accent-foreground flex h-10 w-full items-center rounded-md border bg-zinc-50 px-4 py-2 text-sm font-medium shadow-none transition-colors hover:bg-zinc-200/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 dark:bg-zinc-900 dark:hover:bg-zinc-300/10"
         >
           <IconPlus className="-translate-x-2" />
           New Chat
@@ -33,7 +33,7 @@ export async function SidebarPanel() {
               {Array.from({ length: 10 }).map((_, i) => (
                 <div
                   key={i}
-                  className="w-full h-6 rounded-md animate-pulse bg-zinc-200 dark:bg-zinc-800"
+                  className="h-6 w-full animate-pulse rounded-md bg-zinc-200 dark:bg-zinc-800"
                 />
               ))}
             </div>
