@@ -39,7 +39,7 @@ export function SidebarList({ chats }: SidebarListProps) {
           case 'Previous Month':
             return chatDate >= oneMonthAgoStart && chatDate < oneWeekAgoStart
           case 'Older':
-            return chatDate < oneWeekAgoStart
+            return chatDate < oneMonthAgoStart
           default:
             return true
         }
