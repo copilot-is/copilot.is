@@ -66,9 +66,9 @@ export const SupportedModels: {
     value: 'gpt-3.5-turbo-16k-0613',
     provider: 'openai'
   },
-  { text: 'Gemini Pro', value: 'gemini-pro', provider: 'google' },
+  { text: 'Gemini 1 Pro', value: 'gemini-pro', provider: 'google' },
   {
-    text: 'Gemini Pro Vision',
+    text: 'Gemini 1 Pro Vision',
     value: 'gemini-pro-vision',
     vision: true,
     provider: 'google'
