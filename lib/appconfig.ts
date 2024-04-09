@@ -28,6 +28,10 @@ export interface AppConfig {
   }
   readonly defaultModel?: string
   readonly allowCustomAPIKey: boolean
+  readonly umami: {
+    scriptURL?: string
+    websiteId?: string
+  }
 }
 
 export const appConfig: AppConfig = {
@@ -56,5 +60,10 @@ export const appConfig: AppConfig = {
     models: process.env.ANTHROPIC_MODELS
   },
   defaultModel: process.env.DEFAULT_MODEL,
-  allowCustomAPIKey: process.env.ALLOW_CUSTOM_API_KEY === 'false' ? false : true
+  allowCustomAPIKey:
+    process.env.ALLOW_CUSTOM_API_KEY === 'false' ? false : true,
+  umami: {
+    scriptURL: process.env.UMAMI_SCRIPT_URL,
+    websiteId: process.env.UMAMI_WEBSITE_ID
+  }
 }

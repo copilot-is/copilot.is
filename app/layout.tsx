@@ -1,4 +1,5 @@
 import { type Metadata, type Viewport } from 'next'
+import Script from 'next/script'
 import { Toaster } from 'react-hot-toast'
 
 import '@/app/globals.css'
@@ -11,9 +12,11 @@ import { Providers } from '@/components/providers'
 import { TRPCReactProvider } from '@/trpc/react'
 
 export const metadata: Metadata = {
-  metadataBase: new URL(
-    appConfig.product.url || `https://${process.env.VERCEL_URL}`
-  ),
+  metadataBase: process.env.VERCEL_URL
+    ? new URL(`https://${process.env.VERCEL_URL}`)
+    : appConfig.product.url
+      ? new URL(appConfig.product.url)
+      : undefined,
   title: {
     default: `${appConfig.product.name} - ${appConfig.product.subtitle}`,
     template: `%s - ${appConfig.product.subtitle}`
@@ -40,6 +43,13 @@ interface RootLayoutProps {
 export default function RootLayout({ children }: RootLayoutProps) {
   return (
     <html lang="en" suppressHydrationWarning>
+      {appConfig.umami.scriptURL && appConfig.umami.websiteId && (
+        <Script
+          defer
+          src={appConfig.umami.scriptURL}
+          data-website-id={appConfig.umami.websiteId}
+        />
+      )}
       <body
         className={cn(
           'font-sans antialiased',
