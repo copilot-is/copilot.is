@@ -16,9 +16,9 @@ import {
 import { Slider } from '@/components/ui/slider'
 import { ExternalLink } from '@/components/external-link'
 import { Textarea } from '@/components/ui/textarea'
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tab'
 import { SupportedModels } from '@/lib/constant'
 import { useSettings } from '@/lib/hooks/use-settings'
-import { Tabs, TabsList, TabsTrigger, TabsContent } from './ui/tab'
 
 export const Settings = () => {
   const [open, setOpen] = React.useState(false)
@@ -55,7 +55,8 @@ export const Settings = () => {
             )}
           </TabsList>
           <TabsContent value="model" className="grid gap-4">
-            <fieldset className="mt-3">
+            <fieldset>
+              <label className="mb-1.5 block text-sm font-bold">Model</label>
               <Select value={model} onValueChange={setModel}>
                 <SelectTrigger>{selectedModel}</SelectTrigger>
                 <SelectContent>
