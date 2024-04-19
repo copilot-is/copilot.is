@@ -19,20 +19,20 @@ export function ChatRegenerate({
       {isLoading ? (
         <Button
           variant="outline"
-          className="bg-background"
+          className="bg-background px-3"
           onClick={() => stop()}
         >
-          <IconStop className="mr-2" />
+          <IconStop className="mr-1" />
           Stop generating
         </Button>
       ) : (
         hasMessages && (
           <Button
             variant="outline"
-            className="bg-background"
+            className="bg-background px-3"
             onClick={() => reload()}
           >
-            <IconRefresh className="mr-2" />
+            <IconRefresh className="mr-1" />
             Regenerate
           </Button>
         )

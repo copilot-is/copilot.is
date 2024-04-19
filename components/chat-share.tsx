@@ -23,10 +23,10 @@ export function ChatShare({ chat, messages }: ChatShareProps) {
     <>
       <Button
         variant="outline"
-        className="bg-background"
+        className="bg-background px-3"
         onClick={() => setShareDialogOpen(true)}
       >
-        <IconShare className="mr-2" />
+        <IconShare className="mr-1" />
         Share
       </Button>
       <ChatShareDialog
