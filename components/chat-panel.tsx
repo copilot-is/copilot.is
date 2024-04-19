@@ -54,13 +54,16 @@ export function ChatPanel({
           />
           <ChatShare chat={chat} messages={messages} />
         </div>
-        <div className="bg-background space-y-4 border-t px-4 py-2 shadow-lg sm:rounded-t-xl sm:border md:py-4">
+        <div className="bg-background space-y-4 border-t p-4 shadow-lg sm:rounded-t-xl sm:border sm:border-b-0">
           <PromptForm
             vision={vision}
             input={input}
             setInput={setInput}
             isLoading={isLoading}
             onSubmit={async value => {
+              if (!isAtBottom) {
+                setTimeout(scrollToBottom, 200)
+              }
               await append({
                 id: messageId(),
                 // @ts-ignore
