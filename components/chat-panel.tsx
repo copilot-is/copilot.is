@@ -62,7 +62,9 @@ export function ChatPanel({
             isLoading={isLoading}
             onSubmit={async value => {
               if (!isAtBottom) {
-                setTimeout(scrollToBottom, 200)
+                setTimeout(() => {
+                  scrollToBottom()
+                }, 100)
               }
               await append({
                 id: messageId(),
