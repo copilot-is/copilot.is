@@ -8,8 +8,6 @@ import { motion } from 'framer-motion'
 
 import { type Chat } from '@/lib/types'
 import { cn, providerFromModel } from '@/lib/utils'
-import { useSidebar } from '@/lib/hooks/use-sidebar'
-import { useMediaQuery } from '@/lib/hooks/use-media-query'
 import { useLocalStorage } from '@/lib/hooks/use-local-storage'
 import { buttonVariants } from '@/components/ui/button'
 import { IconClaudeAI, IconGoogleAI, IconOpenAI } from '@/components/ui/icons'
@@ -22,8 +20,6 @@ interface SidebarItemProps {
 
 export function SidebarItem({ index, chat, children }: SidebarItemProps) {
   const { id } = useParams()
-  const { closeSidebar } = useSidebar()
-  const isMobile = useMediaQuery('(max-width: 1023px)')
   const [newChatId, setNewChatId] = useLocalStorage<string>('new-chat-id')
   const isActive = id === chat.id
   const shouldAnimate = index === 0 && isActive && newChatId === chat.id
@@ -65,7 +61,6 @@ export function SidebarItem({ index, chat, children }: SidebarItemProps) {
         <div
           className="relative max-h-5 flex-1 select-none overflow-hidden text-ellipsis break-all"
           title={chat.title}
-          onClick={isMobile ? closeSidebar : undefined}
         >
           <span className="whitespace-nowrap">
             {shouldAnimate ? (
