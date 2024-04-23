@@ -12,14 +12,14 @@ export interface SidebarProps {
 
 export function Sidebar({ children }: SidebarProps) {
   const isMobile = useMediaQuery('(max-width: 1023px)')
-  const { isSidebarOpen, toggleSidebar } = useSidebar()
+  const { isSidebarOpen, closeSidebar } = useSidebar()
 
   return (
     <>
       {isMobile && isSidebarOpen && (
         <div
           className="bg-background/60 fixed left-0 top-0 z-20 size-full backdrop-blur-sm"
-          onClick={toggleSidebar}
+          onClick={closeSidebar}
         ></div>
       )}
       <section

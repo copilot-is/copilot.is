@@ -7,6 +7,7 @@ import { useMediaQuery } from '@/lib/hooks/use-media-query'
 interface SidebarContextProps {
   isSidebarOpen: boolean
   toggleSidebar: () => void
+  closeSidebar: () => void
 }
 
 const SidebarContext = React.createContext<SidebarContextProps | undefined>(
@@ -39,6 +40,10 @@ export function SidebarProvider({ children }: SidebarProviderProps) {
     setSidebarOpen(!isSidebarOpenState)
   }
 
+  const closeSidebar = () => {
+    setSidebarOpen(false)
+  }
+
   if (isLoading) {
     return null
   }
@@ -47,7 +52,8 @@ export function SidebarProvider({ children }: SidebarProviderProps) {
     <SidebarContext.Provider
       value={{
         isSidebarOpen: isSidebarOpenState,
-        toggleSidebar
+        toggleSidebar,
+        closeSidebar
       }}
     >
       {children}
