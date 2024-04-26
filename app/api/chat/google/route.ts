@@ -104,15 +104,18 @@ export async function POST(req: Request) {
   }
 
   try {
-    const res = googleai.getGenerativeModel({
-      model,
-      generationConfig: {
-        temperature,
-        topP,
-        topK,
-        maxOutputTokens: maxTokens
-      }
-    })
+    const res = googleai.getGenerativeModel(
+      {
+        model,
+        generationConfig: {
+          temperature,
+          topP,
+          topK,
+          maxOutputTokens: maxTokens
+        }
+      },
+      { baseUrl: appConfig.google.baseURL }
+    )
 
     const vision = isVisionModel(model)
 

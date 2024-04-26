@@ -1,5 +1,3 @@
-import { SupportedModels } from '@/lib/constant'
-
 export interface AppConfig {
   readonly product: {
     name: string
