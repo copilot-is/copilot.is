@@ -12,10 +12,9 @@ import {
   nanoid,
   messageId,
   getBase64FromDataURL,
-  getMediaTypeFromDataURL,
-  isVisionModel
+  getMediaTypeFromDataURL
 } from '@/lib/utils'
-import { Message, MessageContent, type Usage } from '@/lib/types'
+import { Message, MessageContent, Model, type Usage } from '@/lib/types'
 import { appConfig } from '@/lib/appconfig'
 import { api } from '@/trpc/server'
 
@@ -47,9 +46,12 @@ const extractContent = (content: MessageContent): Part[] => {
 
 const buildGoogleGenAIPrompt = (
   messages: Message[],
-  vision: boolean = false
+  model: Model
 ): GenerateContentRequest => ({
-  contents: (vision ? [messages[messages.length - 1]] : messages)
+  contents: (model === 'gemini-pro-vision'
+    ? [messages[messages.length - 1]]
+    : messages
+  )
     .filter(message => message.role === 'user' || message.role === 'assistant')
     .map(message => ({
       role: message.role === 'user' ? 'user' : 'model',
@@ -114,20 +116,20 @@ export async function POST(req: Request) {
           maxOutputTokens: maxTokens
         }
       },
-      { baseUrl: appConfig.google.baseURL }
+      {
+        baseUrl: appConfig.google.baseURL
+      }
     )
-
-    const vision = isVisionModel(model)
 
     if (!stream) {
       const genContent = await res.generateContent(
-        buildGoogleGenAIPrompt(messages, vision)
+        buildGoogleGenAIPrompt(messages, model)
       )
       return NextResponse.json(buildGoogleGenAIMessages(genContent))
     }
 
     const resStream = await res.generateContentStream(
-      buildGoogleGenAIPrompt(messages, vision)
+      buildGoogleGenAIPrompt(messages, model)
     )
     const aiStream = GoogleGenerativeAIStream(resStream, {
       onCompletion: async (completion: string) => {
