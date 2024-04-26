@@ -2,40 +2,54 @@
 
 import * as React from 'react'
 import { signIn } from 'next-auth/react'
-
 import { Button, type ButtonProps } from '@/components/ui/button'
-import { IconGitHub, IconSpinner } from '@/components/ui/icons'
+import { IconGitHub, IconGoogle, IconSpinner } from '@/components/ui/icons'
 
-interface LoginButtonProps extends ButtonProps {
-  showGithubIcon?: boolean
-  text?: string
+interface LoginButtonProps extends Omit<ButtonProps, 'children' | 'disabled' | 'onClick'> {
+  githubEnabled?: boolean;
+  googleEnabled?: boolean;
+  className?: string;
 }
 
 export function LoginButton({
-  text = 'Login with GitHub',
-  showGithubIcon = true,
+  githubEnabled = false,
+  googleEnabled = false,
   className,
-  ...props
+  ...buttonProps
 }: LoginButtonProps) {
-  const [isLoading, setIsLoading] = React.useState(false)
+  const [loadingProvider, setLoadingProvider] = React.useState<string | null>(null);
+
+  const handleSignIn = (provider: string) => {
+    setLoadingProvider(provider);
+    signIn(provider, { callbackUrl: '/' });
+  };
+
   return (
-    <Button
-      variant="outline"
-      onClick={() => {
-        setIsLoading(true)
-        // next-auth signIn() function doesn't work yet at Edge Runtime due to usage of BroadcastChannel
-        signIn('github', { callbackUrl: `/` })
-      }}
-      disabled={isLoading}
-      className={className}
-      {...props}
-    >
-      {isLoading ? (
-        <IconSpinner className="mr-2 animate-spin" />
-      ) : showGithubIcon ? (
-        <IconGitHub className="mr-2" />
-      ) : null}
-      {text}
-    </Button>
-  )
+    <div className={`${className} flex flex-col space-y-2`}>
+      {githubEnabled && (
+        <Button
+          {...buttonProps}
+          variant="outline"
+          onClick={() => handleSignIn('github')}
+          disabled={loadingProvider !== null}
+          className="w-full"
+        >
+          {loadingProvider === 'github' ? <IconSpinner className="animate-spin" /> : <IconGitHub />}
+          <span className="ml-2">Login with GitHub</span>
+        </Button>
+      )}
+      {googleEnabled && (
+        <Button
+          {...buttonProps}
+          variant="outline"
+          onClick={() => handleSignIn('google')}
+          disabled={loadingProvider !== null}
+          className="w-full"
+        >
+          {loadingProvider === 'google' ? <IconSpinner className="animate-spin" /> : <IconGoogle />}
+          <span className="ml-2">Login with Google</span>
+        </Button>
+      )}
+    </div>
+  );
 }

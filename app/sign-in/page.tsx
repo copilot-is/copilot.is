@@ -15,9 +15,12 @@ export default async function SignInPage() {
     redirect('/')
   }
 
+  const githubEnabled = process.env.AUTH_GITHUB_ENABLED === 'true';
+  const googleEnabled = process.env.AUTH_GOOGLE_ENABLED === 'true';
+
   return (
     <div className="flex h-full items-center justify-center">
-      <LoginButton />
+      <LoginButton githubEnabled={githubEnabled} googleEnabled={googleEnabled} />
     </div>
   )
 }

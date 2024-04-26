@@ -25,7 +25,7 @@ export function UserMenu({ user }: UserMenuProps) {
           <Button variant="ghost" size="icon" className="rounded-full">
             <Image
               className="size-7 select-none rounded-full ring-1 ring-zinc-100/10 transition-opacity duration-300 hover:opacity-80"
-              src={user?.image ? `${user.image}&s=60` : ''}
+              src={user?.image ? `${user.image}` : ''}
               alt={user?.name ?? 'Avatar'}
               height={48}
               width={48}
