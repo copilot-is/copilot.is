@@ -1,14 +1,25 @@
 import { type Metadata } from 'next'
 import { redirect } from 'next/navigation'
+import Link from 'next/link'
 
 import { auth } from '@/server/auth'
+import { cn } from '@/lib/utils'
 import { LoginButton } from '@/components/login-button'
+import { buttonVariants } from '@/components/ui/button'
+
+export interface SignInPageProps {
+  searchParams: {
+    error?: string
+  }
+}
 
 export const metadata: Metadata = {
   title: 'Login'
 }
 
-export default async function SignInPage() {
+export default async function SignInPage({ searchParams }: SignInPageProps) {
+  const error = searchParams.error
+
   const session = await auth()
   // redirect to home if user is already logged in
   if (session?.user) {
@@ -20,17 +31,42 @@ export default async function SignInPage() {
 
   return (
     <div className="flex size-full items-center justify-center">
-      <div className="bg-background rounded-lg border p-8 shadow-md">
-        <div className="space-y-6">
-          <h1 className="px-3 text-center text-xl font-bold leading-tight tracking-tight text-gray-900 md:text-2xl dark:text-white">
-            Sign in to your account
-          </h1>
+      <div className="bg-background mx-3 max-w-md rounded-lg border p-8 shadow-md">
+        {error && (
+          <div className="space-y-6">
+            <h1 className="px-2 text-center text-xl font-bold leading-tight tracking-tight text-gray-900 md:text-2xl dark:text-white">
+              Oops!
+            </h1>
+            <div>
+              {error === 'OAuthAccountNotLinked'
+                ? 'You tried signing in with a different authentication method than the one you used during signup. Please try again using your original authentication method.'
+                : 'There was an error during signing in, please try signing in again.'}
+            </div>
+            <div className="text-center">
+              <Link
+                className={cn(
+                  buttonVariants({ variant: 'outline' }),
+                  'shadow-none'
+                )}
+                href="/"
+              >
+                Go back
+              </Link>
+            </div>
+          </div>
+        )}
+        {!error && (
+          <div className="space-y-6">
+            <h1 className="px-2 text-center text-xl font-bold leading-tight tracking-tight text-gray-900 md:text-2xl dark:text-white">
+              Sign in to your account
+            </h1>
 
-          <LoginButton
-            githubEnabled={githubEnabled}
-            googleEnabled={googleEnabled}
-          />
-        </div>
+            <LoginButton
+              githubEnabled={githubEnabled}
+              googleEnabled={googleEnabled}
+            />
+          </div>
+        )}
       </div>
     </div>
   )
