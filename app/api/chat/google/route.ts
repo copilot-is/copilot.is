@@ -48,7 +48,7 @@ const buildGoogleGenAIPrompt = (
   messages: Message[],
   model: Model
 ): GenerateContentRequest => ({
-  contents: (model === 'gemini-1.5-pro'
+  contents: (model === 'gemini-pro-vision'
     ? [messages[messages.length - 1]]
     : messages
   )
