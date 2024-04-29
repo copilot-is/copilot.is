@@ -88,7 +88,7 @@ export const Settings = () => {
               </label>
               <Textarea
                 id="prompt"
-                placeholder='Enter a prompt or type "/" to select a prompt...'
+                placeholder='Enter a prompt...'
                 value={modelSettings.prompt ?? ''}
                 onChange={e => setModelSettings('prompt', e.target.value)}
               />
@@ -122,125 +122,6 @@ export const Settings = () => {
                 <div className="flex justify-center">Neutral</div>
                 <div className="flex justify-center">Creative</div>
               </div>
-            </fieldset>
-            <fieldset>
-              <label className="mb-1.5 block text-sm font-bold">
-                Presence Penalty:
-                <span className="text-muted-foreground ml-1.5 text-sm">
-                  {modelSettings.presencePenalty}
-                </span>
-                <Button
-                  variant="link"
-                  size="xs"
-                  className="text-sm"
-                  onClick={() => setModelSettings('presencePenalty', null)}
-                >
-                  Reset to default
-                </Button>
-              </label>
-              <Slider
-                value={[modelSettings.presencePenalty]}
-                min={-2}
-                max={2}
-                step={0.1}
-                onValueChange={value =>
-                  setModelSettings('presencePenalty', value[0])
-                }
-              />
-            </fieldset>
-            <fieldset>
-              <label className="mb-1.5 block text-sm font-bold">
-                Frequency Penalty:
-                <span className="text-muted-foreground ml-1.5 text-sm">
-                  {modelSettings.frequencyPenalty}
-                </span>
-                <Button
-                  variant="link"
-                  size="xs"
-                  className="text-sm"
-                  onClick={() => setModelSettings('frequencyPenalty', null)}
-                >
-                  Reset to default
-                </Button>
-              </label>
-              <Slider
-                value={[modelSettings.frequencyPenalty]}
-                min={-2}
-                max={2}
-                step={0.1}
-                onValueChange={value =>
-                  setModelSettings('frequencyPenalty', value[0])
-                }
-              />
-            </fieldset>
-            <fieldset>
-              <label className="mb-1.5 block text-sm font-bold">
-                Top P:
-                <span className="text-muted-foreground ml-1.5 text-sm">
-                  {modelSettings.topP}
-                </span>
-                <Button
-                  variant="link"
-                  size="xs"
-                  className="text-sm"
-                  onClick={() => setModelSettings('topP', null)}
-                >
-                  Reset to default
-                </Button>
-              </label>
-              <Slider
-                value={[modelSettings.topP]}
-                min={0}
-                max={1}
-                step={0.1}
-                onValueChange={value => setModelSettings('topP', value[0])}
-              />
-            </fieldset>
-            <fieldset>
-              <label className="mb-1.5 block text-sm font-bold">
-                Top K:
-                <span className="text-muted-foreground ml-1.5 text-sm">
-                  {modelSettings.topK}
-                </span>
-                <Button
-                  variant="link"
-                  size="xs"
-                  className="text-sm"
-                  onClick={() => setModelSettings('topK', null)}
-                >
-                  Reset to default
-                </Button>
-              </label>
-              <Slider
-                value={[modelSettings.topK]}
-                min={0}
-                max={50}
-                step={1}
-                onValueChange={value => setModelSettings('topK', value[0])}
-              />
-            </fieldset>
-            <fieldset>
-              <label className="mb-1.5 block text-sm font-bold">
-                Max Tokens:
-                <span className="text-muted-foreground ml-1.5 text-sm">
-                  {modelSettings.maxTokens}
-                </span>
-                <Button
-                  variant="link"
-                  size="xs"
-                  className="text-sm"
-                  onClick={() => setModelSettings('maxTokens', null)}
-                >
-                  Reset to default
-                </Button>
-              </label>
-              <Slider
-                value={[modelSettings.maxTokens]}
-                min={1024}
-                max={512000}
-                step={1}
-                onValueChange={value => setModelSettings('maxTokens', value[0])}
-              />
             </fieldset>
           </TabsContent>
           <TabsContent value="apiKey" className="grid gap-4">

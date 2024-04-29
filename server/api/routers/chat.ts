@@ -43,10 +43,6 @@ export const chatRouter = createTRPCRouter({
         usage: z.object({
           model: z.string(),
           temperature: z.number().optional(),
-          frequencyPenalty: z.number().optional(),
-          presencePenalty: z.number().optional(),
-          topP: z.number().optional(),
-          topK: z.number().optional(),
           maxTokens: z.number().optional()
         })
       })
@@ -128,10 +124,6 @@ export const chatRouter = createTRPCRouter({
             .object({
               model: z.string().trim().min(1),
               temperature: z.number().optional(),
-              frequencyPenalty: z.number().optional(),
-              presencePenalty: z.number().optional(),
-              topP: z.number().optional(),
-              topK: z.number().optional(),
               maxTokens: z.number().optional()
             })
             .optional()

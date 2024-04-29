@@ -48,7 +48,7 @@ const buildGoogleGenAIPrompt = (
   messages: Message[],
   model: Model
 ): GenerateContentRequest => ({
-  contents: (model === 'gemini-pro-vision'
+  contents: (model === 'gemini-1.5-pro'
     ? [messages[messages.length - 1]]
     : messages
   )
@@ -96,8 +96,6 @@ export async function POST(req: Request) {
     stream,
     previewToken,
     temperature = 0.5,
-    topP = 1,
-    topK = 40,
     maxTokens
   } = usage
 
@@ -111,8 +109,6 @@ export async function POST(req: Request) {
         model,
         generationConfig: {
           temperature,
-          topP,
-          topK,
           maxOutputTokens: maxTokens
         }
       },
@@ -148,8 +144,6 @@ export async function POST(req: Request) {
           usage: {
             model,
             temperature,
-            topP,
-            topK,
             maxTokens
           }
         }
