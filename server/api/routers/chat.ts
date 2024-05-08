@@ -1,9 +1,9 @@
-import { and, eq } from 'drizzle-orm'
+import { and, eq, count } from 'drizzle-orm'
 import { z } from 'zod'
 
 import { createTRPCRouter, protectedProcedure } from '@/server/api/trpc'
-import { chats } from '@/server/db/schema'
-import { Message, type Usage } from '@/lib/types'
+import { chats, messages } from '@/server/db/schema'
+import { type Usage } from '@/lib/types'
 
 export const chatRouter = createTRPCRouter({
   create: protectedProcedure
@@ -52,19 +52,26 @@ export const chatRouter = createTRPCRouter({
       })
     )
     .mutation(async ({ ctx, input }) => {
-      await ctx.db
-        .insert(chats)
-        .values({
+      const chat = await ctx.db.query.chats.findFirst({
+        where: eq(chats.id, input.id)
+      })
+      if (!chat) {
+        await ctx.db.insert(chats).values({
           id: input.id,
           title: input.title,
           userId: ctx.session.user.id,
-          messages: input.messages as Message[],
           usage: input.usage as Usage
         })
-        .onConflictDoUpdate({
-          target: chats.id,
-          set: { messages: input.messages as Message[] }
-        })
+      }
+
+      const twoLastMessage = input.messages.slice(-2).map(message => ({
+        id: message.id,
+        content: message.content ?? '',
+        role: message.role,
+        chatId: input.id,
+        userId: ctx.session.user.id
+      }))
+      await ctx.db.insert(messages).values(twoLastMessage)
     }),
 
   list: protectedProcedure
@@ -80,12 +87,17 @@ export const chatRouter = createTRPCRouter({
   detail: protectedProcedure
     .input(z.object({ id: z.string() }))
     .query(async ({ ctx, input }) => {
-      return await ctx.db.query.chats.findFirst({
+      const chat = await ctx.db.query.chats.findFirst({
         where: and(
           eq(chats.id, input.id),
           eq(chats.userId, ctx.session.user.id)
-        )
+        ),
+        with: {
+          messages: true
+        }
       })
+
+      return chat
     }),
 
   update: protectedProcedure
@@ -95,35 +107,6 @@ export const chatRouter = createTRPCRouter({
         chat: z.object({
           title: z.string().trim().min(1).max(255).optional(),
           sharing: z.boolean().optional(),
-          messages: z
-            .array(
-              z.object({
-                id: z.string(),
-                role: z.enum([
-                  'system',
-                  'user',
-                  'assistant',
-                  'function',
-                  'data',
-                  'tool'
-                ]),
-                content: z.union([
-                  z.string(),
-                  z.array(
-                    z
-                      .object({
-                        type: z.enum(['text', 'image']),
-                        text: z.string().optional(),
-                        data: z.string().optional()
-                      })
-                      .refine(data => (data.text || data.data) !== undefined, {
-                        message: 'Either text or data must be provided'
-                      })
-                  )
-                ])
-              })
-            )
-            .optional(),
           usage: z
             .object({
               model: z.string().trim().min(1),
@@ -142,7 +125,6 @@ export const chatRouter = createTRPCRouter({
       const updates: Record<string, any> = {}
       if ('title' in input.chat) updates.title = input.chat.title
       if ('sharing' in input.chat) updates.sharing = input.chat.sharing
-      if ('messages' in input.chat) updates.messages = input.chat.messages
       if ('usage' in input.chat) updates.usage = input.chat.usage
 
       return await ctx.db
@@ -177,7 +159,76 @@ export const chatRouter = createTRPCRouter({
           eq(chats.userId, ctx.session.user.id),
           eq(chats.id, input.id),
           eq(chats.sharing, true)
-        )
+        ),
+        with: {
+          messages: true
+        }
       })
+    }),
+
+  updateMessage: protectedProcedure
+    .input(
+      z.object({
+        id: z.string(),
+        chatId: z.string(),
+        message: z.object({
+          id: z.string(),
+          role: z.enum([
+            'system',
+            'user',
+            'assistant',
+            'function',
+            'data',
+            'tool'
+          ]),
+          content: z.union([
+            z.string(),
+            z.array(
+              z
+                .object({
+                  type: z.enum(['text', 'image']),
+                  text: z.string().optional(),
+                  data: z.string().optional()
+                })
+                .refine(data => (data.text || data.data) !== undefined, {
+                  message: 'Either text or data must be provided'
+                })
+            )
+          ])
+        })
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      return await ctx.db
+        .update(messages)
+        .set(input.message)
+        .where(
+          and(
+            eq(messages.id, input.id),
+            eq(messages.chatId, input.chatId),
+            eq(messages.userId, ctx.session.user.id)
+          )
+        )
+        .returning()
+        .then(data => data[0])
+    }),
+
+  deleteMessage: protectedProcedure
+    .input(
+      z.object({
+        id: z.string(),
+        chatId: z.string()
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      return await ctx.db
+        .delete(messages)
+        .where(
+          and(
+            eq(messages.id, input.id),
+            eq(messages.chatId, input.chatId),
+            eq(messages.userId, ctx.session.user.id)
+          )
+        )
     })
 })

@@ -8,11 +8,12 @@ import {
   primaryKey,
   text,
   timestamp,
-  varchar
+  varchar,
+  pgEnum
 } from 'drizzle-orm/pg-core'
 import { type Account } from 'next-auth'
 
-import { type Chat } from '@/lib/types'
+import { MessageContent, Usage } from '@/lib/types'
 import { appConfig } from '@/lib/appconfig'
 
 /**
@@ -28,12 +29,11 @@ export const chats = createTable(
   {
     id: varchar('id', { length: 255 }).notNull().primaryKey(),
     title: varchar('title', { length: 255 }).notNull(),
-    messages: json('messages').$type<Chat['messages']>().notNull(),
-    sharing: boolean('sharing').notNull().default(false),
-    usage: json('usage').$type<Chat['usage']>().notNull(),
+    usage: json('usage').$type<Usage>().notNull(),
     userId: varchar('user_id', { length: 255 })
       .notNull()
       .references(() => users.id, { onDelete: 'cascade' }),
+    sharing: boolean('sharing').notNull().default(false),
     createdAt: timestamp('created_at').notNull().defaultNow(),
     updatedAt: timestamp('updated_at').notNull().defaultNow()
   },
@@ -42,8 +42,42 @@ export const chats = createTable(
   })
 )
 
-export const chatsRelations = relations(chats, ({ one }) => ({
-  user: one(users, { fields: [chats.userId], references: [users.id] })
+export const chatsRelations = relations(chats, ({ one, many }) => ({
+  user: one(users, { fields: [chats.userId], references: [users.id] }),
+  messages: many(messages)
+}))
+
+export const role = pgEnum('role', [
+  'system',
+  'user',
+  'assistant',
+  'function',
+  'data',
+  'tool'
+])
+
+export const messages = createTable(
+  'message',
+  {
+    id: varchar('id', { length: 255 }).notNull().primaryKey(),
+    role: role('role').notNull(),
+    content: json('content').$type<MessageContent>().notNull(),
+    userId: varchar('user_id', { length: 255 }).notNull(),
+    chatId: varchar('chat_id', { length: 255 })
+      .notNull()
+      .references(() => chats.id, { onDelete: 'cascade' }),
+    createdAt: timestamp('created_at').notNull().defaultNow(),
+    updatedAt: timestamp('updated_at').notNull().defaultNow()
+  },
+  message => ({
+    userIdIdx: index('message_userId_idx').on(message.userId),
+    chatIdIdx: index('message_chatId_idx').on(message.chatId)
+  })
+)
+
+export const messagesRelations = relations(messages, ({ one }) => ({
+  user: one(users, { fields: [messages.userId], references: [users.id] }),
+  chat: one(chats, { fields: [messages.chatId], references: [chats.id] })
 }))
 
 export const users = createTable('user', {

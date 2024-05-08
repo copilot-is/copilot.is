@@ -9,8 +9,14 @@ export interface MessageContentDetail {
 
 export type MessageContent = string | MessageContentDetail[]
 
-export type Message = AIMessage & {
+export type Message = {
+  id: string
+  role: 'system' | 'user' | 'assistant' | 'function' | 'data' | 'tool'
   content: MessageContent
+  name?: string
+  function_call?: string
+  createdAt?: Date
+  updatedAt?: Date
 }
 
 export type ChatCategory =
@@ -26,7 +32,7 @@ export interface Chat extends Record<string, any> {
   createdAt: Date
   updatedAt: Date
   userId: string
-  messages: Message[]
+  messages?: Message[]
   sharing: boolean
   usage: Usage
 }
@@ -46,6 +52,7 @@ export interface Usage extends Record<string, any> {
 
 export type Model =
   | ChatCompletionCreateParamsBase['model']
+  | 'gemini-1.5-pro-latest'
   | 'gemini-pro'
   | 'gemini-pro-vision'
   | 'claude-3-opus-20240229'

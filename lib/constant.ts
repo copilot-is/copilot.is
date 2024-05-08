@@ -9,6 +9,7 @@ export const KnowledgeCutOffDate: Record<string, string> = {
 export const SupportedModels: {
   text: string
   value: Model
+  image?: boolean
   vision?: boolean
   provider: ModelProvider
 }[] = [
@@ -64,6 +65,12 @@ export const SupportedModels: {
   {
     text: 'GPT-3.5 Turbo 16k 0613',
     value: 'gpt-3.5-turbo-16k-0613',
+    provider: 'openai'
+  },
+  {
+    text: 'DALL·E 3',
+    value: 'dall-e-3',
+    image: true,
     provider: 'openai'
   },
   {

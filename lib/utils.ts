@@ -53,6 +53,11 @@ export const isVisionModel = (value: Model): boolean => {
   return model?.vision ?? false
 }
 
+export const isImageModel = (value: Model): boolean => {
+  const model = SupportedModels.find(m => m.value === value)
+  return model?.image ?? false
+}
+
 export const getSupportedModels = (
   openaiModels?: Model,
   googleModels?: Model,

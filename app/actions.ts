@@ -2,7 +2,7 @@
 
 import { revalidatePath } from 'next/cache'
 
-import { type Chat } from '@/lib/types'
+import { type Chat, type Message } from '@/lib/types'
 import { api } from '@/trpc/server'
 
 export async function getChats() {
@@ -28,6 +28,40 @@ export async function updateChat(
     revalidatePath(`/chat/${id}`)
 
     return chat as Chat
+  } catch (err: any) {
+    return {
+      error: err.message
+    }
+  }
+}
+
+export async function updateMessage(
+  id: string,
+  chatId: string,
+  message: Message
+) {
+  try {
+    const chatMessage = await api.chat.updateMessage.mutate({
+      id,
+      chatId,
+      message
+    })
+
+    revalidatePath(`/chat/${chatId}`)
+
+    return chatMessage
+  } catch (err: any) {
+    return {
+      error: err.message
+    }
+  }
+}
+
+export async function deleteMessage(id: string, chatId: string) {
+  try {
+    await api.chat.deleteMessage.mutate({ id, chatId })
+
+    revalidatePath(`/chat/${chatId}`)
   } catch (err: any) {
     return {
       error: err.message

@@ -12,10 +12,10 @@ import { Providers } from '@/components/providers'
 import { TRPCReactProvider } from '@/trpc/react'
 
 export const metadata: Metadata = {
-  metadataBase: process.env.VERCEL_URL
-    ? new URL(`https://${process.env.VERCEL_URL}`)
-    : appConfig.product.url
-      ? new URL(appConfig.product.url)
+  metadataBase: appConfig.product.url
+    ? new URL(appConfig.product.url)
+    : process.env.VERCEL_URL
+      ? new URL(`https://${process.env.VERCEL_URL}`)
       : undefined,
   title: {
     default: `${appConfig.product.name} - ${appConfig.product.subtitle}`,

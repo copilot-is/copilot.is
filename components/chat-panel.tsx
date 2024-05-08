@@ -52,7 +52,7 @@ export function ChatPanel({
             stop={stop}
             reload={reload}
           />
-          <ChatShare chat={chat} messages={messages} />
+          <ChatShare chat={chat} />
         </div>
         <div className="bg-background space-y-4 border-t p-4 shadow-lg sm:rounded-t-xl sm:border sm:border-b-0">
           <PromptForm

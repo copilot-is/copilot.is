@@ -9,13 +9,12 @@ import { ChatShareDialog } from '@/components/chat-share-dialog'
 
 interface ChatShareProps {
   chat?: Chat
-  messages?: Chat['messages']
 }
 
-export function ChatShare({ chat, messages }: ChatShareProps) {
+export function ChatShare({ chat }: ChatShareProps) {
   const [shareDialogOpen, setShareDialogOpen] = React.useState(false)
 
-  if (!chat || !messages?.length) {
+  if (!chat) {
     return null
   }
 
@@ -31,7 +30,6 @@ export function ChatShare({ chat, messages }: ChatShareProps) {
       </Button>
       <ChatShareDialog
         chat={chat}
-        messages={messages}
         open={shareDialogOpen}
         onOpenChange={setShareDialogOpen}
         onClose={() => setShareDialogOpen(false)}

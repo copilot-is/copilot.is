@@ -107,7 +107,7 @@ function IconGoogle({ className, ...props }: React.ComponentProps<'svg'>) {
       viewBox="0 0 186.69 190.5"
       xmlns="http://www.w3.org/2000/svg"
       fill="currentColor"
-      className={cn('h-4 w-4', className)}
+      className={cn('size-4', className)}
       {...props}
     >
       <title>Google</title>

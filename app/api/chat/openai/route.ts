@@ -117,14 +117,14 @@ export async function POST(req: Request) {
       max_tokens: maxTokens
     })
 
+    const response = await res.asResponse()
+
     if (!stream) {
-      const response = await res.asResponse()
       const data = await response.json()
       return NextResponse.json(buildOpenAIMessages(data))
     }
 
-    const resStream = await res.asResponse()
-    const aiStream = OpenAIStream(resStream, {
+    const aiStream = OpenAIStream(response, {
       async onCompletion(completion) {
         const id = json.id ?? nanoid()
         const payload = {

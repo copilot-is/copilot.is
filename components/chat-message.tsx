@@ -1,20 +1,16 @@
 'use client'
 
 import React from 'react'
-import Image from 'next/image'
-import remarkGfm from 'remark-gfm'
-import remarkMath from 'remark-math'
 
 import { Message, ModelProvider, type Chat } from '@/lib/types'
-import { CodeBlock } from '@/components/ui/codeblock'
 import {
   IconClaudeAI,
   IconGoogleAI,
   IconOpenAI,
   IconUser
 } from '@/components/ui/icons'
-import { MemoizedReactMarkdown } from '@/components/markdown'
 import { ChatMessageActions } from '@/components/chat-message-actions'
+import { ChatMessageMarkdown } from '@/components/chat-message-markdown'
 
 export interface ChatMessageProps {
   chat: Pick<Chat, 'id' | 'messages'>
@@ -42,90 +38,63 @@ export function ChatMessage({
         )}
       </div>
       <div className="ml-4 mt-1 flex-1 overflow-hidden">
-        {Array.isArray(message.content) && message.content.length > 0 && (
-          <div className="mb-2 flex space-x-2">
-            {message.content.map((c, i) => {
-              if (c.type !== 'text') {
-                return (
-                  c.data && (
-                    <div key={i}>
-                      <Image
-                        alt=""
-                        width={0}
-                        height={0}
-                        loading="lazy"
-                        className="mb-3 mt-0 h-auto w-full max-w-xs"
-                        src={c.data}
-                      />
-                    </div>
-                  )
-                )
-              }
-            })}
-          </div>
-        )}
-
-        <MemoizedReactMarkdown
-          className="prose dark:prose-invert prose-p:leading-relaxed prose-pre:p-0 break-words"
-          remarkPlugins={[remarkGfm, remarkMath]}
-          components={{
-            p({ children }) {
-              return <p className="mb-2 last:mb-0">{children}</p>
-            },
-            img({ node, ...props }) {
-              return <img alt="" className="mb-3 mt-0 max-w-[70%]" {...props} />
-            },
-            code({ node, className, children, ...props }) {
-              const childArray = React.Children.toArray(children)
-              const firstChild = childArray[0] as React.ReactElement
-              const firstChildAsString = React.isValidElement(firstChild)
-                ? (firstChild as React.ReactElement).props.children
-                : firstChild
-
-              if (firstChildAsString === '▍') {
-                return (
-                  <span className="mt-1 animate-pulse cursor-default">▍</span>
-                )
-              }
-
-              if (typeof firstChildAsString === 'string') {
-                childArray[0] = firstChildAsString.replace('`▍`', '▍')
-              }
-
-              const match = /language-(\w+)/.exec(className || '')
-
-              if (
-                typeof firstChildAsString === 'string' &&
-                !firstChildAsString.includes('\n')
-              ) {
-                return (
-                  <code className={className} {...props}>
-                    {children}
-                  </code>
-                )
-              }
-
-              return (
-                <CodeBlock
-                  key={Math.random()}
-                  language={(match && match[1]) || ''}
-                  value={String(children).replace(/\n$/, '')}
-                  {...props}
-                />
-              )
-            }
-          }}
-        >
-          {Array.isArray(message.content)
-            ? message.content
-                .map(c => {
+        <div className="prose dark:prose-invert prose-p:leading-relaxed prose-pre:p-0 break-words">
+          {message.role === 'user' && (
+            <>
+              {Array.isArray(message.content) && message.content.length > 0 && (
+                <p className="mb-2 flex space-x-2">
+                  {message.content.map((c, i) => {
+                    if (c.type !== 'text') {
+                      return (
+                        c.data && (
+                          <img
+                            alt=""
+                            key={i}
+                            loading="lazy"
+                            className="mb-3 mt-0 h-auto w-full max-w-xs"
+                            src={c.data}
+                          />
+                        )
+                      )
+                    }
+                  })}
+                </p>
+              )}
+              {Array.isArray(message.content) ? (
+                message.content.map((c, i) => {
                   if (c.type === 'text') {
-                    return c.text
+                    return (
+                      <p key={i} className="mb-2 last:mb-0">
+                        {c.text}
+                      </p>
+                    )
                   }
                 })
-                .join('\n\n')
-            : message.content}
-        </MemoizedReactMarkdown>
+              ) : (
+                <p className="mb-2 last:mb-0">{message.content}</p>
+              )}
+            </>
+          )}
+          {message.role === 'assistant' &&
+            (Array.isArray(message.content) ? (
+              message.content.map((c, i) => (
+                <React.Fragment key={i}>
+                  {c.type === 'image' ? (
+                    <img
+                      alt=""
+                      loading="lazy"
+                      className="mb-3 mt-0 h-auto w-full max-w-xs"
+                      src={c.data}
+                    />
+                  ) : (
+                    c.text && <p className="mb-2 last:mb-0">{c.text}</p>
+                  )}
+                </React.Fragment>
+              ))
+            ) : (
+              <ChatMessageMarkdown content={message.content} />
+            ))}
+        </div>
         <ChatMessageActions
           chat={chat}
           message={message}

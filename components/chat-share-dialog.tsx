@@ -20,13 +20,11 @@ import { updateChat } from '@/app/actions'
 
 interface ChatShareDialogProps extends DialogProps {
   chat?: Chat
-  messages?: Chat['messages']
   onClose: () => void
 }
 
 export function ChatShareDialog({
   chat,
-  messages,
   onClose,
   ...props
 }: ChatShareDialogProps) {
@@ -71,9 +69,6 @@ export function ChatShareDialog({
         </DialogHeader>
         <div className="space-y-1 rounded-md border p-4 text-sm">
           <div className="font-medium">{chat.title}</div>
-          <div className="text-muted-foreground">
-            {(messages ?? chat.messages).length} messages
-          </div>
         </div>
         <DialogFooter className="items-center">
           {chat.sharing && (

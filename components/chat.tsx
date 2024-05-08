@@ -1,12 +1,13 @@
 'use client'
 
-import { useChat, type Message } from 'ai/react'
+import { useChat, type Message as AIMessage } from 'ai/react'
 import { toast } from 'react-hot-toast'
 import { usePathname, useRouter } from 'next/navigation'
 
-import { type Chat } from '@/lib/types'
+import { type Chat, type Message } from '@/lib/types'
 import {
   messageId,
+  isImageModel,
   isVisionModel,
   providerFromModel,
   buildChatUsage
@@ -41,6 +42,7 @@ export function Chat({ id, chat }: ChatProps) {
     ? { ...usage, prompt: modelSettings.prompt }
     : { ...modelSettings, model }
   const currentModel = currentUsage.model
+  const image = isImageModel(currentModel)
   const vision = isVisionModel(currentModel)
   const provider = providerFromModel(currentModel)
   const previewToken = allowCustomAPIKey
@@ -62,8 +64,8 @@ export function Chat({ id, chat }: ChatProps) {
     setInput
   } = useChat({
     id,
-    api: '/api/chat/' + provider,
-    initialMessages,
+    api: `/api/${image ? 'images' : 'chat'}/${provider}`,
+    initialMessages: initialMessages as AIMessage[],
     sendExtraMessageFields: true,
     generateId: () => generateId,
     body: {
@@ -89,34 +91,49 @@ export function Chat({ id, chat }: ChatProps) {
     }
   })
 
-  const generateTitle = async (id: string, input: string, message: Message) => {
+  const generateTitle = async (
+    id: string,
+    input: string,
+    message: AIMessage
+  ) => {
     const genModel = {
       openai: 'gpt-3.5-turbo',
       google: 'gemini-pro',
       anthropic: 'claude-3-haiku-20240307'
     }
-    const genMessages = [
-      { role: 'user', content: input },
-      { role: message.role, content: message.content },
-      {
-        role: 'user',
-        content: GenerateTitlePrompt
+    const content = image
+      ? message.content
+          .toString()
+          .replace(/!\[\]\(data:image\/png;base64,.*?\)/g, '')
+      : message.content.toString()
+
+    if (content) {
+      const genMessages = [
+        { role: 'user', content: input },
+        {
+          role: message.role,
+          content
+        },
+        {
+          role: 'user',
+          content: GenerateTitlePrompt
+        }
+      ] as Message[]
+      const genUsage = buildChatUsage({
+        ...currentUsage,
+        model: genModel[provider],
+        prompt: undefined,
+        previewToken
+      })
+
+      const data = await api.createChat(provider, {
+        messages: genMessages,
+        usage: genUsage
+      })
+
+      if (data.length && data[0]?.content) {
+        await updateChat(id, { title: data[0]?.content })
       }
-    ] as Message[]
-    const genUsage = buildChatUsage({
-      ...currentUsage,
-      model: genModel[provider],
-      prompt: undefined,
-      previewToken
-    })
-
-    const data = await api.createChat(provider, {
-      messages: genMessages,
-      usage: genUsage
-    })
-
-    if (data.length && data[0]?.content) {
-      await updateChat(id, { title: data[0]?.content })
     }
   }
 
@@ -131,8 +148,10 @@ export function Chat({ id, chat }: ChatProps) {
           <ChatList
             id={id}
             provider={provider}
-            messages={messages}
-            setMessages={setMessages}
+            messages={messages as Message[]}
+            setMessages={messages => {
+              setMessages(messages as AIMessage[])
+            }}
           />
         ) : (
           <EmptyScreen provider={provider} setInput={setInput} />

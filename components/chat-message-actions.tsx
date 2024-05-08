@@ -33,7 +33,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle
 } from '@/components/ui/alert-dialog'
-import { updateChat } from '@/app/actions'
+import { updateMessage, deleteMessage } from '@/app/actions'
 
 interface ChatMessageActionsProps {
   chat: Pick<Chat, 'id' | 'messages'>
@@ -102,7 +102,7 @@ export function ChatMessageActions({
               </DialogHeader>
               <Textarea
                 className="min-h-64"
-                defaultValue={content}
+                defaultValue={!Array.isArray(content) ? content : ''}
                 onChange={e => setContent(e.target.value)}
                 required
               />
@@ -116,18 +116,23 @@ export function ChatMessageActions({
                         return
                       }
 
-                      const messages = chat.messages.map(m =>
-                        m.id === message.id ? { ...m, content } : m
-                      )
-
-                      const result = await updateChat(chat.id, { messages })
+                      const result = await updateMessage(message.id, chat.id, {
+                        ...message,
+                        content
+                      })
 
                       if (result && 'error' in result) {
                         toast.error(result.error)
                         return
                       }
 
-                      setMessages(messages)
+                      if (chat.messages) {
+                        const messages = chat.messages.map(m =>
+                          m.id === message.id ? { ...m, content } : m
+                        )
+                        setMessages(messages)
+                      }
+
                       toast.success('Message saved')
                       setEditDialogOpen(false)
                     })
@@ -152,7 +157,7 @@ export function ChatMessageActions({
               disabled={
                 isDeletePending ||
                 Array.isArray(content) ||
-                chat.messages.length === 1
+                chat.messages?.length === 1
               }
               onClick={() => setDeleteDialogOpen(true)}
             >
@@ -180,18 +185,20 @@ export function ChatMessageActions({
                   onClick={event => {
                     event.preventDefault()
                     startDeleteTransition(async () => {
-                      const messages = chat.messages.filter(
-                        m => m.id !== message.id
-                      )
-
-                      const result = await updateChat(chat.id, { messages })
+                      const result = await deleteMessage(message.id, chat.id)
 
                       if (result && 'error' in result) {
                         toast.error(result.error)
                         return
                       }
 
-                      setMessages(messages)
+                      if (chat.messages) {
+                        const messages = chat.messages.filter(
+                          m => m.id !== message.id
+                        )
+                        setMessages(messages)
+                      }
+
                       toast.success('Message deleted')
                       setDeleteDialogOpen(false)
                     })
