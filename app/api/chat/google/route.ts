@@ -96,8 +96,6 @@ export async function POST(req: Request) {
     stream,
     previewToken,
     temperature = 0.5,
-    topP = 1,
-    topK = 40,
     maxTokens
   } = usage
 
@@ -111,8 +109,6 @@ export async function POST(req: Request) {
         model,
         generationConfig: {
           temperature,
-          topP,
-          topK,
           maxOutputTokens: maxTokens
         }
       },
@@ -148,8 +144,6 @@ export async function POST(req: Request) {
           usage: {
             model,
             temperature,
-            topP,
-            topK,
             maxTokens
           }
         }

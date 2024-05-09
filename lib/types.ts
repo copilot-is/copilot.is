@@ -43,11 +43,7 @@ export interface Usage extends Record<string, any> {
   prompt?: string
   previewToken?: string
   temperature?: number
-  frequencyPenalty?: number
-  presencePenalty?: number
-  topP?: number
-  topK?: number
-  maxTokens?: number
+  //maxTokens?: number
 }
 
 export type Model =
@@ -58,20 +54,13 @@ export type Model =
   | 'claude-3-opus-20240229'
   | 'claude-3-sonnet-20240229'
   | 'claude-3-haiku-20240307'
-  | 'claude-2.1'
-  | 'claude-2.0'
-  | 'claude-instant-1.2'
 
 export type ModelProvider = 'openai' | 'google' | 'anthropic'
 
 export interface ModelSettings extends Record<string, any> {
   prompt?: string
   temperature: number
-  frequencyPenalty: number
-  presencePenalty: number
-  topP: number
-  topK: number
-  maxTokens: number
+ //maxTokens: number
 }
 
 export interface AIToken extends Record<string, any> {

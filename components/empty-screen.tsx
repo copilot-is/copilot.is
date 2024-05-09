@@ -14,7 +14,7 @@ export function EmptyScreen({ provider, setInput }: EmptyScreenProps) {
         {provider === 'google' && <IconGoogleAI className="m-2.5 size-7" />}
         {provider === 'anthropic' && <IconClaudeAI className="m-2.5 size-7" />}
       </div>
-      <div className="mb-10 text-lg font-medium lg:text-2xl">
+      <div style={{ paddingRight: '20px', paddingLeft: '26px', fontSize: '22px' }} className="mb-5 text-2xl font-medium">
         How can I help you today?
       </div>
     </div>
