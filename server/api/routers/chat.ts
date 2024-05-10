@@ -1,4 +1,4 @@
-import { and, eq, count } from 'drizzle-orm'
+import { and, eq } from 'drizzle-orm'
 import { z } from 'zod'
 
 import { createTRPCRouter, protectedProcedure } from '@/server/api/trpc'
@@ -64,14 +64,55 @@ export const chatRouter = createTRPCRouter({
         })
       }
 
-      const twoLastMessage = input.messages.slice(-2).map(message => ({
-        id: message.id,
-        content: message.content ?? '',
-        role: message.role,
-        chatId: input.id,
-        userId: ctx.session.user.id
-      }))
-      await ctx.db.insert(messages).values(twoLastMessage)
+      const lastUserMessage = input.messages[input.messages.length - 2]
+      const message = await ctx.db.query.messages.findFirst({
+        where: and(
+          eq(messages.id, lastUserMessage.id),
+          eq(messages.role, 'user')
+        )
+      })
+
+      if (message) {
+        const lastAIMessage = await ctx.db.query.messages.findFirst({
+          orderBy: (messages, { desc }) => [desc(messages.createdAt)],
+          where: and(
+            eq(messages.chatId, input.id),
+            eq(messages.userId, ctx.session.user.id)
+          )
+        })
+
+        if (lastAIMessage && lastAIMessage.role === 'assistant') {
+          await ctx.db
+            .delete(messages)
+            .where(
+              and(
+                eq(messages.id, lastAIMessage.id),
+                eq(messages.userId, ctx.session.user.id)
+              )
+            )
+
+          const lastMessage = input.messages[input.messages.length - 1]
+          if (lastMessage && lastMessage.role === 'assistant') {
+            await ctx.db.insert(messages).values({
+              id: lastMessage.id,
+              content: lastMessage.content ?? '',
+              role: lastMessage.role,
+              chatId: input.id,
+              userId: ctx.session.user.id
+            })
+          }
+        }
+      } else {
+        const twoLastMessage = input.messages.slice(-2).map(message => ({
+          id: message.id,
+          content: message.content ?? '',
+          role: message.role,
+          chatId: input.id,
+          userId: ctx.session.user.id
+        }))
+
+        await ctx.db.insert(messages).values(twoLastMessage)
+      }
     }),
 
   list: protectedProcedure
