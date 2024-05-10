@@ -3,6 +3,7 @@
 import * as React from 'react'
 
 import { type AIToken, ModelSettings, Model } from '@/lib/types'
+import { SystemPrompt } from '@/lib/constant'
 import { useLocalStorage } from '@/lib/hooks/use-local-storage'
 
 type SettingsContextProps = {
@@ -32,8 +33,7 @@ export const useSettings = (): SettingsContextProps => {
 }
 
 export const SettingsProvider = ({
-  //defaultModel = 'gpt-3.5-turbo',
-  defaultModel,
+  defaultModel = 'gpt-3.5-turbo',
   availableModels,
   allowCustomAPIKey = true,
   children
@@ -50,8 +50,13 @@ export const SettingsProvider = ({
   >('ai-model', defaultModel)
 
   const defaultModelSettings: ModelSettings = {
+    prompt: SystemPrompt,
     temperature: 0.5,
-    //maxTokens: 4096
+    frequencyPenalty: 0,
+    presencePenalty: 0,
+    topP: 1,
+    topK: 1,
+    maxTokens: 4096
   }
   const [modelSettings, setModelSettings, modelSettingsLoading] =
     useLocalStorage<SettingsContextProps['modelSettings']>(

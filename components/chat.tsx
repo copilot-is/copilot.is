@@ -51,7 +51,7 @@ export function Chat({ id, chat }: ChatProps) {
   const chatUsage = buildChatUsage({
     ...currentUsage,
     stream: true,
-    previewToken 
+    previewToken
   })
   const {
     isLoading,
@@ -97,8 +97,8 @@ export function Chat({ id, chat }: ChatProps) {
     message: AIMessage
   ) => {
     const genModel = {
-      openai: 'gpt-4',
-      google: 'gemini-1.5-pro',
+      openai: 'gpt-3.5-turbo',
+      google: 'gemini-pro',
       anthropic: 'claude-3-haiku-20240307'
     }
     const content = image

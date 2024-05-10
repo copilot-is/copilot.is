@@ -94,7 +94,10 @@ export async function POST(req: Request) {
     stream,
     prompt,
     previewToken,
+    frequencyPenalty = 0,
+    presencePenalty = 0,
     temperature = 0.5,
+    topP = 1,
     maxTokens
   } = usage
 
@@ -108,6 +111,9 @@ export async function POST(req: Request) {
       messages: buildOpenAIPrompt(messages, prompt),
       stream,
       temperature,
+      frequency_penalty: frequencyPenalty,
+      presence_penalty: presencePenalty,
+      top_p: topP,
       max_tokens: maxTokens
     })
 
@@ -135,6 +141,9 @@ export async function POST(req: Request) {
           usage: {
             model,
             temperature,
+            frequencyPenalty,
+            presencePenalty,
+            topP,
             maxTokens
           }
         }

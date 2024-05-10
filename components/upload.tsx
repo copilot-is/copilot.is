@@ -42,8 +42,8 @@ export function Upload({ vision, value = [], onChange }: UploadProps) {
             toast.error(`File '${file.name}' is not an image.`)
             continue
           }
-          if (file.size > 8 * 1024 * 1024) {
-            toast.error(`File '${file.name}' exceeds 8MB limit.`)
+          if (file.size > 5 * 1024 * 1024) {
+            toast.error(`File '${file.name}' exceeds 5MB limit.`)
             continue
           }
           try {
@@ -57,7 +57,7 @@ export function Upload({ vision, value = [], onChange }: UploadProps) {
           }
         }
 
-        if (files.length + newFiles.length > 10) {
+        if (files.length + newFiles.length > 5) {
           toast.error('Maximum number of files exceeded.')
           return
         }
@@ -86,7 +86,7 @@ export function Upload({ vision, value = [], onChange }: UploadProps) {
 
   return vision ? (
     <>
-      <Tooltip content="Upload images (Max 10, 8MB each)" align="center" side="top">
+      <Tooltip content="Upload images (Max 5, 5MB)" align="center" side="top">
         <Button
           type="button"
           variant="ghost"

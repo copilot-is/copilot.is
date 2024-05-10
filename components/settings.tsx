@@ -5,7 +5,11 @@ import * as React from 'react'
 import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { IconSettings } from '@/components/ui/icons'
+import {
+  IconCaretDown,
+  IconCaretRight,
+  IconSettings
+} from '@/components/ui/icons'
 import { Tooltip } from '@/components/ui/tooltip'
 import {
   Select,
@@ -22,6 +26,9 @@ import { useSettings } from '@/lib/hooks/use-settings'
 
 export const Settings = () => {
   const [open, setOpen] = React.useState(false)
+  const [isAdvancedSettingsOpen, setAdvancedSettingsOpen] =
+    React.useState(false)
+
   const {
     allowCustomAPIKey,
     availableModels,
@@ -36,6 +43,10 @@ export const Settings = () => {
     ? SupportedModels.filter(m => availableModels.includes(m.value))
     : SupportedModels
   const selectedModel = allowedModels.find(m => m.value === model)?.text
+
+  const toggleAdvancedSettings = () => {
+    setAdvancedSettingsOpen(!isAdvancedSettingsOpen)
+  }
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -56,13 +67,18 @@ export const Settings = () => {
           </TabsList>
           <TabsContent value="model" className="grid gap-4">
             <fieldset>
-              <label className="mb-1.5 block text-sm font-bold">Model</label>
+              <label className="mb-1.5 block text-sm font-semibold">
+                Model
+              </label>
               <Select value={model} onValueChange={setModel}>
                 <SelectTrigger>{selectedModel}</SelectTrigger>
                 <SelectContent>
                   {allowedModels.map(model => (
                     <SelectItem key={model.value} value={model.value}>
-                      {model.text}
+                      <div className="font-medium">{model.text}</div>
+                      <div className="text-muted-foreground text-xs">
+                        {model.value}
+                      </div>
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -70,7 +86,7 @@ export const Settings = () => {
             </fieldset>
             <fieldset>
               <label
-                className="mb-1.5 block text-sm font-bold"
+                className="mb-1.5 block text-sm font-semibold"
                 htmlFor="prompt"
               >
                 System Prompt
@@ -88,13 +104,13 @@ export const Settings = () => {
               </label>
               <Textarea
                 id="prompt"
-                placeholder='Enter a prompt...'
+                placeholder="Enter a prompt..."
                 value={modelSettings.prompt ?? ''}
                 onChange={e => setModelSettings('prompt', e.target.value)}
               />
             </fieldset>
             <fieldset>
-              <label className="mb-1.5 block text-sm font-bold">
+              <label className="mb-1.5 block text-sm font-semibold">
                 Temperature:
                 <span className="text-muted-foreground ml-1.5 text-sm">
                   {modelSettings.temperature}
@@ -123,13 +139,149 @@ export const Settings = () => {
                 <div className="flex justify-center">Creative</div>
               </div>
             </fieldset>
+            <fieldset
+              className="cursor-pointer text-lg font-medium"
+              onClick={toggleAdvancedSettings}
+            >
+              Advanced Settings
+              {isAdvancedSettingsOpen ? (
+                <IconCaretDown className="ml-1 inline-block size-5" />
+              ) : (
+                <IconCaretRight className="ml-1 inline-block size-5" />
+              )}
+            </fieldset>
+            {isAdvancedSettingsOpen && (
+              <>
+                <fieldset>
+                  <label className="mb-1.5 block text-sm font-semibold">
+                    Presence Penalty:
+                    <span className="text-muted-foreground ml-1.5 text-sm">
+                      {modelSettings.presencePenalty}
+                    </span>
+                    <Button
+                      variant="link"
+                      size="xs"
+                      className="text-sm"
+                      onClick={() => setModelSettings('presencePenalty', null)}
+                    >
+                      Reset to default
+                    </Button>
+                  </label>
+                  <Slider
+                    value={[modelSettings.presencePenalty]}
+                    min={-2}
+                    max={2}
+                    step={0.1}
+                    onValueChange={value =>
+                      setModelSettings('presencePenalty', value[0])
+                    }
+                  />
+                </fieldset>
+                <fieldset>
+                  <label className="mb-1.5 block text-sm font-semibold">
+                    Frequency Penalty:
+                    <span className="text-muted-foreground ml-1.5 text-sm">
+                      {modelSettings.frequencyPenalty}
+                    </span>
+                    <Button
+                      variant="link"
+                      size="xs"
+                      className="text-sm"
+                      onClick={() => setModelSettings('frequencyPenalty', null)}
+                    >
+                      Reset to default
+                    </Button>
+                  </label>
+                  <Slider
+                    value={[modelSettings.frequencyPenalty]}
+                    min={-2}
+                    max={2}
+                    step={0.1}
+                    onValueChange={value =>
+                      setModelSettings('frequencyPenalty', value[0])
+                    }
+                  />
+                </fieldset>
+                <fieldset>
+                  <label className="mb-1.5 block text-sm font-semibold">
+                    Top P:
+                    <span className="text-muted-foreground ml-1.5 text-sm">
+                      {modelSettings.topP}
+                    </span>
+                    <Button
+                      variant="link"
+                      size="xs"
+                      className="text-sm"
+                      onClick={() => setModelSettings('topP', null)}
+                    >
+                      Reset to default
+                    </Button>
+                  </label>
+                  <Slider
+                    value={[modelSettings.topP]}
+                    min={0}
+                    max={1}
+                    step={0.1}
+                    onValueChange={value => setModelSettings('topP', value[0])}
+                  />
+                </fieldset>
+                <fieldset>
+                  <label className="mb-1.5 block text-sm font-semibold">
+                    Top K:
+                    <span className="text-muted-foreground ml-1.5 text-sm">
+                      {modelSettings.topK}
+                    </span>
+                    <Button
+                      variant="link"
+                      size="xs"
+                      className="text-sm"
+                      onClick={() => setModelSettings('topK', null)}
+                    >
+                      Reset to default
+                    </Button>
+                  </label>
+                  <Slider
+                    value={[modelSettings.topK]}
+                    min={0}
+                    max={50}
+                    step={1}
+                    onValueChange={value => setModelSettings('topK', value[0])}
+                  />
+                </fieldset>
+                <fieldset>
+                  <label className="mb-1.5 block text-sm font-semibold">
+                    Max Tokens:
+                    <span className="text-muted-foreground ml-1.5 text-sm">
+                      {modelSettings.maxTokens}
+                    </span>
+                    <Button
+                      variant="link"
+                      size="xs"
+                      className="text-sm"
+                      onClick={() => setModelSettings('maxTokens', null)}
+                    >
+                      Reset to default
+                    </Button>
+                  </label>
+                  <Slider
+                    value={[modelSettings.maxTokens]}
+                    min={1024}
+                    max={512000}
+                    step={1}
+                    onValueChange={value =>
+                      setModelSettings('maxTokens', value[0])
+                    }
+                  />
+                </fieldset>
+              </>
+            )}
           </TabsContent>
           <TabsContent value="apiKey" className="grid gap-4">
             {allowCustomAPIKey && (
               <>
                 <fieldset>
                   <label
-                    className="mb-1.5 block text-sm font-bold"
+                    className="mb-1.5 block text-sm font-semibold"
                     htmlFor="openai"
                   >
                     OpenAI API key
@@ -155,7 +307,7 @@ export const Settings = () => {
                 </fieldset>
                 <fieldset>
                   <label
-                    className="mb-1.5 block text-sm font-bold"
+                    className="mb-1.5 block text-sm font-semibold"
                     htmlFor="google"
                   >
                     Google API key
@@ -178,7 +330,7 @@ export const Settings = () => {
                 </fieldset>
                 <fieldset>
                   <label
-                    className="mb-1.5 block text-sm font-bold"
+                    className="mb-1.5 block text-sm font-semibold"
                     htmlFor="anthropic"
                   >
                     Anthropic API key
