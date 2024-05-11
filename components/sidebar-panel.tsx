@@ -6,10 +6,11 @@ import { getChats } from '@/app/actions'
 import { IconPlus } from '@/components/ui/icons'
 import { SidebarList } from '@/components/sidebar-list'
 import { ClearHistory } from '@/components/clear-history'
-import { Settings } from '@/components/settings'
-import { ThemeToggle } from '@/components/theme-toggle'
 import { UserMenu } from '@/components/user-menu'
 import { GithubLink } from '@/components/github-link'
+import { ThemeToggle } from '@/components/theme-toggle'
+import { ModelSettingsDialog } from '@/components/model-settings-dialog'
+import { APIKeySettingsDialog } from '@/components/apikey-settings-dialog'
 
 export async function SidebarPanel() {
   const session = await auth()
@@ -47,7 +48,8 @@ export async function SidebarPanel() {
         <div className="flex items-center justify-center space-x-1.5">
           <GithubLink />
           <ThemeToggle />
-          <Settings />
+          <APIKeySettingsDialog />
+          <ModelSettingsDialog />
           <ClearHistory isEnabled={chats?.length > 0} />
         </div>
       </div>
