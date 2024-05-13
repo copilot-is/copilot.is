@@ -3,7 +3,11 @@ import { customAlphabet } from 'nanoid'
 import { twMerge } from 'tailwind-merge'
 
 import { Model, ModelProvider, type Usage } from '@/lib/types'
-import { KnowledgeCutOffDate, SupportedModels } from '@/lib/constant'
+import {
+  KnowledgeCutOffDate,
+  ServiceProvider,
+  SupportedModels
+} from '@/lib/constant'
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
@@ -92,16 +96,18 @@ export function buildChatUsage(usage: Usage): Usage {
     anthropic: ['temperature', 'topP', 'topK', 'maxTokens']
   }
 
+  const image = isImageModel(usage.model)
   const provider = providerFromModel(usage.model)
   const fields = generalFields.concat(providerFields[provider])
 
   const newUsage = {} as Usage
 
-  if (provider === 'openai' && usage.prompt) {
+  if (!image && usage.prompt) {
     const model = usage.model
     const time = new Date().toLocaleString()
     const cutoff = KnowledgeCutOffDate[model] ?? KnowledgeCutOffDate.default
     const systemPrompt = formatString(usage.prompt, {
+      provider: ServiceProvider[provider],
       cutoff,
       model,
       time

@@ -130,8 +130,14 @@ export const SupportedModels: {
   }
 ]
 
+export enum ServiceProvider {
+  openai = 'OpenAI',
+  google = 'Google',
+  anthropic = 'Anthropic'
+}
+
 export const SystemPrompt = `
-You are ChatGPT, a large language model trained by OpenAI.
+You are ChatGPT, a large language model trained by {provider}.
 Knowledge cutoff: {cutoff}
 Current model: {model}
 Current time: {time}
