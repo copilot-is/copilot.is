@@ -3,10 +3,8 @@ import { type Model, ModelProvider, ChatCategory } from '@/lib/types'
 // https://github.com/ChatGPTNextWeb/ChatGPT-Next-Web/blob/main/app/constant.ts#L125
 export const KnowledgeCutOffDate: Record<string, string> = {
   default: '2021-09',
+  'gpt-4o': '2023-10',
   'gpt-4-turbo': '2023-12',
-  'gpt-4-turbo-2024-04-09': '2023-12',
-  'gpt-4-turbo-preview': '2023-12',
-  'gpt-4-vision-preview': '2023-04',
   // After improvements,
   // it's now easier to add "KnowledgeCutOffDate" instead of stupid hardcoding it, as was done previously.
   'gemini-pro': '2023-12',
@@ -21,69 +19,21 @@ export const SupportedModels: {
   provider: ModelProvider
 }[] = [
   {
-    text: 'GPT-4 Turbo',
-    value: 'gpt-4-turbo',
-    provider: 'openai'
-  },
-  {
-    text: 'GPT-4 2024-04-09',
-    value: 'gpt-4-turbo-2024-04-09',
-    provider: 'openai'
-  },
-  {
-    text: 'GPT-4 0125',
-    value: 'gpt-4-0125-preview',
-    provider: 'openai'
-  },
-  {
-    text: 'GPT-4 Turbo Preview',
-    value: 'gpt-4-turbo-preview',
-    provider: 'openai'
-  },
-  {
-    text: 'GPT-4 1106 Preview',
-    value: 'gpt-4-1106-preview',
-    provider: 'openai'
-  },
-  {
-    text: 'GPT-4 Vision',
-    value: 'gpt-4-vision-preview',
+    text: 'GPT-4o',
+    value: 'gpt-4o',
     vision: true,
     provider: 'openai'
   },
-  { text: 'GPT-4', value: 'gpt-4', provider: 'openai' },
-  { text: 'GPT-4 0314', value: 'gpt-4-0314', provider: 'openai' },
-  { text: 'GPT-4 0613', value: 'gpt-4-0613', provider: 'openai' },
-  { text: 'GPT-4 32k', value: 'gpt-4-32k', provider: 'openai' },
-  { text: 'GPT-4 32k 0314', value: 'gpt-4-32k-0314', provider: 'openai' },
-  { text: 'GPT-4 32k 0613', value: 'gpt-4-32k-0613', provider: 'openai' },
+  {
+    text: 'GPT-4 Turbo',
+    value: 'gpt-4-turbo',
+    vision: true,
+    provider: 'openai'
+  },
+  { text: 'GPT-4', value: 'gpt-4', vision: true, provider: 'openai' },
+  { text: 'GPT-4 32k', value: 'gpt-4-32k', vision: true, provider: 'openai' },
   { text: 'GPT-3.5 Turbo', value: 'gpt-3.5-turbo', provider: 'openai' },
   { text: 'GPT-3.5 Turbo 16k', value: 'gpt-3.5-turbo-16k', provider: 'openai' },
-  {
-    text: 'GPT-3.5 Turbo 0301',
-    value: 'gpt-3.5-turbo-0301',
-    provider: 'openai'
-  },
-  {
-    text: 'GPT-3.5 Turbo 0613',
-    value: 'gpt-3.5-turbo-0613',
-    provider: 'openai'
-  },
-  {
-    text: 'GPT-3.5 Turbo 1106',
-    value: 'gpt-3.5-turbo-1106',
-    provider: 'openai'
-  },
-  {
-    text: 'GPT-3.5 Turbo 0125',
-    value: 'gpt-3.5-turbo-0125',
-    provider: 'openai'
-  },
-  {
-    text: 'GPT-3.5 Turbo 16k 0613',
-    value: 'gpt-3.5-turbo-16k-0613',
-    provider: 'openai'
-  },
   {
     text: 'DALL·E 3',
     value: 'dall-e-3',
