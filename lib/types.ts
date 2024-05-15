@@ -53,6 +53,7 @@ export type Model =
   | string
   | ChatModel
   | 'dall-e-3'
+  | 'gemini-1.5-flash-latest'
   | 'gemini-1.5-pro-latest'
   | 'gemini-pro'
   | 'gemini-pro-vision'

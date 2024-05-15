@@ -41,6 +41,12 @@ export const SupportedModels: {
     provider: 'openai'
   },
   {
+    text: 'Gemini 1.5 Flash',
+    value: 'gemini-1.5-flash-latest',
+    vision: true,
+    provider: 'google'
+  },
+  {
     text: 'Gemini 1.5 Pro',
     value: 'gemini-1.5-pro-latest',
     vision: true,
