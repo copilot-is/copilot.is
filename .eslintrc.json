@@ -14,7 +14,7 @@
   "settings": {
     "tailwindcss": {
       "callees": ["cn", "cva"],
-      "config": "tailwind.config.js"
+      "config": "tailwind.config.ts"
     }
   },
   "overrides": [
