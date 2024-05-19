@@ -4,7 +4,7 @@
 </a>
 
 <p align="center">
-  An open-source AI chatbot app template built with Next.js, the Vercel AI SDK, OpenAI, Google Gemini Pro, and Vercel Postgres.
+  An open-source AI chatbot built with Next.js, the Vercel AI SDK, OpenAI, Google Gemini Pro, Claude and Vercel Postgres.
 </p>
 
 <p align="center">
@@ -33,6 +33,7 @@
 
 - [ChatGPT](https://platform.openai.com/account/api-keys) for OpenAI
 - [Gemini Pro](https://makersuite.google.com/app/apikey) for Google
+- [Claude](https://console.anthropic.com/settings/keys) for Anthropic
 
 ## Deploy Your Own
 
