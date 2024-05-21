@@ -1,58 +1,58 @@
-'use client'
+'use client';
 
-import { useChat, type Message as AIMessage } from 'ai/react'
-import { toast } from 'react-hot-toast'
-import { usePathname, useRouter } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation';
+import { useChat, type Message as AIMessage } from 'ai/react';
+import { toast } from 'react-hot-toast';
 
-import { type Chat, type Message } from '@/lib/types'
+import { api } from '@/lib/api';
+import { GenerateTitlePrompt } from '@/lib/constant';
+import { useLocalStorage } from '@/lib/hooks/use-local-storage';
+import { useScrollAnchor } from '@/lib/hooks/use-scroll-anchor';
+import { useSettings } from '@/lib/hooks/use-settings';
+import { type Chat, type Message } from '@/lib/types';
 import {
-  messageId,
+  buildChatUsage,
   isImageModel,
   isVisionModel,
-  providerFromModel,
-  buildChatUsage
-} from '@/lib/utils'
-import { useLocalStorage } from '@/lib/hooks/use-local-storage'
-import { ChatList } from '@/components/chat-list'
-import { ChatPanel } from '@/components/chat-panel'
-import { EmptyScreen } from '@/components/empty-screen'
-import { ChatHeader } from '@/components/chat-header'
-import { useSettings } from '@/lib/hooks/use-settings'
-import { useScrollAnchor } from '@/lib/hooks/use-scroll-anchor'
-import { updateChat } from '@/app/actions'
-import { GenerateTitlePrompt } from '@/lib/constant'
-import { api } from '@/lib/api'
+  messageId,
+  providerFromModel
+} from '@/lib/utils';
+import { ChatHeader } from '@/components/chat-header';
+import { ChatList } from '@/components/chat-list';
+import { ChatPanel } from '@/components/chat-panel';
+import { EmptyScreen } from '@/components/empty-screen';
+import { updateChat } from '@/app/actions';
 
 interface ChatProps {
-  id: string
-  chat?: Chat
+  id: string;
+  chat?: Chat;
 }
 
 export function Chat({ id, chat }: ChatProps) {
-  const router = useRouter()
-  const pathname = usePathname()
-  const generateId = messageId()
-  const [_, setNewChatId] = useLocalStorage<string>('new-chat-id')
-  const { allowCustomAPIKey, model, token, modelSettings } = useSettings()
+  const router = useRouter();
+  const pathname = usePathname();
+  const generateId = messageId();
+  const [_, setNewChatId] = useLocalStorage<string>('new-chat-id');
+  const { allowCustomAPIKey, model, token, modelSettings } = useSettings();
   const { messagesRef, scrollRef, visibilityRef, isAtBottom, scrollToBottom } =
-    useScrollAnchor()
+    useScrollAnchor();
 
-  const { title, usage, messages: initialMessages } = chat ?? {}
+  const { title, usage, messages: initialMessages } = chat ?? {};
   const currentUsage = usage
     ? { ...usage, prompt: modelSettings.prompt }
-    : { ...modelSettings, model }
-  const currentModel = currentUsage.model
-  const image = isImageModel(currentModel)
-  const vision = isVisionModel(currentModel)
-  const provider = providerFromModel(currentModel)
+    : { ...modelSettings, model };
+  const currentModel = currentUsage.model;
+  const image = isImageModel(currentModel);
+  const vision = isVisionModel(currentModel);
+  const provider = providerFromModel(currentModel);
   const previewToken = allowCustomAPIKey
     ? token?.[provider] || undefined
-    : undefined
+    : undefined;
   const chatUsage = buildChatUsage({
     ...currentUsage,
     stream: true,
     previewToken
-  })
+  });
   const {
     isLoading,
     append,
@@ -76,20 +76,20 @@ export function Chat({ id, chat }: ChatProps) {
     },
     async onResponse(response) {
       if (response.status !== 200) {
-        setInput(input)
-        const json = await response.json()
-        toast.error(json.message)
+        setInput(input);
+        const json = await response.json();
+        toast.error(json.message);
       }
     },
     async onFinish(message) {
       if (!pathname.includes('chat')) {
-        window.history.pushState({}, '', `/chat/${id}`)
-        await generateTitle(id, input, message)
-        setNewChatId(id)
-        router.refresh()
+        window.history.pushState({}, '', `/chat/${id}`);
+        await generateTitle(id, input, message);
+        setNewChatId(id);
+        router.refresh();
       }
     }
-  })
+  });
 
   const generateTitle = async (
     id: string,
@@ -100,12 +100,12 @@ export function Chat({ id, chat }: ChatProps) {
       openai: 'gpt-3.5-turbo',
       google: 'gemini-pro',
       anthropic: 'claude-3-haiku-20240307'
-    }
+    };
     const content = image
       ? message.content
           .toString()
           .replace(/!\[\]\(data:image\/png;base64,.*?\)/g, '')
-      : message.content.toString()
+      : message.content.toString();
 
     if (content) {
       const genMessages = [
@@ -118,24 +118,24 @@ export function Chat({ id, chat }: ChatProps) {
           role: 'user',
           content: GenerateTitlePrompt
         }
-      ] as Message[]
+      ] as Message[];
       const genUsage = buildChatUsage({
         ...currentUsage,
         model: genModel[provider],
         prompt: undefined,
         previewToken
-      })
+      });
 
       const data = await api.createChat(provider, {
         messages: genMessages,
         usage: genUsage
-      })
+      });
 
       if (data.length && data[0]?.content) {
-        await updateChat(id, { title: data[0]?.content })
+        await updateChat(id, { title: data[0]?.content });
       }
     }
-  }
+  };
 
   return (
     <main
@@ -150,7 +150,7 @@ export function Chat({ id, chat }: ChatProps) {
             provider={provider}
             messages={messages as Message[]}
             setMessages={messages => {
-              setMessages(messages as AIMessage[])
+              setMessages(messages as AIMessage[]);
             }}
           />
         ) : (
@@ -172,5 +172,5 @@ export function Chat({ id, chat }: ChatProps) {
         scrollToBottom={scrollToBottom}
       />
     </main>
-  )
+  );
 }

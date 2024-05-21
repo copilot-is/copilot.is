@@ -1,35 +1,35 @@
 export interface AppConfig {
   readonly product: {
-    name: string
-    subtitle: string
-    description?: string
-    url?: string
-  }
+    name: string;
+    subtitle: string;
+    description?: string;
+    url?: string;
+  };
   readonly db: {
-    url: string
-    prefix: string
-  }
+    url: string;
+    prefix: string;
+  };
   readonly openai: {
-    apiKey: string
-    baseURL?: string
-    models?: string
-  }
+    apiKey: string;
+    baseURL?: string;
+    models?: string;
+  };
   readonly google: {
-    apiKey: string
-    baseURL?: string
-    models?: string
-  }
+    apiKey: string;
+    baseURL?: string;
+    models?: string;
+  };
   readonly anthropic: {
-    apiKey: string
-    baseURL?: string
-    models?: string
-  }
-  readonly defaultModel?: string
-  readonly allowCustomAPIKey: boolean
+    apiKey: string;
+    baseURL?: string;
+    models?: string;
+  };
+  readonly defaultModel?: string;
+  readonly allowCustomAPIKey: boolean;
   readonly umami: {
-    scriptURL?: string
-    websiteId?: string
-  }
+    scriptURL?: string;
+    websiteId?: string;
+  };
 }
 
 export const appConfig: AppConfig = {
@@ -64,4 +64,4 @@ export const appConfig: AppConfig = {
     scriptURL: process.env.UMAMI_SCRIPT_URL,
     websiteId: process.env.UMAMI_WEBSITE_ID
   }
-}
+};

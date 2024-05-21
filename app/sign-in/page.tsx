@@ -1,40 +1,40 @@
-import { type Metadata } from 'next'
-import { redirect } from 'next/navigation'
-import Link from 'next/link'
+import { type Metadata } from 'next';
+import Link from 'next/link';
+import { redirect } from 'next/navigation';
 
-import { auth } from '@/server/auth'
-import { cn } from '@/lib/utils'
-import { LoginButton } from '@/components/login-button'
-import { buttonVariants } from '@/components/ui/button'
+import { cn } from '@/lib/utils';
+import { auth } from '@/server/auth';
+import { buttonVariants } from '@/components/ui/button';
+import { LoginButton } from '@/components/login-button';
 
 export interface SignInPageProps {
   searchParams: {
-    error?: string
-  }
+    error?: string;
+  };
 }
 
 export const metadata: Metadata = {
   title: 'Login'
-}
+};
 
 export default async function SignInPage({ searchParams }: SignInPageProps) {
-  const error = searchParams.error
+  const error = searchParams.error;
 
-  const session = await auth()
+  const session = await auth();
   // redirect to home if user is already logged in
   if (session?.user) {
-    redirect('/')
+    redirect('/');
   }
 
-  const githubEnabled = process.env.AUTH_GITHUB_ENABLED === 'true'
-  const googleEnabled = process.env.AUTH_GOOGLE_ENABLED === 'true'
+  const githubEnabled = process.env.AUTH_GITHUB_ENABLED === 'true';
+  const googleEnabled = process.env.AUTH_GOOGLE_ENABLED === 'true';
 
   return (
     <div className="flex size-full items-center justify-center">
-      <div className="bg-background mx-3 max-w-md rounded-lg border p-8 shadow-md">
+      <div className="mx-3 max-w-md rounded-lg border bg-background p-8 shadow-md">
         {error && (
           <div className="space-y-6">
-            <h1 className="px-2 text-center text-xl font-bold leading-tight tracking-tight text-gray-900 md:text-2xl dark:text-white">
+            <h1 className="px-2 text-center text-xl font-bold leading-tight tracking-tight text-gray-900 dark:text-white md:text-2xl">
               Oops!
             </h1>
             <div>
@@ -57,7 +57,7 @@ export default async function SignInPage({ searchParams }: SignInPageProps) {
         )}
         {!error && (
           <div className="space-y-6">
-            <h1 className="px-2 text-center text-xl font-bold leading-tight tracking-tight text-gray-900 md:text-2xl dark:text-white">
+            <h1 className="px-2 text-center text-xl font-bold leading-tight tracking-tight text-gray-900 dark:text-white md:text-2xl">
               Sign in to your account
             </h1>
 
@@ -69,5 +69,5 @@ export default async function SignInPage({ searchParams }: SignInPageProps) {
         )}
       </div>
     </div>
-  )
+  );
 }

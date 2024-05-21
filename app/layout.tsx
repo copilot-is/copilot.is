@@ -1,15 +1,15 @@
-import { type Metadata, type Viewport } from 'next'
-import Script from 'next/script'
-import { Toaster } from 'react-hot-toast'
+import { type Metadata, type Viewport } from 'next';
+import Script from 'next/script';
+import { Toaster } from 'react-hot-toast';
 
-import '@/app/globals.css'
+import '@/app/globals.css';
 
-import { cn } from '@/lib/utils'
-import { appConfig } from '@/lib/appconfig'
-import { fontMono, fontSans } from '@/lib/fonts'
-import { TailwindIndicator } from '@/components/tailwind-indicator'
-import { Providers } from '@/components/providers'
-import { TRPCReactProvider } from '@/trpc/react'
+import { appConfig } from '@/lib/appconfig';
+import { fontMono, fontSans } from '@/lib/fonts';
+import { cn } from '@/lib/utils';
+import { TRPCReactProvider } from '@/trpc/react';
+import { Providers } from '@/components/providers';
+import { TailwindIndicator } from '@/components/tailwind-indicator';
 
 export const metadata: Metadata = {
   metadataBase: appConfig.product.url
@@ -27,7 +27,7 @@ export const metadata: Metadata = {
     shortcut: '/favicon.png',
     apple: '/apple-touch-icon.png'
   }
-}
+};
 
 export const viewport: Viewport = {
   themeColor: [
@@ -39,10 +39,10 @@ export const viewport: Viewport = {
   minimumScale: 1,
   maximumScale: 1,
   userScalable: false
-}
+};
 
 interface RootLayoutProps {
-  children: React.ReactNode
+  children: React.ReactNode;
 }
 
 export default function RootLayout({ children }: RootLayoutProps) {
@@ -78,5 +78,5 @@ export default function RootLayout({ children }: RootLayoutProps) {
         </TRPCReactProvider>
       </body>
     </html>
-  )
+  );
 }

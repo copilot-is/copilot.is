@@ -1,20 +1,20 @@
-'use client'
+'use client';
 
-import { useEffect, useTransition, useState } from 'react'
-import { useTheme } from 'next-themes'
+import { useEffect, useState, useTransition } from 'react';
+import { useTheme } from 'next-themes';
 
-import { Button } from '@/components/ui/button'
-import { IconMoon, IconSun, IconSunMoon } from '@/components/ui/icons'
-import { Tooltip } from '@/components/ui/tooltip'
+import { Button } from '@/components/ui/button';
+import { IconMoon, IconSun, IconSunMoon } from '@/components/ui/icons';
+import { Tooltip } from '@/components/ui/tooltip';
 
 export function ThemeToggle() {
-  const { theme, setTheme } = useTheme()
-  const [isPending, startTransition] = useTransition()
-  const [mounted, setMounted] = useState(false)
+  const { theme, setTheme } = useTheme();
+  const [isPending, startTransition] = useTransition();
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    setMounted(true)
-  }, [])
+    setMounted(true);
+  }, []);
 
   return (
     <Tooltip
@@ -31,16 +31,16 @@ export function ThemeToggle() {
           startTransition(() => {
             switch (theme) {
               case 'dark':
-                setTheme('light')
-                break
+                setTheme('light');
+                break;
               case 'light':
-                setTheme('system')
-                break
+                setTheme('system');
+                break;
               default:
-                setTheme('dark')
-                break
+                setTheme('dark');
+                break;
             }
-          })
+          });
         }}
       >
         {mounted ? (
@@ -59,5 +59,5 @@ export function ThemeToggle() {
         <span className="sr-only">Toggle theme</span>
       </Button>
     </Tooltip>
-  )
+  );
 }

@@ -1,7 +1,10 @@
-'use client'
+'use client';
 
-import * as React from 'react'
+import * as React from 'react';
 
+import { SupportedModels } from '@/lib/constant';
+import { useSettings } from '@/lib/hooks/use-settings';
+import { Button } from '@/components/ui/button';
 import {
   Dialog,
   DialogContent,
@@ -9,40 +12,37 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger
-} from '@/components/ui/dialog'
-import { Button } from '@/components/ui/button'
+} from '@/components/ui/dialog';
 import {
-  IconSettings,
   IconCaretDown,
-  IconCaretRight
-} from '@/components/ui/icons'
-import { Tooltip } from '@/components/ui/tooltip'
+  IconCaretRight,
+  IconSettings
+} from '@/components/ui/icons';
 import {
   Select,
+  SelectContent,
   SelectItem,
-  SelectTrigger,
-  SelectContent
-} from '@/components/ui/select'
-import { Slider } from '@/components/ui/slider'
-import { Textarea } from '@/components/ui/textarea'
-import { SupportedModels } from '@/lib/constant'
-import { useSettings } from '@/lib/hooks/use-settings'
+  SelectTrigger
+} from '@/components/ui/select';
+import { Slider } from '@/components/ui/slider';
+import { Textarea } from '@/components/ui/textarea';
+import { Tooltip } from '@/components/ui/tooltip';
 
 export const ModelSettingsDialog = () => {
-  const [open, setOpen] = React.useState(false)
+  const [open, setOpen] = React.useState(false);
   const [isAdvancedSettingsOpen, setAdvancedSettingsOpen] =
-    React.useState(false)
+    React.useState(false);
 
   const { availableModels, model, setModel, modelSettings, setModelSettings } =
-    useSettings()
+    useSettings();
   const allowedModels = availableModels
     ? SupportedModels.filter(m => availableModels.includes(m.value))
-    : SupportedModels
-  const selectedModel = allowedModels.find(m => m.value === model)?.text
+    : SupportedModels;
+  const selectedModel = allowedModels.find(m => m.value === model)?.text;
 
   const toggleAdvancedSettings = () => {
-    setAdvancedSettingsOpen(!isAdvancedSettingsOpen)
-  }
+    setAdvancedSettingsOpen(!isAdvancedSettingsOpen);
+  };
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -66,7 +66,7 @@ export const ModelSettingsDialog = () => {
               {allowedModels.map(model => (
                 <SelectItem key={model.value} value={model.value}>
                   <div className="font-medium">{model.text}</div>
-                  <div className="text-muted-foreground text-xs">
+                  <div className="text-xs text-muted-foreground">
                     {model.value}
                   </div>
                 </SelectItem>
@@ -80,7 +80,7 @@ export const ModelSettingsDialog = () => {
             htmlFor="prompt"
           >
             System Prompt
-            <span className="text-muted-foreground ml-1.5 text-sm">
+            <span className="ml-1.5 text-sm text-muted-foreground">
               (GPT Only)
             </span>
             <Button
@@ -102,7 +102,7 @@ export const ModelSettingsDialog = () => {
         <fieldset>
           <label className="mb-1.5 block text-sm font-semibold">
             Temperature:
-            <span className="text-muted-foreground ml-1.5 text-sm">
+            <span className="ml-1.5 text-sm text-muted-foreground">
               {modelSettings.temperature}
             </span>
             <Button
@@ -143,7 +143,7 @@ export const ModelSettingsDialog = () => {
             <fieldset>
               <label className="mb-1.5 block text-sm font-semibold">
                 Presence Penalty:
-                <span className="text-muted-foreground ml-1.5 text-sm">
+                <span className="ml-1.5 text-sm text-muted-foreground">
                   {modelSettings.presencePenalty}
                 </span>
                 <Button
@@ -168,7 +168,7 @@ export const ModelSettingsDialog = () => {
             <fieldset>
               <label className="mb-1.5 block text-sm font-semibold">
                 Frequency Penalty:
-                <span className="text-muted-foreground ml-1.5 text-sm">
+                <span className="ml-1.5 text-sm text-muted-foreground">
                   {modelSettings.frequencyPenalty}
                 </span>
                 <Button
@@ -193,7 +193,7 @@ export const ModelSettingsDialog = () => {
             <fieldset>
               <label className="mb-1.5 block text-sm font-semibold">
                 Top P:
-                <span className="text-muted-foreground ml-1.5 text-sm">
+                <span className="ml-1.5 text-sm text-muted-foreground">
                   {modelSettings.topP}
                 </span>
                 <Button
@@ -216,7 +216,7 @@ export const ModelSettingsDialog = () => {
             <fieldset>
               <label className="mb-1.5 block text-sm font-semibold">
                 Top K:
-                <span className="text-muted-foreground ml-1.5 text-sm">
+                <span className="ml-1.5 text-sm text-muted-foreground">
                   {modelSettings.topK}
                 </span>
                 <Button
@@ -239,7 +239,7 @@ export const ModelSettingsDialog = () => {
             <fieldset>
               <label className="mb-1.5 block text-sm font-semibold">
                 Max Tokens:
-                <span className="text-muted-foreground ml-1.5 text-sm">
+                <span className="ml-1.5 text-sm text-muted-foreground">
                   {modelSettings.maxTokens}
                 </span>
                 <Button
@@ -263,5 +263,5 @@ export const ModelSettingsDialog = () => {
         )}
       </DialogContent>
     </Dialog>
-  )
-}
+  );
+};

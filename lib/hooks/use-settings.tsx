@@ -1,36 +1,36 @@
-'use client'
+'use client';
 
-import * as React from 'react'
+import * as React from 'react';
 
-import { type AIToken, ModelSettings, Model } from '@/lib/types'
-import { SystemPrompt } from '@/lib/constant'
-import { useLocalStorage } from '@/lib/hooks/use-local-storage'
+import { SystemPrompt } from '@/lib/constant';
+import { useLocalStorage } from '@/lib/hooks/use-local-storage';
+import { Model, ModelSettings, type AIToken } from '@/lib/types';
 
 type SettingsContextProps = {
-  allowCustomAPIKey: boolean
-  availableModels?: Model[]
-  model: Model
-  setModel: (value: Model) => void
-  token: AIToken
-  setToken: (key: keyof AIToken, value: AIToken[keyof AIToken]) => void
-  modelSettings: ModelSettings
+  allowCustomAPIKey: boolean;
+  availableModels?: Model[];
+  model: Model;
+  setModel: (value: Model) => void;
+  token: AIToken;
+  setToken: (key: keyof AIToken, value: AIToken[keyof AIToken]) => void;
+  modelSettings: ModelSettings;
   setModelSettings: (
     key: keyof ModelSettings,
     value: ModelSettings[keyof ModelSettings]
-  ) => void
-}
+  ) => void;
+};
 
 const SettingsContext = React.createContext<SettingsContextProps | undefined>(
   undefined
-)
+);
 
 export const useSettings = (): SettingsContextProps => {
-  const context = React.useContext(SettingsContext)
+  const context = React.useContext(SettingsContext);
   if (!context) {
-    throw new Error('useSettings must be used within a SettingsProvider')
+    throw new Error('useSettings must be used within a SettingsProvider');
   }
-  return context
-}
+  return context;
+};
 
 export const SettingsProvider = ({
   defaultModel = 'gpt-3.5-turbo',
@@ -38,16 +38,16 @@ export const SettingsProvider = ({
   allowCustomAPIKey = true,
   children
 }: {
-  defaultModel?: Model
-  availableModels?: Model[]
-  allowCustomAPIKey?: boolean
-  children: React.ReactNode
+  defaultModel?: Model;
+  availableModels?: Model[];
+  allowCustomAPIKey?: boolean;
+  children: React.ReactNode;
 }) => {
   const [token, setToken, tokenLoading] =
-    useLocalStorage<SettingsContextProps['token']>('ai-token')
+    useLocalStorage<SettingsContextProps['token']>('ai-token');
   const [model, setModel, modelLoading] = useLocalStorage<
     SettingsContextProps['model']
-  >('ai-model', defaultModel)
+  >('ai-model', defaultModel);
 
   const defaultModelSettings: ModelSettings = {
     prompt: SystemPrompt,
@@ -57,17 +57,17 @@ export const SettingsProvider = ({
     topP: 1,
     topK: 1,
     maxTokens: 4096
-  }
+  };
   const [modelSettings, setModelSettings, modelSettingsLoading] =
     useLocalStorage<SettingsContextProps['modelSettings']>(
       'ai-model-settings',
       defaultModelSettings
-    )
+    );
 
-  const isLoading = tokenLoading && modelLoading && modelSettingsLoading
+  const isLoading = tokenLoading && modelLoading && modelSettingsLoading;
 
   if (isLoading) {
-    return null
+    return null;
   }
 
   return (
@@ -79,7 +79,7 @@ export const SettingsProvider = ({
         setModel,
         token,
         setToken: (key: keyof AIToken, value: AIToken[keyof AIToken]) => {
-          setToken({ ...token, [key]: value })
+          setToken({ ...token, [key]: value });
         },
         modelSettings,
         setModelSettings: (
@@ -91,18 +91,18 @@ export const SettingsProvider = ({
               setModelSettings({
                 ...modelSettings,
                 [key]: defaultModelSettings[key]
-              })
+              });
             }
           } else {
             setModelSettings({
               ...modelSettings,
               [key]: value || defaultModelSettings[key]
-            })
+            });
           }
         }
       }}
     >
       {children}
     </SettingsContext.Provider>
-  )
-}
+  );
+};

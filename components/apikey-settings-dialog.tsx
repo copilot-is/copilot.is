@@ -1,7 +1,9 @@
-'use client'
+'use client';
 
-import * as React from 'react'
+import * as React from 'react';
 
+import { useSettings } from '@/lib/hooks/use-settings';
+import { Button } from '@/components/ui/button';
 import {
   Dialog,
   DialogContent,
@@ -9,17 +11,15 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger
-} from '@/components/ui/dialog'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { IconKey } from '@/components/ui/icons'
-import { Tooltip } from '@/components/ui/tooltip'
-import { ExternalLink } from '@/components/external-link'
-import { useSettings } from '@/lib/hooks/use-settings'
+} from '@/components/ui/dialog';
+import { IconKey } from '@/components/ui/icons';
+import { Input } from '@/components/ui/input';
+import { Tooltip } from '@/components/ui/tooltip';
+import { ExternalLink } from '@/components/external-link';
 
 export const APIKeySettingsDialog = () => {
-  const [open, setOpen] = React.useState(false)
-  const { allowCustomAPIKey, token, setToken } = useSettings()
+  const [open, setOpen] = React.useState(false);
+  const { allowCustomAPIKey, token, setToken } = useSettings();
 
   return (
     allowCustomAPIKey && (
@@ -48,7 +48,7 @@ export const APIKeySettingsDialog = () => {
               value={token?.openai ?? ''}
               onChange={e => setToken('openai', e.target.value)}
             />
-            <p className="text-muted-foreground mt-1 text-sm">
+            <p className="mt-1 text-sm text-muted-foreground">
               If you have not obtained your OpenAI API key, you can do so at{' '}
               <ExternalLink href="https://platform.openai.com/account/api-keys">
                 OpenAI
@@ -72,7 +72,7 @@ export const APIKeySettingsDialog = () => {
               value={token?.google ?? ''}
               onChange={e => setToken('google', e.target.value)}
             />
-            <p className="text-muted-foreground mt-1 text-sm">
+            <p className="mt-1 text-sm text-muted-foreground">
               If you have not obtained your Google API key, you can do so at{' '}
               <ExternalLink href="https://makersuite.google.com/app/apikey">
                 Google AI Studio
@@ -93,7 +93,7 @@ export const APIKeySettingsDialog = () => {
               value={token?.anthropic ?? ''}
               onChange={e => setToken('anthropic', e.target.value)}
             />
-            <p className="text-muted-foreground mt-1 text-sm">
+            <p className="mt-1 text-sm text-muted-foreground">
               If you have not obtained your Anthropic API key, you can do so at{' '}
               <ExternalLink href="https://console.anthropic.com/settings/keys">
                 Anthropic Console
@@ -105,5 +105,5 @@ export const APIKeySettingsDialog = () => {
         </DialogContent>
       </Dialog>
     )
-  )
-}
+  );
+};

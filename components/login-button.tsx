@@ -1,17 +1,17 @@
-'use client'
+'use client';
 
-import * as React from 'react'
-import { signIn } from 'next-auth/react'
+import * as React from 'react';
+import { signIn } from 'next-auth/react';
 
-import { cn } from '@/lib/utils'
-import { Button, type ButtonProps } from '@/components/ui/button'
-import { IconGitHub, IconGoogle, IconSpinner } from '@/components/ui/icons'
+import { cn } from '@/lib/utils';
+import { Button, type ButtonProps } from '@/components/ui/button';
+import { IconGitHub, IconGoogle, IconSpinner } from '@/components/ui/icons';
 
 interface LoginButtonProps
   extends Omit<ButtonProps, 'children' | 'disabled' | 'onClick'> {
-  githubEnabled?: boolean
-  googleEnabled?: boolean
-  className?: string
+  githubEnabled?: boolean;
+  googleEnabled?: boolean;
+  className?: string;
 }
 
 export function LoginButton({
@@ -22,12 +22,12 @@ export function LoginButton({
 }: LoginButtonProps) {
   const [loadingProvider, setLoadingProvider] = React.useState<string | null>(
     null
-  )
+  );
 
   const handleSignIn = (provider: string) => {
-    setLoadingProvider(provider)
-    signIn(provider, { callbackUrl: '/' })
-  }
+    setLoadingProvider(provider);
+    signIn(provider, { callbackUrl: '/' });
+  };
 
   return (
     <div className={cn('flex flex-col space-y-4', className)}>
@@ -67,5 +67,5 @@ export function LoginButton({
         </Button>
       )}
     </div>
-  )
+  );
 }

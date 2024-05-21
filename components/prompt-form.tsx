@@ -1,23 +1,23 @@
-import * as React from 'react'
-import { UseChatHelpers } from 'ai/react'
-import Textarea from 'react-textarea-autosize'
+import * as React from 'react';
+import { UseChatHelpers } from 'ai/react';
+import Textarea from 'react-textarea-autosize';
 
-import { Button } from '@/components/ui/button'
-import { IconArrowElbow } from '@/components/ui/icons'
-import { Tooltip } from '@/components/ui/tooltip'
-import { useEnterSubmit } from '@/lib/hooks/use-enter-submit'
-import { Upload } from '@/components/upload'
+import { useEnterSubmit } from '@/lib/hooks/use-enter-submit';
 import {
   MessageContent,
-  type MessageContentDetail,
-  type FileInfo
-} from '@/lib/types'
+  type FileInfo,
+  type MessageContentDetail
+} from '@/lib/types';
+import { Button } from '@/components/ui/button';
+import { IconArrowElbow } from '@/components/ui/icons';
+import { Tooltip } from '@/components/ui/tooltip';
+import { Upload } from '@/components/upload';
 
 export interface PromptProps
   extends Pick<UseChatHelpers, 'input' | 'setInput'> {
-  vision: boolean
-  isLoading: boolean
-  onSubmit: (value: MessageContent) => void
+  vision: boolean;
+  isLoading: boolean;
+  onSubmit: (value: MessageContent) => void;
 }
 
 export function PromptForm({
@@ -27,19 +27,19 @@ export function PromptForm({
   isLoading,
   onSubmit
 }: PromptProps) {
-  const { formRef, onKeyDown } = useEnterSubmit()
-  const [files, setFiles] = React.useState<FileInfo[]>([])
+  const { formRef, onKeyDown } = useEnterSubmit();
+  const [files, setFiles] = React.useState<FileInfo[]>([]);
 
   return (
     <form
       ref={formRef}
       onSubmit={async e => {
-        e.preventDefault()
+        e.preventDefault();
         if (!input?.trim()) {
-          return
+          return;
         }
-        setInput('')
-        setFiles([])
+        setInput('');
+        setFiles([]);
 
         const content =
           vision && files.length > 0
@@ -57,11 +57,11 @@ export function PromptForm({
                     }) as MessageContentDetail
                 )
               ) as MessageContent)
-            : input
-        await onSubmit(content)
+            : input;
+        await onSubmit(content);
       }}
     >
-      <div className="bg-background flex max-h-60 w-full grow items-start justify-between space-x-2 overflow-hidden py-4 sm:rounded-md sm:border sm:px-4">
+      <div className="flex max-h-60 w-full grow items-start justify-between space-x-2 overflow-hidden bg-background py-4 sm:rounded-md sm:border sm:px-4">
         <Upload value={files} vision={vision} onChange={setFiles} />
         <Textarea
           autoFocus
@@ -87,5 +87,5 @@ export function PromptForm({
         </Tooltip>
       </div>
     </form>
-  )
+  );
 }

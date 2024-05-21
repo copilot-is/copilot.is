@@ -1,11 +1,11 @@
-import { IconRefresh, IconStop } from '@/components/ui/icons'
-import { Button } from '@/components/ui/button'
+import { Button } from '@/components/ui/button';
+import { IconRefresh, IconStop } from '@/components/ui/icons';
 
 interface ChatRegenerateProps {
-  isLoading: boolean
-  hasMessages: boolean
-  stop: () => void
-  reload: () => void
+  isLoading: boolean;
+  hasMessages: boolean;
+  stop: () => void;
+  reload: () => void;
 }
 
 export function ChatRegenerate({
@@ -38,5 +38,5 @@ export function ChatRegenerate({
         )
       )}
     </>
-  )
+  );
 }

@@ -2,8 +2,8 @@ export function ExternalLink({
   href,
   children
 }: {
-  href: string
-  children: React.ReactNode
+  href: string;
+  children: React.ReactNode;
 }) {
   return (
     <a
@@ -25,5 +25,5 @@ export function ExternalLink({
         ></path>
       </svg>
     </a>
-  )
+  );
 }

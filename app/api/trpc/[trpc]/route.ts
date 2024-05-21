@@ -1,10 +1,10 @@
-import { fetchRequestHandler } from '@trpc/server/adapters/fetch'
-import { type NextRequest } from 'next/server'
+import { type NextRequest } from 'next/server';
+import { fetchRequestHandler } from '@trpc/server/adapters/fetch';
 
-import { appRouter } from '@/server/api/root'
-import { createTRPCContext } from '@/server/api/trpc'
+import { appRouter } from '@/server/api/root';
+import { createTRPCContext } from '@/server/api/trpc';
 
-export const runtime = 'edge'
+export const runtime = 'edge';
 
 /**
  * This wraps the `createTRPCContext` helper and provides the required context for the tRPC API when
@@ -13,8 +13,8 @@ export const runtime = 'edge'
 const createContext = async (req: NextRequest) => {
   return createTRPCContext({
     headers: req.headers
-  })
-}
+  });
+};
 
 const handler = (req: NextRequest) =>
   fetchRequestHandler({
@@ -27,9 +27,9 @@ const handler = (req: NextRequest) =>
         ? ({ path, error }) => {
             console.error(
               `❌ tRPC failed on ${path ?? '<no-path>'}: ${error.message}`
-            )
+            );
           }
         : undefined
-  })
+  });
 
-export { handler as GET, handler as POST }
+export { handler as GET, handler as POST };

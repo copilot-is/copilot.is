@@ -1,15 +1,15 @@
-import * as React from 'react'
+import * as React from 'react';
 
-import { cn } from '@/lib/utils'
-import { Message, ModelProvider } from '@/lib/types'
-import { Separator } from '@/components/ui/separator'
-import { ChatMessage } from '@/components/chat-message'
+import { Message, ModelProvider } from '@/lib/types';
+import { cn } from '@/lib/utils';
+import { Separator } from '@/components/ui/separator';
+import { ChatMessage } from '@/components/chat-message';
 
 export interface ChatListProps extends React.ComponentProps<'div'> {
-  id: string
-  messages: Message[]
-  provider: ModelProvider
-  setMessages?: (messages: Message[]) => void
+  id: string;
+  messages: Message[];
+  provider: ModelProvider;
+  setMessages?: (messages: Message[]) => void;
 }
 
 export function ChatList({
@@ -20,7 +20,7 @@ export function ChatList({
   setMessages
 }: ChatListProps) {
   if (!messages.length) {
-    return null
+    return null;
   }
 
   return (
@@ -39,5 +39,5 @@ export function ChatList({
         </React.Fragment>
       ))}
     </div>
-  )
+  );
 }

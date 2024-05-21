@@ -1,21 +1,21 @@
-'use client'
+'use client';
 
-import * as React from 'react'
+import * as React from 'react';
 
-import { type Chat } from '@/lib/types'
-import { Button } from '@/components/ui/button'
-import { IconShare } from '@/components/ui/icons'
-import { ChatShareDialog } from '@/components/chat-share-dialog'
+import { type Chat } from '@/lib/types';
+import { Button } from '@/components/ui/button';
+import { IconShare } from '@/components/ui/icons';
+import { ChatShareDialog } from '@/components/chat-share-dialog';
 
 interface ChatShareProps {
-  chat?: Chat
+  chat?: Chat;
 }
 
 export function ChatShare({ chat }: ChatShareProps) {
-  const [shareDialogOpen, setShareDialogOpen] = React.useState(false)
+  const [shareDialogOpen, setShareDialogOpen] = React.useState(false);
 
   if (!chat) {
-    return null
+    return null;
   }
 
   return (
@@ -35,5 +35,5 @@ export function ChatShare({ chat }: ChatShareProps) {
         onClose={() => setShareDialogOpen(false)}
       />
     </>
-  )
+  );
 }

@@ -1,6 +1,6 @@
-import toast from 'react-hot-toast'
+import toast from 'react-hot-toast';
 
-import { Message, ModelProvider, type Usage } from '@/lib/types'
+import { Message, ModelProvider, type Usage } from '@/lib/types';
 
 const createChat = async (
   provider: ModelProvider,
@@ -12,20 +12,20 @@ const createChat = async (
       'Content-Type': 'application/json'
     },
     body: data ? JSON.stringify(data) : undefined
-  })
+  });
 
   if (!res.ok) {
-    const json = await res.json()
+    const json = await res.json();
     if (json.message) {
-      toast.error(json.message)
+      toast.error(json.message);
     } else {
-      toast.error('An unexpected error occurred')
+      toast.error('An unexpected error occurred');
     }
   }
 
-  return await res.json()
-}
+  return await res.json();
+};
 
 export const api = {
   createChat
-}
+};

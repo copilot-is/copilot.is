@@ -1,27 +1,27 @@
-'use client'
+'use client';
 
-import * as React from 'react'
-import { toast } from 'react-hot-toast'
-import { useRouter } from 'next/navigation'
+import * as React from 'react';
+import { useRouter } from 'next/navigation';
+import { toast } from 'react-hot-toast';
 
-import { type Chat } from '@/lib/types'
+import { type Chat } from '@/lib/types';
 import {
   AlertDialog,
-  AlertDialogProps,
   AlertDialogAction,
   AlertDialogCancel,
   AlertDialogContent,
   AlertDialogDescription,
   AlertDialogFooter,
   AlertDialogHeader,
+  AlertDialogProps,
   AlertDialogTitle
-} from '@/components/ui/alert-dialog'
-import { IconSpinner } from '@/components/ui/icons'
-import { removeChat } from '@/app/actions'
+} from '@/components/ui/alert-dialog';
+import { IconSpinner } from '@/components/ui/icons';
+import { removeChat } from '@/app/actions';
 
 interface ChatDeleteDialogProps extends AlertDialogProps {
-  chat: Pick<Chat, 'id'>
-  onClose: () => void
+  chat: Pick<Chat, 'id'>;
+  onClose: () => void;
 }
 
 export function ChatDeleteDialog({
@@ -29,8 +29,8 @@ export function ChatDeleteDialog({
   onClose,
   ...props
 }: ChatDeleteDialogProps) {
-  const router = useRouter()
-  const [isPending, startTransition] = React.useTransition()
+  const router = useRouter();
+  const [isPending, startTransition] = React.useTransition();
 
   return (
     <AlertDialog {...props}>
@@ -47,19 +47,19 @@ export function ChatDeleteDialog({
           <AlertDialogAction
             disabled={isPending}
             onClick={event => {
-              event.preventDefault()
+              event.preventDefault();
               startTransition(async () => {
-                const result = await removeChat(chat.id)
+                const result = await removeChat(chat.id);
 
                 if (result && 'error' in result) {
-                  toast.error(result.error)
-                  return
+                  toast.error(result.error);
+                  return;
                 }
 
-                router.push('/')
-                toast.success('Chat deleted')
-                onClose()
-              })
+                router.push('/');
+                toast.success('Chat deleted');
+                onClose();
+              });
             }}
           >
             {isPending && <IconSpinner className="mr-2 animate-spin" />}
@@ -68,5 +68,5 @@ export function ChatDeleteDialog({
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>
-  )
+  );
 }

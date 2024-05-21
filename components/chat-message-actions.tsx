@@ -1,28 +1,10 @@
-'use client'
+'use client';
 
-import * as React from 'react'
-import { toast } from 'react-hot-toast'
+import * as React from 'react';
+import { toast } from 'react-hot-toast';
 
-import { Message, type Chat } from '@/lib/types'
-import { useCopyToClipboard } from '@/lib/hooks/use-copy-to-clipboard'
-import { Button } from '@/components/ui/button'
-import { Tooltip } from '@/components/ui/tooltip'
-import { Textarea } from '@/components/ui/textarea'
-import {
-  IconCheck,
-  IconCopy,
-  IconSpinner,
-  IconEdit,
-  IconTrash
-} from '@/components/ui/icons'
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle
-} from '@/components/ui/dialog'
+import { useCopyToClipboard } from '@/lib/hooks/use-copy-to-clipboard';
+import { Message, type Chat } from '@/lib/types';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -32,13 +14,31 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle
-} from '@/components/ui/alert-dialog'
-import { updateMessage, deleteMessage } from '@/app/actions'
+} from '@/components/ui/alert-dialog';
+import { Button } from '@/components/ui/button';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle
+} from '@/components/ui/dialog';
+import {
+  IconCheck,
+  IconCopy,
+  IconEdit,
+  IconSpinner,
+  IconTrash
+} from '@/components/ui/icons';
+import { Textarea } from '@/components/ui/textarea';
+import { Tooltip } from '@/components/ui/tooltip';
+import { deleteMessage, updateMessage } from '@/app/actions';
 
 interface ChatMessageActionsProps {
-  chat: Pick<Chat, 'id' | 'messages'>
-  message: Message
-  setMessages?: (messages: Message[]) => void
+  chat: Pick<Chat, 'id' | 'messages'>;
+  message: Message;
+  setMessages?: (messages: Message[]) => void;
 }
 
 export function ChatMessageActions({
@@ -46,31 +46,31 @@ export function ChatMessageActions({
   message,
   setMessages
 }: ChatMessageActionsProps) {
-  const { isCopied, copyToClipboard } = useCopyToClipboard({ timeout: 3000 })
-  const [content, setContent] = React.useState(message.content)
-  const [editDialogOpen, setEditDialogOpen] = React.useState(false)
-  const [isEditPending, startEditTransition] = React.useTransition()
-  const [deleteDialogOpen, setDeleteDialogOpen] = React.useState(false)
-  const [isDeletePending, startDeleteTransition] = React.useTransition()
+  const { isCopied, copyToClipboard } = useCopyToClipboard({ timeout: 3000 });
+  const [content, setContent] = React.useState(message.content);
+  const [editDialogOpen, setEditDialogOpen] = React.useState(false);
+  const [isEditPending, startEditTransition] = React.useTransition();
+  const [deleteDialogOpen, setDeleteDialogOpen] = React.useState(false);
+  const [isDeletePending, startDeleteTransition] = React.useTransition();
 
   React.useEffect(() => {
-    setContent(message.content)
-  }, [message.content])
+    setContent(message.content);
+  }, [message.content]);
 
   const onCopy = () => {
-    if (isCopied) return
+    if (isCopied) return;
     copyToClipboard(
       Array.isArray(content)
         ? content
             .map(c => {
               if (c.type === 'text') {
-                return c.text
+                return c.text;
               }
             })
             .join('\n\n')
         : content
-    )
-  }
+    );
+  };
 
   return (
     <div className="flex items-center justify-end lg:absolute lg:right-0 lg:top-0">
@@ -112,30 +112,30 @@ export function ChatMessageActions({
                   onClick={() => {
                     startEditTransition(async () => {
                       if (!content) {
-                        toast.error('Message is required')
-                        return
+                        toast.error('Message is required');
+                        return;
                       }
 
                       const result = await updateMessage(message.id, chat.id, {
                         ...message,
                         content
-                      })
+                      });
 
                       if (result && 'error' in result) {
-                        toast.error(result.error)
-                        return
+                        toast.error(result.error);
+                        return;
                       }
 
                       if (chat.messages) {
                         const messages = chat.messages.map(m =>
                           m.id === message.id ? { ...m, content } : m
-                        )
-                        setMessages(messages)
+                        );
+                        setMessages(messages);
                       }
 
-                      toast.success('Message saved')
-                      setEditDialogOpen(false)
-                    })
+                      toast.success('Message saved');
+                      setEditDialogOpen(false);
+                    });
                   }}
                 >
                   {isEditPending ? (
@@ -183,25 +183,25 @@ export function ChatMessageActions({
                 <AlertDialogAction
                   disabled={isDeletePending}
                   onClick={event => {
-                    event.preventDefault()
+                    event.preventDefault();
                     startDeleteTransition(async () => {
-                      const result = await deleteMessage(message.id, chat.id)
+                      const result = await deleteMessage(message.id, chat.id);
 
                       if (result && 'error' in result) {
-                        toast.error(result.error)
-                        return
+                        toast.error(result.error);
+                        return;
                       }
 
                       if (chat.messages) {
                         const messages = chat.messages.filter(
                           m => m.id !== message.id
-                        )
-                        setMessages(messages)
+                        );
+                        setMessages(messages);
                       }
 
-                      toast.success('Message deleted')
-                      setDeleteDialogOpen(false)
-                    })
+                      toast.success('Message deleted');
+                      setDeleteDialogOpen(false);
+                    });
                   }}
                 >
                   {isDeletePending && (
@@ -215,5 +215,5 @@ export function ChatMessageActions({
         </>
       )}
     </div>
-  )
+  );
 }

@@ -1,31 +1,31 @@
+import { NextResponse } from 'next/server';
 import {
-  Part,
   GoogleGenerativeAI,
-  type GenerateContentResult,
-  type GenerateContentRequest
-} from '@google/generative-ai'
-import { GoogleGenerativeAIStream, StreamingTextResponse } from 'ai'
-import { NextResponse } from 'next/server'
+  Part,
+  type GenerateContentRequest,
+  type GenerateContentResult
+} from '@google/generative-ai';
+import { GoogleGenerativeAIStream, StreamingTextResponse } from 'ai';
 
-import { auth } from '@/server/auth'
+import { appConfig } from '@/lib/appconfig';
+import { Message, MessageContent, Model, type Usage } from '@/lib/types';
 import {
-  nanoid,
-  messageId,
   getBase64FromDataURL,
-  getMediaTypeFromDataURL
-} from '@/lib/utils'
-import { Message, MessageContent, Model, type Usage } from '@/lib/types'
-import { appConfig } from '@/lib/appconfig'
-import { api } from '@/trpc/server'
+  getMediaTypeFromDataURL,
+  messageId,
+  nanoid
+} from '@/lib/utils';
+import { auth } from '@/server/auth';
+import { api } from '@/trpc/server';
 
-export const runtime = 'edge'
+export const runtime = 'edge';
 
 const extractContent = (content: MessageContent): Part[] => {
   if (Array.isArray(content)) {
     const parts = content
       .map(c => {
         if (c.type === 'text') {
-          return { text: c.text }
+          return { text: c.text };
         } else {
           return (
             c.type === 'image' &&
@@ -35,14 +35,14 @@ const extractContent = (content: MessageContent): Part[] => {
                 data: getBase64FromDataURL(c.data)
               }
             }
-          )
+          );
         }
       })
-      .filter(Boolean)
-    return parts as Part[]
+      .filter(Boolean);
+    return parts as Part[];
   }
-  return [{ text: content }]
-}
+  return [{ text: content }];
+};
 
 const buildGoogleGenAIPrompt = (
   messages: Message[],
@@ -57,40 +57,40 @@ const buildGoogleGenAIPrompt = (
       role: message.role === 'user' ? 'user' : 'model',
       parts: extractContent(message.content)
     }))
-})
+});
 
 const buildGoogleGenAIMessages = (result: GenerateContentResult) => {
   return result.response.candidates?.map(candidates => {
-    const message = candidates.content
-    const content = message.parts[0].text
-    const role = message.role === 'user' ? 'user' : 'assistant'
+    const message = candidates.content;
+    const content = message.parts[0].text;
+    const role = message.role === 'user' ? 'user' : 'assistant';
     return {
       id: messageId(),
       role,
       content
-    }
-  })
-}
+    };
+  });
+};
 
-const googleai = new GoogleGenerativeAI(appConfig.google.apiKey)
+const googleai = new GoogleGenerativeAI(appConfig.google.apiKey);
 
 type PostData = {
-  id?: string
-  title?: string
-  generateId: string
-  messages: Message[]
-  usage: Usage
-}
+  id?: string;
+  title?: string;
+  generateId: string;
+  messages: Message[];
+  usage: Usage;
+};
 
 export async function POST(req: Request) {
-  const session = await auth()
+  const session = await auth();
 
   if (!session || !session.user) {
-    return NextResponse.json({ message: 'Unauthorized' }, { status: 401 })
+    return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
   }
 
-  const json = await req.json()
-  const { title = 'Untitled', messages, generateId, usage } = json as PostData
+  const json = await req.json();
+  const { title = 'Untitled', messages, generateId, usage } = json as PostData;
   const {
     model,
     stream,
@@ -99,10 +99,10 @@ export async function POST(req: Request) {
     topP = 1,
     topK = 40,
     maxTokens
-  } = usage
+  } = usage;
 
   if (!googleai.apiKey && previewToken) {
-    googleai.apiKey = previewToken
+    googleai.apiKey = previewToken;
   }
 
   try {
@@ -119,21 +119,21 @@ export async function POST(req: Request) {
       {
         baseUrl: appConfig.google.baseURL
       }
-    )
+    );
 
     if (!stream) {
       const genContent = await res.generateContent(
         buildGoogleGenAIPrompt(messages, model)
-      )
-      return NextResponse.json(buildGoogleGenAIMessages(genContent))
+      );
+      return NextResponse.json(buildGoogleGenAIMessages(genContent));
     }
 
     const resStream = await res.generateContentStream(
       buildGoogleGenAIPrompt(messages, model)
-    )
+    );
     const aiStream = GoogleGenerativeAIStream(resStream, {
       onCompletion: async (completion: string) => {
-        const id = json.id ?? nanoid()
+        const id = json.id ?? nanoid();
         const payload = {
           id,
           title,
@@ -152,13 +152,13 @@ export async function POST(req: Request) {
             topK,
             maxTokens
           }
-        }
-        await api.chat.create.mutate(payload)
+        };
+        await api.chat.create.mutate(payload);
       }
-    })
+    });
 
-    return new StreamingTextResponse(aiStream)
+    return new StreamingTextResponse(aiStream);
   } catch (err: any) {
-    return NextResponse.json({ message: err.message }, { status: 500 })
+    return NextResponse.json({ message: err.message }, { status: 500 });
   }
 }

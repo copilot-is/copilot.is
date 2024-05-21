@@ -1,15 +1,15 @@
-'use client'
+'use client';
 
-import React from 'react'
-import remarkGfm from 'remark-gfm'
-import remarkMath from 'remark-math'
-import { defaultUrlTransform } from 'react-markdown'
+import React from 'react';
+import { defaultUrlTransform } from 'react-markdown';
+import remarkGfm from 'remark-gfm';
+import remarkMath from 'remark-math';
 
-import { CodeBlock } from '@/components/ui/codeblock'
-import { MemoizedReactMarkdown } from '@/components/markdown'
+import { CodeBlock } from '@/components/ui/codeblock';
+import { MemoizedReactMarkdown } from '@/components/markdown';
 
 interface ChatMessageMarkdownProps {
-  content: string
+  content: string;
 }
 
 export function ChatMessageMarkdown({ content }: ChatMessageMarkdownProps) {
@@ -21,7 +21,7 @@ export function ChatMessageMarkdown({ content }: ChatMessageMarkdownProps) {
       }
       components={{
         p({ children }) {
-          return <p className="mb-2 last:mb-0">{children}</p>
+          return <p className="mb-2 last:mb-0">{children}</p>;
         },
         img({ node, ...props }) {
           return (
@@ -31,24 +31,24 @@ export function ChatMessageMarkdown({ content }: ChatMessageMarkdownProps) {
               className="mb-3 mt-0 h-auto w-full max-w-xs"
               {...props}
             />
-          )
+          );
         },
         code({ node, className, children, ...props }) {
-          const childArray = React.Children.toArray(children)
-          const firstChild = childArray[0] as React.ReactElement
+          const childArray = React.Children.toArray(children);
+          const firstChild = childArray[0] as React.ReactElement;
           const firstChildAsString = React.isValidElement(firstChild)
             ? (firstChild as React.ReactElement).props.children
-            : firstChild
+            : firstChild;
 
           if (firstChildAsString === '▍') {
-            return <span className="mt-1 animate-pulse cursor-default">▍</span>
+            return <span className="mt-1 animate-pulse cursor-default">▍</span>;
           }
 
           if (typeof firstChildAsString === 'string') {
-            childArray[0] = firstChildAsString.replace('`▍`', '▍')
+            childArray[0] = firstChildAsString.replace('`▍`', '▍');
           }
 
-          const match = /language-(\w+)/.exec(className || '')
+          const match = /language-(\w+)/.exec(className || '');
 
           if (
             typeof firstChildAsString === 'string' &&
@@ -58,7 +58,7 @@ export function ChatMessageMarkdown({ content }: ChatMessageMarkdownProps) {
               <code className={className} {...props}>
                 {children}
               </code>
-            )
+            );
           }
 
           return (
@@ -68,11 +68,11 @@ export function ChatMessageMarkdown({ content }: ChatMessageMarkdownProps) {
               value={String(children).replace(/\n$/, '')}
               {...props}
             />
-          )
+          );
         }
       }}
     >
       {content}
     </MemoizedReactMarkdown>
-  )
+  );
 }

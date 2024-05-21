@@ -1,29 +1,28 @@
-'use client'
+'use client';
 
-import * as React from 'react'
+import * as React from 'react';
+import Link from 'next/link';
+import { useParams } from 'next/navigation';
+import { motion } from 'framer-motion';
 
-import Link from 'next/link'
-import { useParams } from 'next/navigation'
-import { motion } from 'framer-motion'
-
-import { type Chat } from '@/lib/types'
-import { cn, providerFromModel } from '@/lib/utils'
-import { useLocalStorage } from '@/lib/hooks/use-local-storage'
-import { buttonVariants } from '@/components/ui/button'
-import { IconClaudeAI, IconGoogleAI, IconOpenAI } from '@/components/ui/icons'
+import { useLocalStorage } from '@/lib/hooks/use-local-storage';
+import { type Chat } from '@/lib/types';
+import { cn, providerFromModel } from '@/lib/utils';
+import { buttonVariants } from '@/components/ui/button';
+import { IconClaudeAI, IconGoogleAI, IconOpenAI } from '@/components/ui/icons';
 
 interface SidebarItemProps {
-  index: number
-  chat: Chat
-  children: React.ReactNode
+  index: number;
+  chat: Chat;
+  children: React.ReactNode;
 }
 
 export function SidebarItem({ index, chat, children }: SidebarItemProps) {
-  const { id } = useParams()
-  const [newChatId, setNewChatId] = useLocalStorage<string>('new-chat-id')
-  const isActive = id === chat.id
-  const shouldAnimate = index === 0 && isActive && newChatId === chat.id
-  const provider = providerFromModel(chat.usage.model)
+  const { id } = useParams();
+  const [newChatId, setNewChatId] = useLocalStorage<string>('new-chat-id');
+  const isActive = id === chat.id;
+  const shouldAnimate = index === 0 && isActive && newChatId === chat.id;
+  const provider = providerFromModel(chat.usage.model);
 
   return (
     <motion.div
@@ -87,7 +86,7 @@ export function SidebarItem({ index, chat, children }: SidebarItemProps) {
                   }}
                   onAnimationComplete={() => {
                     if (index === chat.title.length - 1) {
-                      setNewChatId('')
+                      setNewChatId('');
                     }
                   }}
                 >
@@ -102,5 +101,5 @@ export function SidebarItem({ index, chat, children }: SidebarItemProps) {
       </Link>
       <div className="absolute right-1 top-1">{children}</div>
     </motion.div>
-  )
+  );
 }

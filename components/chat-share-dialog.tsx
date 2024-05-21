@@ -1,26 +1,26 @@
-'use client'
+'use client';
 
-import * as React from 'react'
-import { toast } from 'react-hot-toast'
+import * as React from 'react';
+import { toast } from 'react-hot-toast';
 
-import { type Chat } from '@/lib/types'
-import { Button } from '@/components/ui/button'
+import { useCopyToClipboard } from '@/lib/hooks/use-copy-to-clipboard';
+import { type Chat } from '@/lib/types';
+import { Button } from '@/components/ui/button';
 import {
   Dialog,
-  DialogProps,
   DialogContent,
   DialogDescription,
   DialogFooter,
   DialogHeader,
+  DialogProps,
   DialogTitle
-} from '@/components/ui/dialog'
-import { IconSpinner } from '@/components/ui/icons'
-import { useCopyToClipboard } from '@/lib/hooks/use-copy-to-clipboard'
-import { updateChat } from '@/app/actions'
+} from '@/components/ui/dialog';
+import { IconSpinner } from '@/components/ui/icons';
+import { updateChat } from '@/app/actions';
 
 interface ChatShareDialogProps extends DialogProps {
-  chat?: Chat
-  onClose: () => void
+  chat?: Chat;
+  onClose: () => void;
 }
 
 export function ChatShareDialog({
@@ -28,15 +28,15 @@ export function ChatShareDialog({
   onClose,
   ...props
 }: ChatShareDialogProps) {
-  const { copyToClipboard } = useCopyToClipboard({ timeout: 1000 })
-  const [isSharePending, startShareTransition] = React.useTransition()
-  const [isDeletePending, startDeleteTransition] = React.useTransition()
+  const { copyToClipboard } = useCopyToClipboard({ timeout: 1000 });
+  const [isSharePending, startShareTransition] = React.useTransition();
+  const [isDeletePending, startDeleteTransition] = React.useTransition();
 
   const copyShareLink = React.useCallback(
     async (sharePath: string) => {
-      const url = new URL(window.location.href)
-      url.pathname = sharePath
-      copyToClipboard(url.toString())
+      const url = new URL(window.location.href);
+      url.pathname = sharePath;
+      copyToClipboard(url.toString());
       toast.success('Share link copied to clipboard', {
         style: {
           borderRadius: '10px',
@@ -48,14 +48,14 @@ export function ChatShareDialog({
           primary: 'white',
           secondary: 'black'
         }
-      })
-      onClose()
+      });
+      onClose();
     },
     [copyToClipboard, onClose]
-  )
+  );
 
   if (!chat) {
-    return null
+    return null;
   }
 
   return (
@@ -77,16 +77,16 @@ export function ChatShareDialog({
               disabled={isDeletePending}
               onClick={() => {
                 startDeleteTransition(async () => {
-                  const result = await updateChat(chat.id, { sharing: false })
+                  const result = await updateChat(chat.id, { sharing: false });
 
                   if (result && 'error' in result) {
-                    toast.error(result.error)
-                    return
+                    toast.error(result.error);
+                    return;
                   }
 
-                  toast.success('Shared link deleted success')
-                  onClose()
-                })
+                  toast.success('Shared link deleted success');
+                  onClose();
+                });
               }}
             >
               {isDeletePending ? (
@@ -103,18 +103,18 @@ export function ChatShareDialog({
             disabled={isSharePending || isDeletePending}
             onClick={() => {
               startShareTransition(async () => {
-                const sharePath = `/share/${chat.id}`
+                const sharePath = `/share/${chat.id}`;
                 if (!chat.sharing) {
-                  const result = await updateChat(chat.id, { sharing: true })
+                  const result = await updateChat(chat.id, { sharing: true });
 
                   if (result && 'error' in result) {
-                    toast.error(result.error)
-                    return
+                    toast.error(result.error);
+                    return;
                   }
                 }
 
-                copyShareLink(sharePath)
-              })
+                copyShareLink(sharePath);
+              });
             }}
           >
             {isSharePending ? (
@@ -129,5 +129,5 @@ export function ChatShareDialog({
         </DialogFooter>
       </DialogContent>
     </Dialog>
-  )
+  );
 }

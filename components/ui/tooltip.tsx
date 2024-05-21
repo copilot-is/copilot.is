@@ -1,19 +1,19 @@
-'use client'
+'use client';
 
-import * as React from 'react'
-import * as TooltipPrimitive from '@radix-ui/react-tooltip'
+import * as React from 'react';
+import * as TooltipPrimitive from '@radix-ui/react-tooltip';
 
-import { cn } from '@/lib/utils'
+import { cn } from '@/lib/utils';
 
-type TooltipElement = React.ElementRef<typeof TooltipPrimitive.Content>
+type TooltipElement = React.ElementRef<typeof TooltipPrimitive.Content>;
 
 type TooltipProps = React.ComponentPropsWithoutRef<
   typeof TooltipPrimitive.Content
 > & {
-  content: string | React.ReactNode
-}
+  content: string | React.ReactNode;
+};
 
-const TooltipProvider = TooltipPrimitive.Provider
+const TooltipProvider = TooltipPrimitive.Provider;
 
 const Tooltip = React.forwardRef<TooltipElement, TooltipProps>(
   (
@@ -38,7 +38,7 @@ const Tooltip = React.forwardRef<TooltipElement, TooltipProps>(
             sideOffset={sideOffset}
             align={align}
             className={cn(
-              'bg-popover text-popover-foreground animate-in fade-in-50 data-[side=bottom]:slide-in-from-top-1 data-[side=left]:slide-in-from-right-1 data-[side=right]:slide-in-from-left-1 data-[side=top]:slide-in-from-bottom-1 z-50 overflow-hidden rounded-md border px-3 py-1.5 text-xs font-medium shadow-md',
+              'z-50 overflow-hidden rounded-md border bg-popover px-3 py-1.5 text-xs font-medium text-popover-foreground shadow-md animate-in fade-in-50 data-[side=bottom]:slide-in-from-top-1 data-[side=left]:slide-in-from-right-1 data-[side=right]:slide-in-from-left-1 data-[side=top]:slide-in-from-bottom-1',
               className
             )}
             {...props}
@@ -47,10 +47,10 @@ const Tooltip = React.forwardRef<TooltipElement, TooltipProps>(
           </TooltipPrimitive.Content>
         </TooltipPrimitive.Portal>
       </TooltipPrimitive.Root>
-    )
+    );
   }
-)
+);
 
-Tooltip.displayName = 'Tooltip'
+Tooltip.displayName = 'Tooltip';
 
-export { Tooltip, TooltipProvider }
+export { Tooltip, TooltipProvider };

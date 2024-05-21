@@ -1,7 +1,7 @@
-import { cn } from '@/lib/utils'
-import { buttonVariants } from '@/components/ui/button'
-import { IconGitHub } from '@/components/ui/icons'
-import { Tooltip } from '@/components/ui/tooltip'
+import { cn } from '@/lib/utils';
+import { buttonVariants } from '@/components/ui/button';
+import { IconGitHub } from '@/components/ui/icons';
+import { Tooltip } from '@/components/ui/tooltip';
 
 export function GithubLink() {
   return (
@@ -17,5 +17,5 @@ export function GithubLink() {
         <IconGitHub className="size-5" />
       </a>
     </Tooltip>
-  )
+  );
 }

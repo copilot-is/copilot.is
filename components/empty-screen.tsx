@@ -1,9 +1,9 @@
-import { UseChatHelpers } from 'ai/react'
+import { UseChatHelpers } from 'ai/react';
 
-import { IconOpenAI, IconGoogleAI, IconClaudeAI } from '@/components/ui/icons'
+import { IconClaudeAI, IconGoogleAI, IconOpenAI } from '@/components/ui/icons';
 
 export interface EmptyScreenProps extends Pick<UseChatHelpers, 'setInput'> {
-  provider: string
+  provider: string;
 }
 
 export function EmptyScreen({ provider, setInput }: EmptyScreenProps) {
@@ -18,5 +18,5 @@ export function EmptyScreen({ provider, setInput }: EmptyScreenProps) {
         How can I help you today?
       </div>
     </div>
-  )
+  );
 }

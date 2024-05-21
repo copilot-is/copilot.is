@@ -1,20 +1,20 @@
-'use client'
+'use client';
 
-import Image from 'next/image'
-import { type Session } from 'next-auth'
-import { signOut } from 'next-auth/react'
+import Image from 'next/image';
+import { type Session } from 'next-auth';
+import { signOut } from 'next-auth/react';
 
-import { Button } from '@/components/ui/button'
+import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger
-} from '@/components/ui/dropdown-menu'
+} from '@/components/ui/dropdown-menu';
 
 export interface UserMenuProps {
-  user?: Session['user']
+  user?: Session['user'];
 }
 
 export function UserMenu({ user }: UserMenuProps) {
@@ -51,5 +51,5 @@ export function UserMenu({ user }: UserMenuProps) {
         </DropdownMenuContent>
       </DropdownMenu>
     </div>
-  )
+  );
 }

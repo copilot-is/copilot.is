@@ -1,22 +1,22 @@
-'use client'
+'use client';
 
-import React from 'react'
+import React from 'react';
 
-import { Message, ModelProvider, type Chat } from '@/lib/types'
+import { Message, ModelProvider, type Chat } from '@/lib/types';
 import {
   IconClaudeAI,
   IconGoogleAI,
   IconOpenAI,
   IconUser
-} from '@/components/ui/icons'
-import { ChatMessageActions } from '@/components/chat-message-actions'
-import { ChatMessageMarkdown } from '@/components/chat-message-markdown'
+} from '@/components/ui/icons';
+import { ChatMessageActions } from '@/components/chat-message-actions';
+import { ChatMessageMarkdown } from '@/components/chat-message-markdown';
 
 export interface ChatMessageProps {
-  chat: Pick<Chat, 'id' | 'messages'>
-  message: Message
-  provider: ModelProvider
-  setMessages?: (messages: Message[]) => void
+  chat: Pick<Chat, 'id' | 'messages'>;
+  message: Message;
+  provider: ModelProvider;
+  setMessages?: (messages: Message[]) => void;
 }
 
 export function ChatMessage({
@@ -27,7 +27,7 @@ export function ChatMessage({
 }: ChatMessageProps) {
   return (
     <div className="relative mb-4 flex items-start">
-      <div className="bg-background flex size-8 shrink-0 select-none items-center justify-center rounded-md border">
+      <div className="flex size-8 shrink-0 select-none items-center justify-center rounded-md border bg-background">
         {message.role === 'user' ? <IconUser /> : null}
         {message.role !== 'user' && (
           <>
@@ -38,7 +38,7 @@ export function ChatMessage({
         )}
       </div>
       <div className="ml-4 mt-1 flex-1 overflow-hidden">
-        <div className="prose dark:prose-invert prose-p:leading-relaxed prose-pre:p-0 break-words">
+        <div className="prose break-words dark:prose-invert prose-p:leading-relaxed prose-pre:p-0">
           {message.role === 'user' && (
             <>
               {Array.isArray(message.content) && message.content.length > 0 && (
@@ -55,7 +55,7 @@ export function ChatMessage({
                             src={c.data}
                           />
                         )
-                      )
+                      );
                     }
                   })}
                 </p>
@@ -67,7 +67,7 @@ export function ChatMessage({
                       <p key={i} className="mb-2 last:mb-0">
                         {c.text}
                       </p>
-                    )
+                    );
                   }
                 })
               ) : (
@@ -102,5 +102,5 @@ export function ChatMessage({
         />
       </div>
     </div>
-  )
+  );
 }

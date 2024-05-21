@@ -1,33 +1,33 @@
-'use client'
+'use client';
 
-import * as React from 'react'
+import * as React from 'react';
 
-import { type Chat } from '@/lib/types'
-import { Button } from '@/components/ui/button'
-import {
-  IconDotsThreeVertical,
-  IconEdit,
-  IconShare,
-  IconTrash
-} from '@/components/ui/icons'
+import { type Chat } from '@/lib/types';
+import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger
-} from '@/components/ui/dropdown-menu'
-import { ChatShareDialog } from '@/components/chat-share-dialog'
-import { ChatDeleteDialog } from '@/components/chat-delete-dialog'
-import { ChatTitleDialog } from '@/components/chat-title-dialog'
+} from '@/components/ui/dropdown-menu';
+import {
+  IconDotsThreeVertical,
+  IconEdit,
+  IconShare,
+  IconTrash
+} from '@/components/ui/icons';
+import { ChatDeleteDialog } from '@/components/chat-delete-dialog';
+import { ChatShareDialog } from '@/components/chat-share-dialog';
+import { ChatTitleDialog } from '@/components/chat-title-dialog';
 
 interface SidebarActionsProps {
-  chat: Chat
+  chat: Chat;
 }
 
 export function SidebarActions({ chat }: SidebarActionsProps) {
-  const [shareDialogOpen, setShareDialogOpen] = React.useState(false)
-  const [titleDialogOpen, setTitleDialogOpen] = React.useState(false)
-  const [deleteDialogOpen, setDeleteDialogOpen] = React.useState(false)
+  const [shareDialogOpen, setShareDialogOpen] = React.useState(false);
+  const [titleDialogOpen, setTitleDialogOpen] = React.useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = React.useState(false);
 
   return (
     <>
@@ -36,7 +36,7 @@ export function SidebarActions({ chat }: SidebarActionsProps) {
           <Button
             variant="ghost"
             size="icon"
-            className="hover:bg-background data-[state=open]:bg-background size-6 outline-none"
+            className="size-6 outline-none hover:bg-background data-[state=open]:bg-background"
           >
             <IconDotsThreeVertical />
           </Button>
@@ -75,5 +75,5 @@ export function SidebarActions({ chat }: SidebarActionsProps) {
         onClose={() => setTitleDialogOpen(false)}
       />
     </>
-  )
+  );
 }

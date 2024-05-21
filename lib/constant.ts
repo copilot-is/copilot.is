@@ -1,4 +1,4 @@
-import { type Model, ModelProvider, ChatCategory } from '@/lib/types'
+import { ChatCategory, ModelProvider, type Model } from '@/lib/types';
 
 // https://github.com/ChatGPTNextWeb/ChatGPT-Next-Web/blob/main/app/constant.ts#L125
 export const KnowledgeCutOffDate: Record<string, string> = {
@@ -9,14 +9,14 @@ export const KnowledgeCutOffDate: Record<string, string> = {
   // it's now easier to add "KnowledgeCutOffDate" instead of stupid hardcoding it, as was done previously.
   'gemini-pro': '2023-12',
   'gemini-pro-vision': '2023-12'
-}
+};
 
 export const SupportedModels: {
-  text: string
-  value: Model
-  image?: boolean
-  vision?: boolean
-  provider: ModelProvider
+  text: string;
+  value: Model;
+  image?: boolean;
+  vision?: boolean;
+  provider: ModelProvider;
 }[] = [
   {
     text: 'GPT-4o',
@@ -84,7 +84,7 @@ export const SupportedModels: {
     value: 'claude-instant-1.2',
     provider: 'anthropic'
   }
-]
+];
 
 export enum ServiceProvider {
   openai = 'OpenAI',
@@ -99,10 +99,10 @@ Current model: {model}
 Current time: {time}
 Latex inline: \\(x^2\\)
 Latex block: $$e=mc^2$$
-`
+`;
 
 export const GenerateTitlePrompt =
-  'Please generate a four to five word title summarizing our conversation without any lead-in, punctuation, quotation marks, periods, symbols, bold text, or additional text. Remove enclosing quotation marks.'
+  'Please generate a four to five word title summarizing our conversation without any lead-in, punctuation, quotation marks, periods, symbols, bold text, or additional text. Remove enclosing quotation marks.';
 
 export const ChatCategories: ChatCategory[] = [
   'Today',
@@ -110,4 +110,4 @@ export const ChatCategories: ChatCategory[] = [
   'Previous 7 Days',
   'Previous Month',
   'Older'
-]
+];

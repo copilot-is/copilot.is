@@ -1,42 +1,42 @@
-'use client'
+'use client';
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState } from 'react';
 
 export const useLocalStorage = <T>(
   key: string,
   initialValue?: T
 ): [T, (value: T) => void, boolean] => {
-  const [storedValue, setStoredValue] = useState<T>(initialValue as T)
-  const [isLoading, setLoading] = useState<boolean>(true)
+  const [storedValue, setStoredValue] = useState<T>(initialValue as T);
+  const [isLoading, setLoading] = useState<boolean>(true);
 
   useEffect(() => {
-    const item = window.localStorage.getItem(key)
+    const item = window.localStorage.getItem(key);
     if (item) {
       try {
-        setStoredValue(JSON.parse(item) as T)
+        setStoredValue(JSON.parse(item) as T);
       } catch {
-        setStoredValue(item as T)
+        setStoredValue(item as T);
       }
     }
-    setLoading(false)
-  }, [key])
+    setLoading(false);
+  }, [key]);
 
   const setValue = (value: T) => {
-    setStoredValue(value)
+    setStoredValue(value);
     if (value !== null && value !== undefined && value !== '') {
       if (
         typeof value === 'string' ||
         typeof value === 'number' ||
         typeof value === 'boolean'
       ) {
-        window.localStorage.setItem(key, value.toString())
+        window.localStorage.setItem(key, value.toString());
       } else {
-        window.localStorage.setItem(key, JSON.stringify(value))
+        window.localStorage.setItem(key, JSON.stringify(value));
       }
     } else {
-      window.localStorage.removeItem(key)
+      window.localStorage.removeItem(key);
     }
-  }
+  };
 
-  return [storedValue, setValue, isLoading]
-}
+  return [storedValue, setValue, isLoading];
+};

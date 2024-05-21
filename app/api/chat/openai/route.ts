@@ -1,25 +1,25 @@
-import OpenAI from 'openai'
+import { NextResponse } from 'next/server';
+import { OpenAIStream, StreamingTextResponse } from 'ai';
+import OpenAI from 'openai';
 import {
   type ChatCompletion,
   type ChatCompletionMessageParam
-} from 'openai/resources'
-import { OpenAIStream, StreamingTextResponse } from 'ai'
-import { NextResponse } from 'next/server'
+} from 'openai/resources';
 
-import { auth } from '@/server/auth'
-import { nanoid, messageId } from '@/lib/utils'
-import { Message, MessageContent, type Usage } from '@/lib/types'
-import { appConfig } from '@/lib/appconfig'
-import { api } from '@/trpc/server'
+import { appConfig } from '@/lib/appconfig';
+import { Message, MessageContent, type Usage } from '@/lib/types';
+import { messageId, nanoid } from '@/lib/utils';
+import { auth } from '@/server/auth';
+import { api } from '@/trpc/server';
 
-export const runtime = 'edge'
+export const runtime = 'edge';
 
 const extractContent = (content: MessageContent) => {
   if (Array.isArray(content)) {
     return content
       .map(c => {
         if (c.type === 'text') {
-          return c
+          return c;
         } else {
           return (
             c.type === 'image' &&
@@ -29,17 +29,17 @@ const extractContent = (content: MessageContent) => {
                 url: c.data
               }
             }
-          )
+          );
         }
       })
-      .filter(Boolean)
+      .filter(Boolean);
   }
-  return content
-}
+  return content;
+};
 
 const buildOpenAIPrompt = (messages: Message[], prompt?: string) => {
-  const systemMessage = { role: 'system', content: prompt } as Message
-  const mergedMessages = prompt ? [systemMessage, ...messages] : messages
+  const systemMessage = { role: 'system', content: prompt } as Message;
+  const mergedMessages = prompt ? [systemMessage, ...messages] : messages;
 
   return mergedMessages.map(
     ({ role, content, name, function_call }) =>
@@ -49,46 +49,46 @@ const buildOpenAIPrompt = (messages: Message[], prompt?: string) => {
         ...(name !== undefined && { name }),
         ...(function_call !== undefined && { function_call })
       }) as ChatCompletionMessageParam
-  )
-}
+  );
+};
 
 const buildOpenAIMessages = (result: ChatCompletion) => {
-  const messages: Message[] = []
+  const messages: Message[] = [];
 
   result.choices.forEach(choice => {
-    const { message } = choice
+    const { message } = choice;
 
-    const role = message.role
-    const content = message.content || ''
+    const role = message.role;
+    const content = message.content || '';
 
-    messages.push({ id: messageId(), role, content })
-  })
+    messages.push({ id: messageId(), role, content });
+  });
 
-  return messages
-}
+  return messages;
+};
 
 const openai = new OpenAI({
   apiKey: appConfig.openai.apiKey,
   baseURL: appConfig.openai.baseURL
-})
+});
 
 type PostData = {
-  id?: string
-  title?: string
-  generateId: string
-  messages: Message[]
-  usage: Usage
-}
+  id?: string;
+  title?: string;
+  generateId: string;
+  messages: Message[];
+  usage: Usage;
+};
 
 export async function POST(req: Request) {
-  const session = await auth()
+  const session = await auth();
 
   if (!session || !session.user) {
-    return NextResponse.json({ message: 'Unauthorized' }, { status: 401 })
+    return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
   }
 
-  const json = await req.json()
-  const { title = 'Untitled', messages, generateId, usage } = json as PostData
+  const json = await req.json();
+  const { title = 'Untitled', messages, generateId, usage } = json as PostData;
   const {
     model,
     stream,
@@ -99,10 +99,10 @@ export async function POST(req: Request) {
     temperature = 0.5,
     topP = 1,
     maxTokens
-  } = usage
+  } = usage;
 
   if (!openai.apiKey && previewToken) {
-    openai.apiKey = previewToken
+    openai.apiKey = previewToken;
   }
 
   try {
@@ -115,18 +115,18 @@ export async function POST(req: Request) {
       presence_penalty: presencePenalty,
       top_p: topP,
       max_tokens: maxTokens
-    })
+    });
 
-    const response = await res.asResponse()
+    const response = await res.asResponse();
 
     if (!stream) {
-      const data = await response.json()
-      return NextResponse.json(buildOpenAIMessages(data))
+      const data = await response.json();
+      return NextResponse.json(buildOpenAIMessages(data));
     }
 
     const aiStream = OpenAIStream(response, {
       async onCompletion(completion) {
-        const id = json.id ?? nanoid()
+        const id = json.id ?? nanoid();
         const payload = {
           id,
           title,
@@ -146,19 +146,19 @@ export async function POST(req: Request) {
             topP,
             maxTokens
           }
-        }
-        await api.chat.create.mutate(payload)
+        };
+        await api.chat.create.mutate(payload);
       }
-    })
+    });
 
-    return new StreamingTextResponse(aiStream)
+    return new StreamingTextResponse(aiStream);
   } catch (err: any) {
     if (err instanceof OpenAI.APIError) {
-      const status = err.status
-      const error = err.error as Record<string, any>
-      return NextResponse.json({ message: error.message }, { status })
+      const status = err.status;
+      const error = err.error as Record<string, any>;
+      return NextResponse.json({ message: error.message }, { status });
     } else {
-      return NextResponse.json({ message: err.message }, { status: 500 })
+      return NextResponse.json({ message: err.message }, { status: 500 });
     }
   }
 }

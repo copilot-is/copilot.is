@@ -1,26 +1,26 @@
-'use client'
+'use client';
 
-import * as React from 'react'
-import { toast } from 'react-hot-toast'
+import * as React from 'react';
+import { toast } from 'react-hot-toast';
 
-import { type Chat } from '@/lib/types'
-import { Button } from '@/components/ui/button'
+import { type Chat } from '@/lib/types';
+import { Button } from '@/components/ui/button';
 import {
   Dialog,
-  DialogProps,
   DialogContent,
   DialogDescription,
   DialogFooter,
   DialogHeader,
+  DialogProps,
   DialogTitle
-} from '@/components/ui/dialog'
-import { IconSpinner } from '@/components/ui/icons'
-import { Input } from '@/components/ui/input'
-import { updateChat } from '@/app/actions'
+} from '@/components/ui/dialog';
+import { IconSpinner } from '@/components/ui/icons';
+import { Input } from '@/components/ui/input';
+import { updateChat } from '@/app/actions';
 
 interface ChatTitleDialogProps extends DialogProps {
-  chat: Pick<Chat, 'id' | 'title'>
-  onClose: () => void
+  chat: Pick<Chat, 'id' | 'title'>;
+  onClose: () => void;
 }
 
 export function ChatTitleDialog({
@@ -28,12 +28,12 @@ export function ChatTitleDialog({
   onClose,
   ...props
 }: ChatTitleDialogProps) {
-  const [isPending, startTransition] = React.useTransition()
-  const [title, setTitle] = React.useState(chat.title)
+  const [isPending, startTransition] = React.useTransition();
+  const [title, setTitle] = React.useState(chat.title);
 
   React.useEffect(() => {
-    setTitle(chat.title)
-  }, [chat.title])
+    setTitle(chat.title);
+  }, [chat.title]);
 
   return (
     <Dialog {...props}>
@@ -53,20 +53,20 @@ export function ChatTitleDialog({
             onClick={() => {
               startTransition(async () => {
                 if (!title) {
-                  toast.error('Chat title is required')
-                  return
+                  toast.error('Chat title is required');
+                  return;
                 }
 
-                const result = await updateChat(chat.id, { title })
+                const result = await updateChat(chat.id, { title });
 
                 if (result && 'error' in result) {
-                  toast.error(result.error)
-                  return
+                  toast.error(result.error);
+                  return;
                 }
 
-                toast.success('Chat title saved')
-                onClose()
-              })
+                toast.success('Chat title saved');
+                onClose();
+              });
             }}
           >
             {isPending ? (
@@ -81,5 +81,5 @@ export function ChatTitleDialog({
         </DialogFooter>
       </DialogContent>
     </Dialog>
-  )
+  );
 }
