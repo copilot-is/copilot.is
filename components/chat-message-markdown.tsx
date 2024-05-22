@@ -1,5 +1,3 @@
-'use client';
-
 import React from 'react';
 import { defaultUrlTransform } from 'react-markdown';
 import remarkGfm from 'remark-gfm';
@@ -56,7 +54,7 @@ export function ChatMessageMarkdown({ content }: ChatMessageMarkdownProps) {
           ) {
             return (
               <code className={className} {...props}>
-                {children}
+                {childArray}
               </code>
             );
           }
@@ -65,7 +63,7 @@ export function ChatMessageMarkdown({ content }: ChatMessageMarkdownProps) {
             <CodeBlock
               key={Math.random()}
               language={(match && match[1]) || ''}
-              value={String(children).replace(/\n$/, '')}
+              value={String(childArray).replace(/\n$/, '')}
               {...props}
             />
           );
