@@ -2,11 +2,7 @@ import { clsx, type ClassValue } from 'clsx';
 import { customAlphabet } from 'nanoid';
 import { twMerge } from 'tailwind-merge';
 
-import {
-  KnowledgeCutOffDate,
-  ServiceProvider,
-  SupportedModels
-} from '@/lib/constant';
+import { ServiceProvider, SupportedModels } from '@/lib/constant';
 import { Model, ModelProvider, type Usage } from '@/lib/types';
 
 export function cn(...inputs: ClassValue[]) {
@@ -105,10 +101,8 @@ export function buildChatUsage(usage: Usage): Usage {
   if (!image && usage.prompt) {
     const model = usage.model;
     const time = new Date().toLocaleString();
-    const cutoff = KnowledgeCutOffDate[model] ?? KnowledgeCutOffDate.default;
     const systemPrompt = formatString(usage.prompt, {
       provider: ServiceProvider[provider],
-      cutoff,
       model,
       time
     });

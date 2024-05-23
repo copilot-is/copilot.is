@@ -1,16 +1,5 @@
 import { ChatCategory, ModelProvider, type Model } from '@/lib/types';
 
-// https://github.com/ChatGPTNextWeb/ChatGPT-Next-Web/blob/main/app/constant.ts#L125
-export const KnowledgeCutOffDate: Record<string, string> = {
-  default: '2021-09',
-  'gpt-4o': '2023-10',
-  'gpt-4-turbo': '2023-12',
-  // After improvements,
-  // it's now easier to add "KnowledgeCutOffDate" instead of stupid hardcoding it, as was done previously.
-  'gemini-pro': '2023-12',
-  'gemini-pro-vision': '2023-12'
-};
-
 export const SupportedModels: {
   text: string;
   value: Model;
@@ -94,7 +83,6 @@ export enum ServiceProvider {
 
 export const SystemPrompt = `
 You are ChatGPT, a large language model trained by {provider}.
-Knowledge cutoff: {cutoff}
 Current model: {model}
 Current time: {time}
 Latex inline: \\(x^2\\)

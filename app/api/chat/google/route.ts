@@ -94,6 +94,7 @@ export async function POST(req: Request) {
   const {
     model,
     stream,
+    prompt,
     previewToken,
     temperature = 0.5,
     topP = 1,
@@ -109,6 +110,7 @@ export async function POST(req: Request) {
     const res = googleai.getGenerativeModel(
       {
         model,
+        systemInstruction: prompt,
         generationConfig: {
           temperature,
           topP,
