@@ -4,6 +4,8 @@ import { notFound } from 'next/navigation';
 import { Chat } from '@/components/chat';
 import { getChat } from '@/app/actions';
 
+export const maxDuration = 60;
+
 export interface ChatPageProps {
   params: {
     id: string;
