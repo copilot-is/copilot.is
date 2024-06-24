@@ -49,6 +49,12 @@ export const SupportedModels: {
     provider: 'google'
   },
   {
+    text: 'Claude 3.5 Sonnet',
+    value: 'claude-3-5-sonnet-20240620',
+    vision: true,
+    provider: 'anthropic'
+  },
+  {
     text: 'Claude 3 Opus',
     value: 'claude-3-opus-20240229',
     vision: true,
