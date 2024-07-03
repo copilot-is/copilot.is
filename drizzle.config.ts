@@ -9,5 +9,5 @@ export default {
     connectionString: appConfig.db.url
   },
   tablesFilter: [appConfig.db.prefix + '*'],
-  strict: true
+  strict: false
 } satisfies Config;
