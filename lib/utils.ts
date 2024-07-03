@@ -1,6 +1,5 @@
 import { generateId } from 'ai';
 import { clsx, type ClassValue } from 'clsx';
-import { customAlphabet } from 'nanoid';
 import { twMerge } from 'tailwind-merge';
 
 import { ServiceProvider, SupportedModels } from '@/lib/constant';

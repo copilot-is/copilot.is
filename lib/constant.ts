@@ -1,4 +1,4 @@
-import { ChatCategory, ModelProvider, type Model } from '@/lib/types';
+import { ChatCategory, ModelProvider, Model } from '@/lib/types';
 
 export const SupportedModels: {
   text: string;
