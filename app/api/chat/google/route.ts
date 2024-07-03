@@ -1,78 +1,15 @@
 import { NextResponse } from 'next/server';
-import {
-  GoogleGenerativeAI,
-  Part,
-  type GenerateContentRequest,
-  type GenerateContentResult
-} from '@google/generative-ai';
-import { GoogleGenerativeAIStream, StreamingTextResponse } from 'ai';
+import { createGoogleGenerativeAI } from '@ai-sdk/google';
+import { generateText, LanguageModel, streamText } from 'ai';
 
 import { appConfig } from '@/lib/appconfig';
-import { Message, MessageContent, Model, type Usage } from '@/lib/types';
-import {
-  getBase64FromDataURL,
-  getMediaTypeFromDataURL,
-  messageId,
-  nanoid
-} from '@/lib/utils';
+import { Message, type Usage } from '@/lib/types';
+import { chatId } from '@/lib/utils';
 import { auth } from '@/server/auth';
 import { api } from '@/trpc/server';
 
 export const runtime = 'edge';
-
-const extractContent = (content: MessageContent): Part[] => {
-  if (Array.isArray(content)) {
-    const parts = content
-      .map(c => {
-        if (c.type === 'text') {
-          return { text: c.text };
-        } else {
-          return (
-            c.type === 'image' &&
-            c.data && {
-              inlineData: {
-                mimeType: getMediaTypeFromDataURL(c.data),
-                data: getBase64FromDataURL(c.data)
-              }
-            }
-          );
-        }
-      })
-      .filter(Boolean);
-    return parts as Part[];
-  }
-  return [{ text: content }];
-};
-
-const buildGoogleGenAIPrompt = (
-  messages: Message[],
-  model: Model
-): GenerateContentRequest => ({
-  contents: (model === 'gemini-pro-vision'
-    ? [messages[messages.length - 1]]
-    : messages
-  )
-    .filter(message => message.role === 'user' || message.role === 'assistant')
-    .map(message => ({
-      role: message.role === 'user' ? 'user' : 'model',
-      parts: extractContent(message.content)
-    }))
-});
-
-const buildGoogleGenAIMessages = (result: GenerateContentResult) => {
-  return result.response.candidates?.map(candidates => {
-    const message = candidates.content;
-    const content = message.parts[0].text;
-    const role = message.role === 'user' ? 'user' : 'assistant';
-    return {
-      id: messageId(),
-      role,
-      content
-    };
-  });
-};
-
-const googleai = new GoogleGenerativeAI(appConfig.google.apiKey);
+export const maxDuration = 60;
 
 type PostData = {
   id?: string;
@@ -89,8 +26,8 @@ export async function POST(req: Request) {
     return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
   }
 
-  const json = await req.json();
-  const { title = 'Untitled', messages, generateId, usage } = json as PostData;
+  const json: PostData = await req.json();
+  const { title = 'Untitled', messages, generateId, usage } = json;
   const {
     model,
     stream,
@@ -102,51 +39,48 @@ export async function POST(req: Request) {
     maxTokens
   } = usage;
 
-  if (!googleai.apiKey && previewToken) {
-    googleai.apiKey = previewToken;
-  }
-
   try {
-    const res = googleai.getGenerativeModel(
-      {
-        model,
-        systemInstruction: prompt,
-        generationConfig: {
-          temperature,
-          topP,
-          topK,
-          maxOutputTokens: maxTokens
-        }
-      },
-      {
-        baseUrl: appConfig.google.baseURL
-      }
-    );
+    const google = createGoogleGenerativeAI({
+      apiKey:
+        !appConfig.google.apiKey && previewToken
+          ? previewToken
+          : appConfig.google.apiKey,
+      baseURL: appConfig.google.baseURL
+    });
+
+    const parameters = {
+      model: google('models/' + model, { topK }),
+      system: prompt,
+      messages,
+      temperature,
+      topP,
+      maxTokens
+    };
 
     if (!stream) {
-      const genContent = await res.generateContent(
-        buildGoogleGenAIPrompt(messages, model)
-      );
-      return NextResponse.json(buildGoogleGenAIMessages(genContent));
+      const { text } = await generateText(parameters);
+
+      return NextResponse.json({
+        role: 'assistant',
+        content: text
+      });
     }
 
-    const resStream = await res.generateContentStream(
-      buildGoogleGenAIPrompt(messages, model)
-    );
-    const aiStream = GoogleGenerativeAIStream(resStream, {
-      onCompletion: async (completion: string) => {
-        const id = json.id ?? nanoid();
-        const payload = {
+    const res = await streamText({
+      ...parameters,
+      onFinish: async ({ text }) => {
+        const id = json.id ?? chatId();
+        const payload: any = {
           id,
           title,
           messages: [
             ...messages,
             {
               id: generateId,
-              content: completion,
+              content: text,
               role: 'assistant'
             }
-          ] as [Message],
+          ],
           usage: {
             model,
             temperature,
@@ -159,7 +93,7 @@ export async function POST(req: Request) {
       }
     });
 
-    return new StreamingTextResponse(aiStream);
+    return res.toAIStreamResponse();
   } catch (err: any) {
     return NextResponse.json({ message: err.message }, { status: 500 });
   }

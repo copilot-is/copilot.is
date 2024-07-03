@@ -131,8 +131,8 @@ export function Chat({ id, chat }: ChatProps) {
         usage: genUsage
       });
 
-      if (data.length && data[0]?.content) {
-        await updateChat(id, { title: data[0]?.content });
+      if (data && data.content) {
+        await updateChat(id, { title: data.content });
       }
     }
   };

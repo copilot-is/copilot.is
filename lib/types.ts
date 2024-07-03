@@ -1,29 +1,5 @@
+import { CoreMessage } from 'ai';
 import { ChatModel } from 'openai/resources';
-
-export interface MessageContentDetail {
-  type: 'text' | 'image';
-  text?: string;
-  data?: string;
-}
-
-export type MessageContent = string | MessageContentDetail[];
-
-export type Message = {
-  id: string;
-  role: 'system' | 'user' | 'assistant' | 'function' | 'data' | 'tool';
-  content: MessageContent;
-  name?: string;
-  function_call?: string;
-  createdAt?: Date;
-  updatedAt?: Date;
-};
-
-export type ChatCategory =
-  | 'Today'
-  | 'Yesterday'
-  | 'Previous 7 Days'
-  | 'Previous Month'
-  | 'Older';
 
 export interface Chat extends Record<string, any> {
   id: string;
@@ -31,10 +7,16 @@ export interface Chat extends Record<string, any> {
   createdAt: Date;
   updatedAt: Date;
   userId: string;
-  messages?: Message[];
+  messages: Message[];
   sharing: boolean;
   usage: Usage;
 }
+
+export type Message = CoreMessage & {
+  id: string;
+  createdAt?: Date;
+  updatedAt?: Date;
+};
 
 export interface Usage extends Record<string, any> {
   model: Model;
@@ -55,8 +37,6 @@ export type Model =
   | 'dall-e-3'
   | 'gemini-1.5-flash-latest'
   | 'gemini-1.5-pro-latest'
-  | 'gemini-pro'
-  | 'gemini-pro-vision'
   | 'claude-3-5-sonnet-20240620'
   | 'claude-3-opus-20240229'
   | 'claude-3-sonnet-20240229'
@@ -83,15 +63,22 @@ export interface AIToken extends Record<string, any> {
   anthropic?: string;
 }
 
-export type ServerActionResult<Result> = Promise<
-  | Result
-  | {
-      error: string;
-    }
->;
+export type ChatCategory =
+  | 'Today'
+  | 'Yesterday'
+  | 'Previous 7 Days'
+  | 'Previous Month'
+  | 'Older';
 
 export interface FileInfo extends Record<string, any> {
   name: string;
   type: string;
   data: string;
 }
+
+export type ServerActionResult<Result> = Promise<
+  | Result
+  | {
+      error: string;
+    }
+>;

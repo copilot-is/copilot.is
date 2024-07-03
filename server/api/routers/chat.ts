@@ -1,9 +1,28 @@
-import { and, eq } from 'drizzle-orm'
-import { z } from 'zod'
+import { and, eq } from 'drizzle-orm';
+import { z } from 'zod';
 
-import { createTRPCRouter, protectedProcedure } from '@/server/api/trpc'
-import { chats, messages } from '@/server/db/schema'
-import { type Usage } from '@/lib/types'
+import { createTRPCRouter, protectedProcedure } from '@/server/api/trpc';
+import { chats, messages } from '@/server/db/schema';
+
+const message = z.object({
+  id: z.string(),
+  role: z.enum(['system', 'user', 'assistant', 'tool']),
+  content: z.union([
+    z.string(),
+    z.array(
+      z
+        .object({
+          type: z.enum(['text', 'image']),
+          text: z.string().optional(),
+          image: z.string().optional(),
+          mimeType: z.string().optional()
+        })
+        .refine(data => (data.text || data.image) !== undefined, {
+          message: 'Either text or image must be provided'
+        })
+    )
+  ])
+});
 
 export const chatRouter = createTRPCRouter({
   create: protectedProcedure
@@ -11,35 +30,7 @@ export const chatRouter = createTRPCRouter({
       z.object({
         id: z.string(),
         title: z.string().trim().min(1).max(255),
-        messages: z
-          .array(
-            z.object({
-              id: z.string(),
-              role: z.enum([
-                'system',
-                'user',
-                'assistant',
-                'function',
-                'data',
-                'tool'
-              ]),
-              content: z.union([
-                z.string(),
-                z.array(
-                  z
-                    .object({
-                      type: z.enum(['text', 'image']),
-                      text: z.string().optional(),
-                      data: z.string().optional()
-                    })
-                    .refine(data => (data.text || data.data) !== undefined, {
-                      message: 'Either text or data must be provided'
-                    })
-                )
-              ])
-            })
-          )
-          .nonempty(),
+        messages: z.array(message).nonempty(),
         usage: z.object({
           model: z.string(),
           temperature: z.number().optional(),
@@ -54,23 +45,23 @@ export const chatRouter = createTRPCRouter({
     .mutation(async ({ ctx, input }) => {
       const chat = await ctx.db.query.chats.findFirst({
         where: eq(chats.id, input.id)
-      })
+      });
       if (!chat) {
         await ctx.db.insert(chats).values({
           id: input.id,
           title: input.title,
           userId: ctx.session.user.id,
-          usage: input.usage as Usage
-        })
+          usage: input.usage
+        });
       }
 
-      const lastUserMessage = input.messages[input.messages.length - 2]
+      const lastUserMessage = input.messages[input.messages.length - 2];
       const message = await ctx.db.query.messages.findFirst({
         where: and(
           eq(messages.id, lastUserMessage.id),
           eq(messages.role, 'user')
         )
-      })
+      });
 
       if (message) {
         const lastAIMessage = await ctx.db.query.messages.findFirst({
@@ -79,7 +70,7 @@ export const chatRouter = createTRPCRouter({
             eq(messages.chatId, input.id),
             eq(messages.userId, ctx.session.user.id)
           )
-        })
+        });
 
         if (lastAIMessage && lastAIMessage.role === 'assistant') {
           await ctx.db
@@ -89,9 +80,9 @@ export const chatRouter = createTRPCRouter({
                 eq(messages.id, lastAIMessage.id),
                 eq(messages.userId, ctx.session.user.id)
               )
-            )
+            );
 
-          const lastMessage = input.messages[input.messages.length - 1]
+          const lastMessage = input.messages[input.messages.length - 1];
           if (lastMessage && lastMessage.role === 'assistant') {
             await ctx.db.insert(messages).values({
               id: lastMessage.id,
@@ -99,7 +90,7 @@ export const chatRouter = createTRPCRouter({
               role: lastMessage.role,
               chatId: input.id,
               userId: ctx.session.user.id
-            })
+            });
           }
         }
       } else {
@@ -109,9 +100,9 @@ export const chatRouter = createTRPCRouter({
           role: message.role,
           chatId: input.id,
           userId: ctx.session.user.id
-        }))
+        }));
 
-        await ctx.db.insert(messages).values(twoLastMessage)
+        await ctx.db.insert(messages).values(twoLastMessage);
       }
     }),
 
@@ -122,7 +113,7 @@ export const chatRouter = createTRPCRouter({
         orderBy: (chats, { desc }) => [desc(chats.createdAt)],
         limit: input?.limit ?? 50,
         where: eq(chats.userId, ctx.session.user.id)
-      })
+      });
     }),
 
   detail: protectedProcedure
@@ -136,9 +127,9 @@ export const chatRouter = createTRPCRouter({
         with: {
           messages: true
         }
-      })
+      });
 
-      return chat
+      return chat;
     }),
 
   update: protectedProcedure
@@ -163,10 +154,10 @@ export const chatRouter = createTRPCRouter({
       })
     )
     .mutation(async ({ ctx, input }) => {
-      const updates: Record<string, any> = {}
-      if ('title' in input.chat) updates.title = input.chat.title
-      if ('sharing' in input.chat) updates.sharing = input.chat.sharing
-      if ('usage' in input.chat) updates.usage = input.chat.usage
+      const updates: Record<string, any> = {};
+      if ('title' in input.chat) updates.title = input.chat.title;
+      if ('sharing' in input.chat) updates.sharing = input.chat.sharing;
+      if ('usage' in input.chat) updates.usage = input.chat.usage;
 
       return await ctx.db
         .update(chats)
@@ -175,7 +166,7 @@ export const chatRouter = createTRPCRouter({
           and(eq(chats.id, input.id), eq(chats.userId, ctx.session.user.id))
         )
         .returning()
-        .then(data => data[0])
+        .then(data => data[0]);
     }),
 
   delete: protectedProcedure
@@ -185,11 +176,11 @@ export const chatRouter = createTRPCRouter({
         .delete(chats)
         .where(
           and(eq(chats.id, input.id), eq(chats.userId, ctx.session.user.id))
-        )
+        );
     }),
 
   deleteAll: protectedProcedure.mutation(async ({ ctx }) => {
-    await ctx.db.delete(chats).where(eq(chats.userId, ctx.session.user.id))
+    await ctx.db.delete(chats).where(eq(chats.userId, ctx.session.user.id));
   }),
 
   getShared: protectedProcedure
@@ -204,7 +195,7 @@ export const chatRouter = createTRPCRouter({
         with: {
           messages: true
         }
-      })
+      });
     }),
 
   updateMessage: protectedProcedure
@@ -212,31 +203,7 @@ export const chatRouter = createTRPCRouter({
       z.object({
         id: z.string(),
         chatId: z.string(),
-        message: z.object({
-          id: z.string(),
-          role: z.enum([
-            'system',
-            'user',
-            'assistant',
-            'function',
-            'data',
-            'tool'
-          ]),
-          content: z.union([
-            z.string(),
-            z.array(
-              z
-                .object({
-                  type: z.enum(['text', 'image']),
-                  text: z.string().optional(),
-                  data: z.string().optional()
-                })
-                .refine(data => (data.text || data.data) !== undefined, {
-                  message: 'Either text or data must be provided'
-                })
-            )
-          ])
-        })
+        message
       })
     )
     .mutation(async ({ ctx, input }) => {
@@ -251,7 +218,7 @@ export const chatRouter = createTRPCRouter({
           )
         )
         .returning()
-        .then(data => data[0])
+        .then(data => data[0]);
     }),
 
   deleteMessage: protectedProcedure
@@ -270,6 +237,6 @@ export const chatRouter = createTRPCRouter({
             eq(messages.chatId, input.chatId),
             eq(messages.userId, ctx.session.user.id)
           )
-        )
+        );
     })
-})
+});

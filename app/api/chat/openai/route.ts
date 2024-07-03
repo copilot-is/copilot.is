@@ -1,76 +1,15 @@
 import { NextResponse } from 'next/server';
-import { OpenAIStream, StreamingTextResponse } from 'ai';
-import OpenAI from 'openai';
-import {
-  type ChatCompletion,
-  type ChatCompletionMessageParam
-} from 'openai/resources';
+import { createOpenAI } from '@ai-sdk/openai';
+import { generateText, streamText } from 'ai';
 
 import { appConfig } from '@/lib/appconfig';
-import { Message, MessageContent, type Usage } from '@/lib/types';
-import { messageId, nanoid } from '@/lib/utils';
+import { Message, type Usage } from '@/lib/types';
+import { chatId } from '@/lib/utils';
 import { auth } from '@/server/auth';
 import { api } from '@/trpc/server';
 
 export const runtime = 'edge';
-
-const extractContent = (content: MessageContent) => {
-  if (Array.isArray(content)) {
-    return content
-      .map(c => {
-        if (c.type === 'text') {
-          return c;
-        } else {
-          return (
-            c.type === 'image' &&
-            c.data && {
-              type: 'image_url',
-              image_url: {
-                url: c.data
-              }
-            }
-          );
-        }
-      })
-      .filter(Boolean);
-  }
-  return content;
-};
-
-const buildOpenAIPrompt = (messages: Message[], prompt?: string) => {
-  const systemMessage = { role: 'system', content: prompt } as Message;
-  const mergedMessages = prompt ? [systemMessage, ...messages] : messages;
-
-  return mergedMessages.map(
-    ({ role, content, name, function_call }) =>
-      ({
-        role,
-        content: extractContent(content),
-        ...(name !== undefined && { name }),
-        ...(function_call !== undefined && { function_call })
-      }) as ChatCompletionMessageParam
-  );
-};
-
-const buildOpenAIMessages = (result: ChatCompletion) => {
-  const messages: Message[] = [];
-
-  result.choices.forEach(choice => {
-    const { message } = choice;
-
-    const role = message.role;
-    const content = message.content || '';
-
-    messages.push({ id: messageId(), role, content });
-  });
-
-  return messages;
-};
-
-const openai = new OpenAI({
-  apiKey: appConfig.openai.apiKey,
-  baseURL: appConfig.openai.baseURL
-});
+export const maxDuration = 60;
 
 type PostData = {
   id?: string;
@@ -87,8 +26,8 @@ export async function POST(req: Request) {
     return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
   }
 
-  const json = await req.json();
-  const { title = 'Untitled', messages, generateId, usage } = json as PostData;
+  const json: PostData = await req.json();
+  const { title = 'Untitled', messages, generateId, usage } = json;
   const {
     model,
     stream,
@@ -101,43 +40,50 @@ export async function POST(req: Request) {
     maxTokens
   } = usage;
 
-  if (!openai.apiKey && previewToken) {
-    openai.apiKey = previewToken;
-  }
-
   try {
-    const res = openai.chat.completions.create({
-      model,
-      messages: buildOpenAIPrompt(messages, prompt),
-      stream,
-      temperature,
-      frequency_penalty: frequencyPenalty,
-      presence_penalty: presencePenalty,
-      top_p: topP,
-      max_tokens: maxTokens
+    const openai = createOpenAI({
+      apiKey:
+        !appConfig.openai.apiKey && previewToken
+          ? previewToken
+          : appConfig.openai.apiKey,
+      baseURL: appConfig.openai.baseURL
     });
 
-    const response = await res.asResponse();
+    const parameters = {
+      model: openai(model),
+      system: prompt,
+      messages,
+      temperature,
+      frequencyPenalty,
+      presencePenalty,
+      topP,
+      maxTokens
+    };
 
     if (!stream) {
-      const data = await response.json();
-      return NextResponse.json(buildOpenAIMessages(data));
+      const { text } = await generateText(parameters);
+
+      return NextResponse.json({
+        role: 'assistant',
+        content: text
+      });
     }
 
-    const aiStream = OpenAIStream(response, {
-      async onCompletion(completion) {
-        const id = json.id ?? nanoid();
-        const payload = {
+    const res = await streamText({
+      ...parameters,
+      onFinish: async ({ text }) => {
+        const id = json.id ?? chatId();
+        const payload: any = {
           id,
           title,
           messages: [
             ...messages,
             {
               id: generateId,
-              content: completion,
+              content: text,
               role: 'assistant'
             }
-          ] as [Message],
+          ],
           usage: {
             model,
             temperature,
@@ -151,14 +97,8 @@ export async function POST(req: Request) {
       }
     });
 
-    return new StreamingTextResponse(aiStream);
+    return res.toAIStreamResponse();
   } catch (err: any) {
-    if (err instanceof OpenAI.APIError) {
-      const status = err.status;
-      const error = err.error as Record<string, any>;
-      return NextResponse.json({ message: error.message }, { status });
-    } else {
-      return NextResponse.json({ message: err.message }, { status: 500 });
-    }
+    return NextResponse.json({ message: err.message }, { status: 500 });
   }
 }

@@ -128,7 +128,9 @@ export function ChatMessageActions({
 
                       if (chat.messages) {
                         const messages = chat.messages.map(m =>
-                          m.id === message.id ? { ...m, content } : m
+                          m.id === message.id
+                            ? ({ ...m, content } as Message)
+                            : m
                         );
                         setMessages(messages);
                       }

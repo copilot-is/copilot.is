@@ -1,20 +1,19 @@
-import { relations, sql } from 'drizzle-orm'
+import { relations, sql } from 'drizzle-orm';
 import {
   boolean,
   index,
   integer,
-  json,
+  jsonb,
+  pgEnum,
   pgTableCreator,
   primaryKey,
   text,
   timestamp,
-  varchar,
-  pgEnum
-} from 'drizzle-orm/pg-core'
-import { type Account } from 'next-auth'
+  varchar
+} from 'drizzle-orm/pg-core';
+import { type Account } from 'next-auth';
 
-import { MessageContent, Usage } from '@/lib/types'
-import { appConfig } from '@/lib/appconfig'
+import { appConfig } from '@/lib/appconfig';
 
 /**
  * This is an example of how to use the multi-project schema feature of Drizzle ORM. Use the same
@@ -22,14 +21,14 @@ import { appConfig } from '@/lib/appconfig'
  *
  * @see https://orm.drizzle.team/docs/goodies#multi-project-schema
  */
-export const createTable = pgTableCreator(name => appConfig.db.prefix + name)
+export const createTable = pgTableCreator(name => appConfig.db.prefix + name);
 
 export const chats = createTable(
   'chat',
   {
     id: varchar('id', { length: 255 }).notNull().primaryKey(),
     title: varchar('title', { length: 255 }).notNull(),
-    usage: json('usage').$type<Usage>().notNull(),
+    usage: jsonb('usage').notNull(),
     userId: varchar('user_id', { length: 255 })
       .notNull()
       .references(() => users.id, { onDelete: 'cascade' }),
@@ -40,28 +39,21 @@ export const chats = createTable(
   chat => ({
     userIdIdx: index('chat_userId_idx').on(chat.userId)
   })
-)
+);
 
 export const chatsRelations = relations(chats, ({ one, many }) => ({
   user: one(users, { fields: [chats.userId], references: [users.id] }),
   messages: many(messages)
-}))
+}));
 
-export const role = pgEnum('role', [
-  'system',
-  'user',
-  'assistant',
-  'function',
-  'data',
-  'tool'
-])
+export const role = pgEnum('role', ['system', 'user', 'assistant', 'tool']);
 
 export const messages = createTable(
   'message',
   {
     id: varchar('id', { length: 255 }).notNull().primaryKey(),
     role: role('role').notNull(),
-    content: json('content').$type<MessageContent>().notNull(),
+    content: jsonb('content').notNull(),
     userId: varchar('user_id', { length: 255 }).notNull(),
     chatId: varchar('chat_id', { length: 255 })
       .notNull()
@@ -73,12 +65,12 @@ export const messages = createTable(
     userIdIdx: index('message_userId_idx').on(message.userId),
     chatIdIdx: index('message_chatId_idx').on(message.chatId)
   })
-)
+);
 
 export const messagesRelations = relations(messages, ({ one }) => ({
   user: one(users, { fields: [messages.userId], references: [users.id] }),
   chat: one(chats, { fields: [messages.chatId], references: [chats.id] })
-}))
+}));
 
 export const users = createTable('user', {
   id: varchar('id', { length: 255 }).notNull().primaryKey(),
@@ -88,11 +80,11 @@ export const users = createTable('user', {
     mode: 'date'
   }).default(sql`CURRENT_TIMESTAMP`),
   image: varchar('image', { length: 255 })
-})
+});
 
 export const usersRelations = relations(users, ({ many }) => ({
   accounts: many(accounts)
-}))
+}));
 
 export const accounts = createTable(
   'account',
@@ -117,11 +109,11 @@ export const accounts = createTable(
     }),
     userIdIdx: index('account_userId_idx').on(account.userId)
   })
-)
+);
 
 export const accountsRelations = relations(accounts, ({ one }) => ({
   user: one(users, { fields: [accounts.userId], references: [users.id] })
-}))
+}));
 
 export const sessions = createTable(
   'session',
@@ -137,11 +129,11 @@ export const sessions = createTable(
   session => ({
     userIdIdx: index('session_userId_idx').on(session.userId)
   })
-)
+);
 
 export const sessionsRelations = relations(sessions, ({ one }) => ({
   user: one(users, { fields: [sessions.userId], references: [users.id] })
-}))
+}));
 
 export const verificationTokens = createTable(
   'verificationToken',
@@ -153,4 +145,4 @@ export const verificationTokens = createTable(
   vt => ({
     compoundKey: primaryKey({ columns: [vt.identifier, vt.token] })
   })
-)
+);

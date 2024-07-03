@@ -44,15 +44,15 @@ export function ChatMessage({
               {Array.isArray(message.content) && message.content.length > 0 && (
                 <p className="mb-2 flex space-x-2">
                   {message.content.map((c, i) => {
-                    if (c.type !== 'text') {
+                    if (c.type === 'image') {
                       return (
-                        c.data && (
+                        c.image && (
                           <img
                             alt=""
                             key={i}
                             loading="lazy"
                             className="mb-3 mt-0 h-auto w-full max-w-xs"
-                            src={c.data}
+                            src={c.image.toString()}
                           />
                         )
                       );
@@ -76,24 +76,9 @@ export function ChatMessage({
             </>
           )}
           {message.role === 'assistant' &&
-            (Array.isArray(message.content) ? (
-              message.content.map((c, i) => (
-                <React.Fragment key={i}>
-                  {c.type === 'image' ? (
-                    <img
-                      alt=""
-                      loading="lazy"
-                      className="mb-3 mt-0 h-auto w-full max-w-xs"
-                      src={c.data}
-                    />
-                  ) : (
-                    c.text && <p className="mb-2 last:mb-0">{c.text}</p>
-                  )}
-                </React.Fragment>
-              ))
-            ) : (
+            typeof message.content === 'string' && (
               <ChatMessageMarkdown content={message.content} />
-            ))}
+            )}
         </div>
         <ChatMessageActions
           chat={chat}

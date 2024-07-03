@@ -1,3 +1,4 @@
+import { generateId } from 'ai';
 import { clsx, type ClassValue } from 'clsx';
 import { customAlphabet } from 'nanoid';
 import { twMerge } from 'tailwind-merge';
@@ -9,14 +10,9 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
-// 8-character random string
-export const nanoid = customAlphabet(
-  '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz',
-  8
-);
+export const chatId = () => generateId(8);
 
-// Message id
-export const messageId = () => nanoid(6);
+export const messageId = () => generateId(6);
 
 export function formatDate(input: string | number | Date): string {
   const date = new Date(input);

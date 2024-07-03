@@ -1,13 +1,10 @@
 import * as React from 'react';
+import { ImagePart, TextPart, UserContent } from 'ai';
 import { UseChatHelpers } from 'ai/react';
 import Textarea from 'react-textarea-autosize';
 
 import { useEnterSubmit } from '@/lib/hooks/use-enter-submit';
-import {
-  MessageContent,
-  type FileInfo,
-  type MessageContentDetail
-} from '@/lib/types';
+import { type FileInfo } from '@/lib/types';
 import { Button } from '@/components/ui/button';
 import { IconArrowElbow } from '@/components/ui/icons';
 import { Tooltip } from '@/components/ui/tooltip';
@@ -17,7 +14,7 @@ export interface PromptProps
   extends Pick<UseChatHelpers, 'input' | 'setInput'> {
   vision: boolean;
   isLoading: boolean;
-  onSubmit: (value: MessageContent) => void;
+  onSubmit: (value: UserContent) => void;
 }
 
 export function PromptForm({
@@ -47,16 +44,16 @@ export function PromptForm({
                 {
                   type: 'text',
                   text: input
-                } as MessageContentDetail
-              ].concat(
-                files.map(
-                  file =>
+                } as TextPart,
+                ...files.map(
+                  ({ type, data }) =>
                     ({
                       type: 'image',
-                      data: file.data
-                    }) as MessageContentDetail
+                      image: data,
+                      mimeType: type
+                    }) as ImagePart
                 )
-              ) as MessageContent)
+              ] as UserContent)
             : input;
         await onSubmit(content);
       }}

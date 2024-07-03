@@ -41,13 +41,6 @@ export const SupportedModels: {
     vision: true,
     provider: 'google'
   },
-  { text: 'Gemini 1 Pro', value: 'gemini-pro', provider: 'google' },
-  {
-    text: 'Gemini 1 Pro Vision',
-    value: 'gemini-pro-vision',
-    vision: true,
-    provider: 'google'
-  },
   {
     text: 'Claude 3.5 Sonnet',
     value: 'claude-3-5-sonnet-20240620',

@@ -6,11 +6,12 @@ import { ImagesResponse } from 'openai/resources';
 import { appConfig } from '@/lib/appconfig';
 import { ImageStream } from '@/lib/streams/image-stream';
 import { Message, type Usage } from '@/lib/types';
-import { messageId, nanoid } from '@/lib/utils';
+import { chatId } from '@/lib/utils';
 import { auth } from '@/server/auth';
 import { api } from '@/trpc/server';
 
 export const runtime = 'edge';
+export const maxDuration = 60;
 
 function extractContent(res: ImagesResponse) {
   const data = [];
@@ -21,14 +22,14 @@ function extractContent(res: ImagesResponse) {
     if (item.url) {
       data.push({
         type: 'image',
-        data: item.url
+        image: item.url
       });
     }
 
     if (item.b64_json) {
       data.push({
         type: 'image',
-        data: `data:image/png;base64,${item.b64_json}`
+        image: `data:image/png;base64,${item.b64_json}`
       });
     }
 
@@ -42,16 +43,6 @@ function extractContent(res: ImagesResponse) {
 
   return data;
 }
-
-const buildImageMessages = (res: ImagesResponse) => {
-  return [
-    {
-      id: messageId(),
-      role: 'assistant',
-      content: extractContent(res)
-    }
-  ];
-};
 
 const openai = new OpenAI({
   apiKey: appConfig.openai.apiKey,
@@ -73,8 +64,8 @@ export async function POST(req: Request) {
     return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
   }
 
-  const json = await req.json();
-  const { title = 'Untitled', messages, generateId, usage } = json as PostData;
+  const json: PostData = await req.json();
+  const { title = 'Untitled', messages, generateId, usage } = json;
   const { model, stream, previewToken } = usage;
 
   if (!openai.apiKey && previewToken) {
@@ -90,20 +81,20 @@ export async function POST(req: Request) {
     });
 
     if (!stream) {
-      return NextResponse.json(buildImageMessages(res));
+      return NextResponse.json(extractContent(res));
     }
 
     const aiStream = ImageStream(res, {
-      async onCompletion() {
-        const id = json.id ?? nanoid();
-        const payload = {
+      async onCompletion(text) {
+        const id = json.id ?? chatId();
+        const payload: any = {
           id,
           title,
           messages: [
             ...messages,
             {
               id: generateId,
-              content: extractContent(res),
+              content: text,
               role: 'assistant'
             }
           ] as [Message],

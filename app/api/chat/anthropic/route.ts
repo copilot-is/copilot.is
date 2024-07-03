@@ -1,68 +1,15 @@
 import { NextResponse } from 'next/server';
-import Anthropic from '@anthropic-ai/sdk';
-import { MessageParam, MessageStreamEvent } from '@anthropic-ai/sdk/resources';
-import { Stream } from '@anthropic-ai/sdk/streaming';
-import { AnthropicStream, StreamingTextResponse } from 'ai';
+import { createAnthropic } from '@ai-sdk/anthropic';
+import { generateText, LanguageModel, streamText } from 'ai';
 
 import { appConfig } from '@/lib/appconfig';
-import { Message, MessageContent, type Usage } from '@/lib/types';
-import {
-  getBase64FromDataURL,
-  getMediaTypeFromDataURL,
-  messageId,
-  nanoid
-} from '@/lib/utils';
+import { Message, type Usage } from '@/lib/types';
+import { chatId } from '@/lib/utils';
 import { auth } from '@/server/auth';
 import { api } from '@/trpc/server';
 
 export const runtime = 'edge';
-
-const extractContent = (content: MessageContent) => {
-  if (Array.isArray(content)) {
-    return content
-      .map(c => {
-        if (c.type === 'text') {
-          return c;
-        } else {
-          return (
-            c.type === 'image' &&
-            c.data && {
-              type: 'image',
-              source: {
-                type: 'base64',
-                media_type: getMediaTypeFromDataURL(c.data),
-                data: getBase64FromDataURL(c.data)
-              }
-            }
-          );
-        }
-      })
-      .filter(Boolean);
-  }
-  return content;
-};
-
-const buildAnthropicPrompt = (messages: Message[]) => {
-  return messages.map(message => ({
-    role: message.role,
-    content: extractContent(message.content)
-  })) as MessageParam[];
-};
-
-const buildAnthropicMessages = (result: Anthropic.Message) => {
-  return result.content.map(message => {
-    return {
-      id: messageId(),
-      role: result.role,
-      content: message.text
-    };
-  });
-};
-
-const anthropic = new Anthropic({
-  apiKey: appConfig.anthropic.apiKey,
-  baseURL: appConfig.anthropic.baseURL
-});
+export const maxDuration = 60;
 
 type PostData = {
   id?: string;
@@ -79,8 +26,8 @@ export async function POST(req: Request) {
     return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
   }
 
-  const json = await req.json();
-  const { title = 'Untitled', messages, generateId, usage } = json as PostData;
+  const json: PostData = await req.json();
+  const { title = 'Untitled', messages, generateId, usage } = json;
   const {
     model,
     stream,
@@ -92,47 +39,52 @@ export async function POST(req: Request) {
     maxTokens = 4096
   } = usage;
 
-  if (!anthropic.apiKey && previewToken) {
-    anthropic.apiKey = previewToken;
-  }
-
   try {
-    const res = await anthropic.messages.create({
-      model,
-      messages: buildAnthropicPrompt(messages),
-      stream,
-      temperature,
-      system: prompt,
-      top_k: topK,
-      top_p: topP,
-      max_tokens: maxTokens
+    const anthropic = createAnthropic({
+      apiKey:
+        !appConfig.anthropic.apiKey && previewToken
+          ? previewToken
+          : appConfig.anthropic.apiKey,
+      baseURL: appConfig.anthropic.baseURL
     });
 
+    const parameters = {
+      model: anthropic(model, { topK }),
+      system: prompt,
+      messages,
+      temperature,
+      topP,
+      maxTokens
+    };
+
     if (!stream) {
-      const response = res as Anthropic.Message;
-      return NextResponse.json(buildAnthropicMessages(response));
+      const { text } = await generateText(parameters);
+
+      return NextResponse.json({
+        role: 'assistant',
+        content: text
+      });
     }
 
-    const resStream = res as Stream<MessageStreamEvent>;
-    const aiStream = AnthropicStream(resStream, {
-      async onCompletion(completion) {
-        const id = json.id ?? nanoid();
-        const payload = {
+    const res = await streamText({
+      ...parameters,
+      onFinish: async ({ text }) => {
+        const id = json.id ?? chatId();
+        const payload: any = {
           id,
           title,
           messages: [
             ...messages,
             {
               id: generateId,
-              content: completion,
+              content: text,
               role: 'assistant'
             }
-          ] as [Message],
+          ],
           usage: {
             model,
             temperature,
             topP,
-            topK,
             maxTokens
           }
         };
@@ -140,14 +92,8 @@ export async function POST(req: Request) {
       }
     });
 
-    return new StreamingTextResponse(aiStream);
+    return res.toAIStreamResponse();
   } catch (err: any) {
-    if (err instanceof Anthropic.APIError) {
-      const status = err.status;
-      const error = err.error as Record<string, any>;
-      return NextResponse.json({ message: error.error.message }, { status });
-    } else {
-      return NextResponse.json({ message: err.message }, { status: 500 });
-    }
+    return NextResponse.json({ message: err.message }, { status: 500 });
   }
 }

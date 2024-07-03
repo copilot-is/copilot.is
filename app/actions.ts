@@ -6,15 +6,18 @@ import { type Chat, type Message } from '@/lib/types';
 import { api } from '@/trpc/server';
 
 export async function getChats() {
-  return await api.chat.list.query();
+  const chats = await api.chat.list.query();
+  return chats as Chat[];
 }
 
 export async function getChat(id: string) {
-  return await api.chat.detail.query({ id });
+  const chat = await api.chat.detail.query({ id });
+  return chat as Chat;
 }
 
 export async function getSharedChat(id: string) {
-  return await api.chat.getShared.query({ id });
+  const chat = await api.chat.getShared.query({ id });
+  return chat as Chat;
 }
 
 export async function updateChat(
@@ -35,11 +38,7 @@ export async function updateChat(
   }
 }
 
-export async function updateMessage(
-  id: string,
-  chatId: string,
-  message: Message
-) {
+export async function updateMessage(id: string, chatId: string, message: any) {
   try {
     const chatMessage = await api.chat.updateMessage.mutate({
       id,

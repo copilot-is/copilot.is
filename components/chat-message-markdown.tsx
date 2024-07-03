@@ -1,3 +1,5 @@
+'use client';
+
 import React from 'react';
 import { defaultUrlTransform } from 'react-markdown';
 import remarkGfm from 'remark-gfm';
