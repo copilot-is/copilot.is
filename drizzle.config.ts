@@ -1,6 +1,6 @@
-import { type Config } from 'drizzle-kit'
+import { type Config } from 'drizzle-kit';
 
-import { appConfig } from '@/lib/appconfig'
+import { appConfig } from '@/lib/appconfig';
 
 export default {
   schema: './server/db/schema.ts',
@@ -8,5 +8,6 @@ export default {
   dbCredentials: {
     connectionString: appConfig.db.url
   },
-  tablesFilter: [appConfig.db.prefix + '*']
-} satisfies Config
+  tablesFilter: [appConfig.db.prefix + '*'],
+  strict: true
+} satisfies Config;
