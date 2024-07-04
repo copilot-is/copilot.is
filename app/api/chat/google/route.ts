@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { createGoogleGenerativeAI } from '@ai-sdk/google';
-import { generateText, LanguageModel, streamText } from 'ai';
+import { generateText, streamText } from 'ai';
 
 import { appConfig } from '@/lib/appconfig';
 import { Message, type Usage } from '@/lib/types';
@@ -8,7 +8,6 @@ import { chatId } from '@/lib/utils';
 import { auth } from '@/server/auth';
 import { api } from '@/trpc/server';
 
-export const runtime = 'edge';
 export const maxDuration = 60;
 
 type PostData = {
@@ -95,6 +94,7 @@ export async function POST(req: Request) {
 
     return res.toAIStreamResponse();
   } catch (err: any) {
+    console.error(err);
     return NextResponse.json({ message: err.message }, { status: 500 });
   }
 }

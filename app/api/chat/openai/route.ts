@@ -8,7 +8,6 @@ import { chatId } from '@/lib/utils';
 import { auth } from '@/server/auth';
 import { api } from '@/trpc/server';
 
-export const runtime = 'edge';
 export const maxDuration = 60;
 
 type PostData = {
