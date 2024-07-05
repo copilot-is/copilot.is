@@ -19,8 +19,8 @@ export const SupportedModels: {
     vision: true,
     provider: 'openai'
   },
-  { text: 'GPT-4', value: 'gpt-4', vision: true, provider: 'openai' },
-  { text: 'GPT-4 32k', value: 'gpt-4-32k', vision: true, provider: 'openai' },
+  { text: 'GPT-4', value: 'gpt-4', provider: 'openai' },
+  { text: 'GPT-4 32k', value: 'gpt-4-32k', provider: 'openai' },
   { text: 'GPT-3.5 Turbo', value: 'gpt-3.5-turbo', provider: 'openai' },
   { text: 'GPT-3.5 Turbo 16k', value: 'gpt-3.5-turbo-16k', provider: 'openai' },
   {
