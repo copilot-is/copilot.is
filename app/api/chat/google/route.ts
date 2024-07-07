@@ -8,6 +8,7 @@ import { chatId } from '@/lib/utils';
 import { auth } from '@/server/auth';
 import { api } from '@/trpc/server';
 
+export const dynamic = 'force-dynamic';
 export const maxDuration = 60;
 
 type PostData = {
@@ -67,7 +68,7 @@ export async function POST(req: Request) {
 
     const res = await streamText({
       ...parameters,
-      onFinish: async ({ text }) => {
+      async onFinish({ text }) {
         const id = json.id ?? chatId();
         const payload: any = {
           id,
