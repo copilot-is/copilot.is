@@ -1,4 +1,4 @@
-import { type UseChatHelpers } from 'ai/react';
+import { type Message as AIMessage, type UseChatHelpers } from 'ai/react';
 
 import { type Chat } from '@/lib/types';
 import { messageId } from '@/lib/utils';
@@ -68,10 +68,9 @@ export function ChatPanel({
               }
               await append({
                 id: messageId(),
-                // @ts-ignore
                 content: value,
                 role: 'user'
-              });
+              } as AIMessage);
             }}
           />
         </div>

@@ -4,10 +4,10 @@ import * as React from 'react';
 import { toast } from 'react-hot-toast';
 
 import { SupportedModels } from '@/lib/constant';
+import { convertToModelUsage } from '@/lib/convert-to-model-usage';
 import { useMediaQuery } from '@/lib/hooks/use-media-query';
 import { useSettings } from '@/lib/hooks/use-settings';
 import { Model, type Chat } from '@/lib/types';
-import { buildChatUsage } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -43,7 +43,7 @@ export function ModelMenu({ chat }: ModelMenuProps) {
 
   const updateModel = async (value: Model) => {
     if (chat && chat.usage.model !== value) {
-      const usage = buildChatUsage({
+      const usage = convertToModelUsage({
         ...modelSettings,
         model: value,
         prompt: undefined

@@ -6,12 +6,12 @@ import { toast } from 'react-hot-toast';
 
 import { api } from '@/lib/api';
 import { GenerateTitlePrompt } from '@/lib/constant';
+import { convertToModelUsage } from '@/lib/convert-to-model-usage';
 import { useLocalStorage } from '@/lib/hooks/use-local-storage';
 import { useScrollAnchor } from '@/lib/hooks/use-scroll-anchor';
 import { useSettings } from '@/lib/hooks/use-settings';
 import { type Chat, type Message } from '@/lib/types';
 import {
-  buildChatUsage,
   isImageModel,
   isVisionModel,
   messageId,
@@ -48,7 +48,7 @@ export function Chat({ id, chat }: ChatProps) {
   const previewToken = allowCustomAPIKey
     ? token?.[provider] || undefined
     : undefined;
-  const chatUsage = buildChatUsage({
+  const chatUsage = convertToModelUsage({
     ...currentUsage,
     stream: true,
     previewToken
@@ -119,7 +119,7 @@ export function Chat({ id, chat }: ChatProps) {
           content: GenerateTitlePrompt
         }
       ] as Message[];
-      const genUsage = buildChatUsage({
+      const genUsage = convertToModelUsage({
         ...currentUsage,
         model: genModel[provider],
         prompt: undefined,

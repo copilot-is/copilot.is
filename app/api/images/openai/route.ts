@@ -10,6 +10,7 @@ import { chatId } from '@/lib/utils';
 import { auth } from '@/server/auth';
 import { api } from '@/trpc/server';
 
+export const dynamic = 'force-dynamic';
 export const maxDuration = 60;
 
 function extractContent(res: ImagesResponse) {

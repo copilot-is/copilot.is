@@ -2,8 +2,8 @@ import { generateId } from 'ai';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 
-import { ServiceProvider, SupportedModels } from '@/lib/constant';
-import { Model, ModelProvider, type Usage } from '@/lib/types';
+import { SupportedModels } from '@/lib/constant';
+import { Model, ModelProvider } from '@/lib/types';
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -72,50 +72,6 @@ export const getSupportedModels = (
 
   return supportedModels.length > 0 ? supportedModels : undefined;
 };
-
-export function buildChatUsage(usage: Usage): Usage {
-  const generalFields = ['model', 'stream', 'previewToken'];
-  const providerFields = {
-    openai: [
-      'temperature',
-      'frequencyPenalty',
-      'presencePenalty',
-      'topP',
-      'maxTokens'
-    ],
-    google: ['temperature', 'topP', 'topK', 'maxTokens'],
-    anthropic: ['temperature', 'topP', 'topK', 'maxTokens']
-  };
-
-  const image = isImageModel(usage.model);
-  const provider = providerFromModel(usage.model);
-  const fields = generalFields.concat(providerFields[provider]);
-
-  const newUsage = {} as Usage;
-
-  if (!image && usage.prompt) {
-    const model = usage.model;
-    const time = new Date().toLocaleString();
-    const systemPrompt = formatString(usage.prompt, {
-      provider: ServiceProvider[provider],
-      model,
-      time
-    });
-    newUsage['prompt'] = systemPrompt;
-  }
-
-  for (const field of fields) {
-    if (
-      usage[field] !== undefined &&
-      usage[field] !== null &&
-      usage[field] !== ''
-    ) {
-      newUsage[field] = usage[field];
-    }
-  }
-
-  return newUsage;
-}
 
 export function getMediaTypeFromDataURL(dataURL: string): string | null {
   const matches = dataURL.match(/^data:([A-Za-z-+\/]+);base64/);
