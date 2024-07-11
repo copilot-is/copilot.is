@@ -60,8 +60,8 @@ type PostData = {
 export async function POST(req: Request) {
   const session = await auth();
 
-  if (!session || !session.user) {
-    return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
+  if (!session?.user) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
   const json: PostData = await req.json();
@@ -111,9 +111,9 @@ export async function POST(req: Request) {
     if (err instanceof OpenAI.APIError) {
       const status = err.status;
       const error = err.error as Record<string, any>;
-      return NextResponse.json({ message: error.message }, { status });
+      return NextResponse.json({ error: error.message }, { status });
     } else {
-      return NextResponse.json({ message: err.message }, { status: 500 });
+      return NextResponse.json({ error: err.message }, { status: 500 });
     }
   }
 }

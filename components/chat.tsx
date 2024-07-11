@@ -78,7 +78,7 @@ export function Chat({ id, chat }: ChatProps) {
       if (response.status !== 200) {
         setInput(input);
         const json = await response.json();
-        toast.error(json.message);
+        toast.error(json.error);
       }
     },
     async onFinish(message) {

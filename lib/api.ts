@@ -16,8 +16,8 @@ const createChat = async (
 
   if (!res.ok) {
     const json = await res.json();
-    if (json.message) {
-      toast.error(json.message);
+    if (json.error) {
+      toast.error(json.error);
     } else {
       toast.error('An unexpected error occurred');
     }

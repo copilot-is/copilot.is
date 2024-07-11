@@ -2,7 +2,7 @@
 
 import { revalidatePath } from 'next/cache';
 
-import { type Chat, type Message } from '@/lib/types';
+import { type Chat } from '@/lib/types';
 import { api } from '@/trpc/server';
 
 export async function getChats() {
