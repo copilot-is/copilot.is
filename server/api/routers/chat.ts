@@ -188,7 +188,6 @@ export const chatRouter = createTRPCRouter({
     .query(async ({ ctx, input }) => {
       return await ctx.db.query.chats.findFirst({
         where: and(
-          eq(chats.userId, ctx.session.user.id),
           eq(chats.id, input.id),
           eq(chats.sharing, true)
         ),
