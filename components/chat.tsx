@@ -97,7 +97,7 @@ export function Chat({ id, chat }: ChatProps) {
     message: AIMessage
   ) => {
     const genModel = {
-      openai: 'gpt-3.5-turbo',
+      openai: 'gpt-4o-mini',
       google: 'gemini-1.5-flash-latest',
       anthropic: 'claude-3-haiku-20240307'
     };

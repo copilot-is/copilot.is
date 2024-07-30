@@ -14,6 +14,12 @@ export const SupportedModels: {
     provider: 'openai'
   },
   {
+    text: 'GPT-4o mini',
+    value: 'gpt-4o-mini',
+    vision: true,
+    provider: 'openai'
+  },
+  {
     text: 'GPT-4 Turbo',
     value: 'gpt-4-turbo',
     vision: true,
