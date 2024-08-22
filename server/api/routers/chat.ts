@@ -1,36 +1,112 @@
-import { and, eq } from 'drizzle-orm';
+import { and, eq, inArray } from 'drizzle-orm';
 import { z } from 'zod';
 
 import { createTRPCRouter, protectedProcedure } from '@/server/api/trpc';
 import { chats, messages } from '@/server/db/schema';
 
-const message = z.object({
-  id: z.string(),
-  role: z.enum(['system', 'user', 'assistant', 'tool']),
-  content: z.union([
-    z.string(),
-    z.array(
-      z
-        .object({
-          type: z.enum(['text', 'image']),
-          text: z.string().optional(),
-          image: z.string().optional(),
-          mimeType: z.string().optional()
-        })
-        .refine(data => (data.text || data.image) !== undefined, {
-          message: 'Either text or image must be provided'
-        })
+const Message = z.discriminatedUnion('role', [
+  // CoreSystemMessage
+  z.object({
+    id: z.string(),
+    role: z.literal('system'),
+    content: z.string()
+  }),
+  // CoreUserMessage
+  z.object({
+    id: z.string(),
+    role: z.literal('user'),
+    content: z.union([
+      z.string(),
+      z.array(
+        z.discriminatedUnion('type', [
+          // TextPart
+          z.object({
+            type: z.literal('text'),
+            text: z.string()
+          }),
+          // ImagePart
+          z.object({
+            type: z.literal('image'),
+            image: z.union([
+              z.string(),
+              z.instanceof(Uint8Array),
+              z.instanceof(ArrayBuffer),
+              z.instanceof(Buffer),
+              z.custom<URL>(data => data instanceof URL)
+            ]),
+            mimeType: z.string().optional()
+          })
+        ])
+      )
+    ])
+  }),
+  // CoreAssistantMessage
+  z.object({
+    id: z.string(),
+    role: z.literal('assistant'),
+    content: z.union([
+      z.string(),
+      z.array(
+        z.discriminatedUnion('type', [
+          // TextPart
+          z.object({
+            type: z.literal('text'),
+            text: z.string()
+          }),
+          // ToolCallPart
+          z.object({
+            type: z.literal('tool-call'),
+            toolCallId: z.string(),
+            toolName: z.string(),
+            args: z.unknown()
+          })
+        ])
+      )
+    ])
+  }),
+  // CoreToolMessage
+  z.object({
+    id: z.string(),
+    role: z.literal('tool'),
+    content: z.array(
+      z.object({
+        type: z.literal('tool-result'),
+        toolCallId: z.string(),
+        toolName: z.string(),
+        result: z.unknown(),
+        isError: z.boolean().optional()
+      })
     )
-  ])
-});
+  })
+]);
 
 export const chatRouter = createTRPCRouter({
   create: protectedProcedure
     .input(
       z.object({
-        id: z.string(),
+        chatId: z.string(),
+        regenerateId: z.string().optional(),
         title: z.string().trim().min(1).max(255),
-        messages: z.array(message).nonempty(),
+        messages: z
+          .array(Message)
+          .min(1)
+          .max(2)
+          .refine(
+            messages => {
+              if (messages.length === 1) {
+                return messages[0].role === 'assistant';
+              } else if (messages.length === 2) {
+                return (
+                  messages[0].role === 'user' &&
+                  messages[1].role === 'assistant'
+                );
+              }
+              return false;
+            },
+            {
+              message: 'Invalid messages'
+            }
+          ),
         usage: z.object({
           model: z.string(),
           temperature: z.number().optional(),
@@ -44,66 +120,83 @@ export const chatRouter = createTRPCRouter({
     )
     .mutation(async ({ ctx, input }) => {
       const chat = await ctx.db.query.chats.findFirst({
-        where: eq(chats.id, input.id)
+        where: eq(chats.id, input.chatId)
       });
       if (!chat) {
         await ctx.db.insert(chats).values({
-          id: input.id,
+          id: input.chatId,
           title: input.title,
           userId: ctx.session.user.id,
           usage: input.usage
         });
       }
 
-      const lastUserMessage = input.messages[input.messages.length - 2];
-      const message = await ctx.db.query.messages.findFirst({
-        where: and(
-          eq(messages.id, lastUserMessage.id),
-          eq(messages.role, 'user')
-        )
-      });
+      const userMessage = input.messages.find(m => m.role === 'user');
+      const assistantMessage = input.messages.find(m => m.role === 'assistant');
 
-      if (message) {
-        const lastAIMessage = await ctx.db.query.messages.findFirst({
-          orderBy: (messages, { desc }) => [desc(messages.createdAt)],
-          where: and(
-            eq(messages.chatId, input.id),
-            eq(messages.userId, ctx.session.user.id)
-          )
-        });
-
-        if (lastAIMessage && lastAIMessage.role === 'assistant') {
+      if (!userMessage && assistantMessage) {
+        if (input.regenerateId) {
           await ctx.db
             .delete(messages)
             .where(
               and(
-                eq(messages.id, lastAIMessage.id),
+                eq(messages.id, input.regenerateId),
+                eq(messages.chatId, input.chatId),
                 eq(messages.userId, ctx.session.user.id)
               )
             );
+        }
 
-          const lastMessage = input.messages[input.messages.length - 1];
-          if (lastMessage && lastMessage.role === 'assistant') {
-            await ctx.db.insert(messages).values({
-              id: lastMessage.id,
-              content: lastMessage.content ?? '',
-              role: lastMessage.role,
-              chatId: input.id,
-              userId: ctx.session.user.id
-            });
+        await ctx.db.insert(messages).values({
+          id: assistantMessage.id,
+          content: assistantMessage.content ?? '',
+          role: assistantMessage.role,
+          chatId: input.chatId,
+          userId: ctx.session.user.id
+        });
+      } else {
+        if (userMessage && assistantMessage) {
+          const exists = await ctx.db.query.messages.findFirst({
+            where: and(
+              inArray(
+                messages.id,
+                input.messages.map(m => m.id)
+              ),
+              eq(messages.chatId, input.chatId),
+              eq(messages.userId, ctx.session.user.id)
+            )
+          });
+
+          if (!exists) {
+            await ctx.db.insert(messages).values([
+              {
+                id: userMessage.id,
+                content: userMessage.content ?? '',
+                role: userMessage.role,
+                chatId: input.chatId,
+                userId: ctx.session.user.id
+              },
+              {
+                id: assistantMessage.id,
+                content: assistantMessage.content ?? '',
+                role: assistantMessage.role,
+                chatId: input.chatId,
+                userId: ctx.session.user.id
+              }
+            ]);
           }
         }
-      } else {
-        const twoLastMessage = input.messages.slice(-2).map(message => ({
-          id: message.id,
-          content: message.content ?? '',
-          role: message.role,
-          chatId: input.id,
-          userId: ctx.session.user.id
-        }));
-
-        await ctx.db.insert(messages).values(twoLastMessage);
       }
+
+      return await ctx.db.query.chats.findFirst({
+        where: and(
+          eq(chats.id, input.chatId),
+          eq(chats.userId, ctx.session.user.id)
+        ),
+        with: {
+          messages: true
+        }
+      });
     }),
 
   list: protectedProcedure
@@ -117,11 +210,11 @@ export const chatRouter = createTRPCRouter({
     }),
 
   detail: protectedProcedure
-    .input(z.object({ id: z.string() }))
+    .input(z.object({ chatId: z.string() }))
     .query(async ({ ctx, input }) => {
       const chat = await ctx.db.query.chats.findFirst({
         where: and(
-          eq(chats.id, input.id),
+          eq(chats.id, input.chatId),
           eq(chats.userId, ctx.session.user.id)
         ),
         with: {
@@ -135,7 +228,7 @@ export const chatRouter = createTRPCRouter({
   update: protectedProcedure
     .input(
       z.object({
-        id: z.string(),
+        chatId: z.string(),
         chat: z.object({
           title: z.string().trim().min(1).max(255).optional(),
           sharing: z.boolean().optional(),
@@ -163,19 +256,19 @@ export const chatRouter = createTRPCRouter({
         .update(chats)
         .set(updates)
         .where(
-          and(eq(chats.id, input.id), eq(chats.userId, ctx.session.user.id))
+          and(eq(chats.id, input.chatId), eq(chats.userId, ctx.session.user.id))
         )
         .returning()
         .then(data => data[0]);
     }),
 
   delete: protectedProcedure
-    .input(z.object({ id: z.string() }))
+    .input(z.object({ chatId: z.string() }))
     .mutation(async ({ ctx, input }) => {
       await ctx.db
         .delete(chats)
         .where(
-          and(eq(chats.id, input.id), eq(chats.userId, ctx.session.user.id))
+          and(eq(chats.id, input.chatId), eq(chats.userId, ctx.session.user.id))
         );
     }),
 
@@ -184,13 +277,10 @@ export const chatRouter = createTRPCRouter({
   }),
 
   getShared: protectedProcedure
-    .input(z.object({ id: z.string() }))
+    .input(z.object({ chatId: z.string() }))
     .query(async ({ ctx, input }) => {
       return await ctx.db.query.chats.findFirst({
-        where: and(
-          eq(chats.id, input.id),
-          eq(chats.sharing, true)
-        ),
+        where: and(eq(chats.id, input.chatId), eq(chats.sharing, true)),
         with: {
           messages: true
         }
@@ -200,9 +290,9 @@ export const chatRouter = createTRPCRouter({
   updateMessage: protectedProcedure
     .input(
       z.object({
-        id: z.string(),
+        messageId: z.string(),
         chatId: z.string(),
-        message
+        message: Message
       })
     )
     .mutation(async ({ ctx, input }) => {
@@ -211,7 +301,7 @@ export const chatRouter = createTRPCRouter({
         .set(input.message)
         .where(
           and(
-            eq(messages.id, input.id),
+            eq(messages.id, input.messageId),
             eq(messages.chatId, input.chatId),
             eq(messages.userId, ctx.session.user.id)
           )
@@ -223,7 +313,7 @@ export const chatRouter = createTRPCRouter({
   deleteMessage: protectedProcedure
     .input(
       z.object({
-        id: z.string(),
+        messageId: z.string(),
         chatId: z.string()
       })
     )
@@ -232,7 +322,7 @@ export const chatRouter = createTRPCRouter({
         .delete(messages)
         .where(
           and(
-            eq(messages.id, input.id),
+            eq(messages.id, input.messageId),
             eq(messages.chatId, input.chatId),
             eq(messages.userId, ctx.session.user.id)
           )

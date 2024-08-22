@@ -3,6 +3,7 @@
 import React from 'react';
 
 import { Message, ModelProvider, type Chat } from '@/lib/types';
+import { cn } from '@/lib/utils';
 import {
   IconClaudeAI,
   IconGoogleAI,
@@ -26,8 +27,13 @@ export function ChatMessage({
   setMessages
 }: ChatMessageProps) {
   return (
-    <div className="relative mb-4 flex items-start">
-      <div className="flex size-8 shrink-0 select-none items-center justify-center rounded-md border bg-background">
+    <div
+      className={cn(
+        'relative mb-4 flex items-start rounded-xl bg-zinc-200/40 px-2.5 py-3 dark:bg-zinc-800',
+        message.role === 'user' && 'bg-zinc-100 dark:bg-zinc-100/5'
+      )}
+    >
+      <div className="flex size-8 shrink-0 select-none items-center justify-center rounded-full border bg-background">
         {message.role === 'user' ? <IconUser /> : null}
         {message.role !== 'user' && (
           <>

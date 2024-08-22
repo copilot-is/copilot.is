@@ -17,8 +17,8 @@ import {
   IconTrash
 } from '@/components/ui/icons';
 import { ChatDeleteDialog } from '@/components/chat-delete-dialog';
+import { ChatRenameDialog } from '@/components/chat-rename-dialog';
 import { ChatShareDialog } from '@/components/chat-share-dialog';
-import { ChatTitleDialog } from '@/components/chat-title-dialog';
 
 interface SidebarActionsProps {
   chat: Chat;
@@ -68,7 +68,7 @@ export function SidebarActions({ chat }: SidebarActionsProps) {
         onOpenChange={setDeleteDialogOpen}
         onClose={() => setDeleteDialogOpen(false)}
       />
-      <ChatTitleDialog
+      <ChatRenameDialog
         chat={chat}
         open={titleDialogOpen}
         onOpenChange={setTitleDialogOpen}

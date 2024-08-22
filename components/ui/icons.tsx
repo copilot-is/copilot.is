@@ -220,6 +220,52 @@ function IconSpinner({ className, ...props }: React.ComponentProps<'svg'>) {
   );
 }
 
+function IconTyping({ className, ...props }: React.ComponentProps<'svg'>) {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 220 50"
+      fill="currentColor"
+      className={cn('h-4 w-8', className)}
+      {...props}
+    >
+      <circle strokeWidth="15" r="15" cx="30" cy="25">
+        <animate
+          attributeName="opacity"
+          calcMode="spline"
+          dur="2s"
+          values="1;0;1"
+          keySplines=".5 0 .5 1;.5 0 .5 1"
+          repeatCount="indefinite"
+          begin="-.4s"
+        />
+      </circle>
+      <circle strokeWidth="15" r="15" cx="110" cy="25">
+        <animate
+          attributeName="opacity"
+          calcMode="spline"
+          dur="2s"
+          values="1;0;1"
+          keySplines=".5 0 .5 1;.5 0 .5 1"
+          repeatCount="indefinite"
+          begin="-.2s"
+        />
+      </circle>
+      <circle strokeWidth="15" r="15" cx="190" cy="25">
+        <animate
+          attributeName="opacity"
+          calcMode="spline"
+          dur="2s"
+          values="1;0;1"
+          keySplines=".5 0 .5 1;.5 0 .5 1"
+          repeatCount="indefinite"
+          begin="0s"
+        />
+      </circle>
+    </svg>
+  );
+}
+
 function IconMessage({ className, ...props }: React.ComponentProps<'svg'>) {
   return (
     <svg
@@ -620,6 +666,7 @@ export {
   IconPlus,
   IconArrowElbow,
   IconSpinner,
+  IconTyping,
   IconMessage,
   IconTrash,
   IconRefresh,

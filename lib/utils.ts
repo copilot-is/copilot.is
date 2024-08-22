@@ -1,4 +1,4 @@
-import { generateId } from 'ai';
+import { generateId as generateIdFunc } from 'ai';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 
@@ -9,9 +9,7 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
-export const chatId = () => generateId(8);
-
-export const messageId = () => generateId(6);
+export const generateId = () => generateIdFunc(10);
 
 export function formatDate(input: string | number | Date): string {
   const date = new Date(input);

@@ -1,10 +1,12 @@
 'use client';
 
 import * as React from 'react';
-import { useRouter } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import { toast } from 'react-hot-toast';
 
+import { api } from '@/lib/api';
 import { type Chat } from '@/lib/types';
+import { useStore } from '@/store/useStore';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -16,8 +18,8 @@ import {
   AlertDialogProps,
   AlertDialogTitle
 } from '@/components/ui/alert-dialog';
+import { Button } from '@/components/ui/button';
 import { IconSpinner } from '@/components/ui/icons';
-import { removeChat } from '@/app/actions';
 
 interface ChatDeleteDialogProps extends AlertDialogProps {
   chat: Pick<Chat, 'id'>;
@@ -30,6 +32,8 @@ export function ChatDeleteDialog({
   ...props
 }: ChatDeleteDialogProps) {
   const router = useRouter();
+  const parsms = useParams();
+  const { removeChat } = useStore();
   const [isPending, startTransition] = React.useTransition();
 
   return (
@@ -44,26 +48,28 @@ export function ChatDeleteDialog({
         </AlertDialogHeader>
         <AlertDialogFooter>
           <AlertDialogCancel disabled={isPending}>Cancel</AlertDialogCancel>
-          <AlertDialogAction
-            disabled={isPending}
-            onClick={event => {
-              event.preventDefault();
-              startTransition(async () => {
-                const result = await removeChat(chat.id);
-
-                if (result && 'error' in result) {
-                  toast.error(result.error);
-                  return;
-                }
-
-                router.push('/');
-                toast.success('Chat deleted');
-                onClose();
-              });
-            }}
-          >
-            {isPending && <IconSpinner className="mr-2 animate-spin" />}
-            Delete
+          <AlertDialogAction>
+            <Button
+              disabled={isPending}
+              onClick={() => {
+                startTransition(async () => {
+                  await api.removeChat(chat.id);
+                  toast.success('Chat deleted');
+                  removeChat(chat.id);
+                  parsms.chatId === chat.id && router.push('/');
+                  onClose();
+                });
+              }}
+            >
+              {isPending ? (
+                <>
+                  <IconSpinner className="mr-2 animate-spin" />
+                  Deleting...
+                </>
+              ) : (
+                <>Delete</>
+              )}
+            </Button>
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>

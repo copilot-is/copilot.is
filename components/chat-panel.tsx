@@ -1,40 +1,36 @@
-import { type Message as AIMessage, type UseChatHelpers } from 'ai/react';
+'use client';
 
-import { type Chat } from '@/lib/types';
-import { messageId } from '@/lib/utils';
+import { type UseChatHelpers } from 'ai/react';
+
+import { UserContent, type Chat } from '@/lib/types';
 import { ButtonScrollToBottom } from '@/components/button-scroll-to-bottom';
 import { ChatRegenerate } from '@/components/chat-regenerate';
 import { ChatShare } from '@/components/chat-share';
 import { PromptForm } from '@/components/prompt-form';
 
 export interface ChatPanelProps
-  extends Pick<
-    UseChatHelpers,
-    | 'append'
-    | 'isLoading'
-    | 'reload'
-    | 'messages'
-    | 'stop'
-    | 'input'
-    | 'setInput'
-  > {
+  extends Pick<UseChatHelpers, 'stop' | 'input' | 'setInput'> {
   chat?: Chat;
-  vision: boolean;
+  isVision: boolean;
+  isLoading: boolean;
+  hasMessages: boolean;
   isAtBottom: boolean;
   scrollToBottom: () => void;
+  append: (role: string, content: UserContent) => void;
+  reload: () => void;
 }
 
 export function ChatPanel({
   chat,
-  messages,
-  isLoading,
   stop,
   append,
   reload,
   input,
   setInput,
-  vision,
+  isLoading,
+  isVision,
   isAtBottom,
+  hasMessages,
   scrollToBottom
 }: ChatPanelProps) {
   return (
@@ -48,7 +44,7 @@ export function ChatPanel({
         <div className="flex items-center justify-center space-x-3 py-3">
           <ChatRegenerate
             isLoading={isLoading}
-            hasMessages={!!messages?.length}
+            hasMessages={hasMessages}
             stop={stop}
             reload={reload}
           />
@@ -56,7 +52,7 @@ export function ChatPanel({
         </div>
         <div className="space-y-4 border-t bg-background p-4 shadow-lg sm:rounded-t-xl sm:border sm:border-b-0">
           <PromptForm
-            vision={vision}
+            isVision={isVision}
             input={input}
             setInput={setInput}
             isLoading={isLoading}
@@ -66,11 +62,7 @@ export function ChatPanel({
                   scrollToBottom();
                 }, 100);
               }
-              await append({
-                id: messageId(),
-                content: value,
-                role: 'user'
-              } as AIMessage);
+              await append('user', value);
             }}
           />
         </div>

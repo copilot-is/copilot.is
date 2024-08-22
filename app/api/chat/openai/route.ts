@@ -4,17 +4,12 @@ import { generateText, streamText } from 'ai';
 
 import { appConfig } from '@/lib/appconfig';
 import { Message, type Usage } from '@/lib/types';
-import { chatId } from '@/lib/utils';
 import { auth } from '@/server/auth';
-import { api } from '@/trpc/server';
 
 export const dynamic = 'force-dynamic';
 export const maxDuration = 60;
 
 type PostData = {
-  id?: string;
-  title?: string;
-  generateId: string;
   messages: Message[];
   usage: Usage;
 };
@@ -27,7 +22,7 @@ export async function POST(req: Request) {
   }
 
   const json: PostData = await req.json();
-  const { title = 'Untitled', messages, generateId, usage } = json;
+  const { messages, usage } = json;
   const {
     model,
     stream,
@@ -69,35 +64,9 @@ export async function POST(req: Request) {
       });
     }
 
-    const res = await streamText({
-      ...parameters,
-      async onFinish({ text }) {
-        const id = json.id ?? chatId();
-        const payload: any = {
-          id,
-          title,
-          messages: [
-            ...messages,
-            {
-              id: generateId,
-              content: text,
-              role: 'assistant'
-            }
-          ],
-          usage: {
-            model,
-            temperature,
-            frequencyPenalty,
-            presencePenalty,
-            topP,
-            maxTokens
-          }
-        };
-        await api.chat.create.mutate(payload);
-      }
-    });
+    const res = await streamText(parameters);
 
-    return res.toAIStreamResponse();
+    return res.toDataStreamResponse();
   } catch (err: any) {
     return NextResponse.json({ error: err.message }, { status: 500 });
   }

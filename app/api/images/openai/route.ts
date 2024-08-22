@@ -1,20 +1,17 @@
 import { NextResponse } from 'next/server';
-import { StreamingTextResponse } from 'ai';
 import OpenAI from 'openai';
 import { ImagesResponse } from 'openai/resources';
 
 import { appConfig } from '@/lib/appconfig';
-import { ImageStream } from '@/lib/streams/image-stream';
-import { Message, type Usage } from '@/lib/types';
-import { chatId } from '@/lib/utils';
+import { streamImage } from '@/lib/streams/stream-image';
+import { ImagePart, Message, TextPart, type Usage } from '@/lib/types';
 import { auth } from '@/server/auth';
-import { api } from '@/trpc/server';
 
 export const dynamic = 'force-dynamic';
 export const maxDuration = 60;
 
 function extractContent(res: ImagesResponse) {
-  const data = [];
+  const data: Array<TextPart | ImagePart> = [];
 
   for (let i = 0; i < res.data.length; i++) {
     const item = res.data[i];
@@ -65,7 +62,7 @@ export async function POST(req: Request) {
   }
 
   const json: PostData = await req.json();
-  const { title = 'Untitled', messages, generateId, usage } = json;
+  const { messages, usage } = json;
   const { model, stream, previewToken } = usage;
 
   if (!openai.apiKey && previewToken) {
@@ -74,39 +71,19 @@ export async function POST(req: Request) {
 
   try {
     const prompt = messages[messages.length - 1].content.toString();
-    const res = await openai.images.generate({
+    const images = await openai.images.generate({
       model,
       prompt,
       response_format: 'b64_json'
     });
 
     if (!stream) {
-      return NextResponse.json(extractContent(res));
+      return NextResponse.json(extractContent(images));
     }
 
-    const aiStream = ImageStream(res, {
-      async onCompletion(text) {
-        const id = json.id ?? chatId();
-        const payload: any = {
-          id,
-          title,
-          messages: [
-            ...messages,
-            {
-              id: generateId,
-              content: text,
-              role: 'assistant'
-            }
-          ] as [Message],
-          usage: {
-            model
-          }
-        };
-        await api.chat.create.mutate(payload);
-      }
-    });
+    const res = streamImage(images);
 
-    return new StreamingTextResponse(aiStream);
+    return res.toDataStreamResponse();
   } catch (err: any) {
     if (err instanceof OpenAI.APIError) {
       const status = err.status;

@@ -1,11 +1,16 @@
-import { CoreMessage } from 'ai';
+import { CoreMessage, ImagePart, TextPart, UserContent } from 'ai';
+import { type Session } from 'next-auth';
 import { ChatModel } from 'openai/resources';
+
+export type { UserContent, TextPart, ImagePart };
+
+export type User = Session['user'];
 
 export interface Chat extends Record<string, any> {
   id: string;
   title: string;
-  createdAt: Date;
-  updatedAt: Date;
+  createdAt: string | Date;
+  updatedAt: string | Date;
   userId: string;
   messages: Message[];
   sharing: boolean;
@@ -14,8 +19,10 @@ export interface Chat extends Record<string, any> {
 
 export type Message = CoreMessage & {
   id: string;
-  createdAt?: Date;
-  updatedAt?: Date;
+  chatId?: string;
+  userId?: string;
+  createdAt?: string | Date;
+  updatedAt?: string | Date;
 };
 
 export interface Usage extends Record<string, any> {
@@ -76,9 +83,6 @@ export interface FileInfo extends Record<string, any> {
   data: string;
 }
 
-export type ServerActionResult<Result> = Promise<
-  | Result
-  | {
-      error: string;
-    }
->;
+export type Result = {
+  error: string;
+};

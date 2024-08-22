@@ -1,3 +1,5 @@
+'use client';
+
 import { Button } from '@/components/ui/button';
 import { IconRefresh, IconStop } from '@/components/ui/icons';
 

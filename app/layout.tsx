@@ -16,7 +16,7 @@ export const metadata: Metadata = {
     ? new URL(appConfig.product.url)
     : process.env.VERCEL_URL
       ? new URL(`https://${process.env.VERCEL_URL}`)
-      : undefined,
+      : new URL(`http://localhost:${process.env.PORT || 3000}`),
   title: {
     default: `${appConfig.product.name} - ${appConfig.product.subtitle}`,
     template: `%s - ${appConfig.product.subtitle}`

@@ -14,9 +14,8 @@ module.exports = {
     '<THIRD_PARTY_MODULES>',
     '',
     '^@/types/(.*)$',
-    '^@/config/(.*)$',
     '^@/lib/(.*)$',
-    '^@/hooks/(.*)$',
+    '^@/store/(.*)$',
     '^@/server/(.*)$',
     '^@/trpc/(.*)$',
     '^@/components/ui/(.*)$',
@@ -26,5 +25,5 @@ module.exports = {
     '',
     '^[./]'
   ],
-  importOrderParserPlugins: ['typescript', 'jsx', 'decorators-legacy'],
-}
+  importOrderParserPlugins: ['typescript', 'jsx', 'decorators-legacy']
+};

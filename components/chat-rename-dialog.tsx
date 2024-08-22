@@ -3,7 +3,9 @@
 import * as React from 'react';
 import { toast } from 'react-hot-toast';
 
+import { api } from '@/lib/api';
 import { type Chat } from '@/lib/types';
+import { useStore } from '@/store/useStore';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -16,18 +18,18 @@ import {
 } from '@/components/ui/dialog';
 import { IconSpinner } from '@/components/ui/icons';
 import { Input } from '@/components/ui/input';
-import { updateChat } from '@/app/actions';
 
-interface ChatTitleDialogProps extends DialogProps {
+interface ChatRenameDialogProps extends DialogProps {
   chat: Pick<Chat, 'id' | 'title'>;
   onClose: () => void;
 }
 
-export function ChatTitleDialog({
+export function ChatRenameDialog({
   chat,
   onClose,
   ...props
-}: ChatTitleDialogProps) {
+}: ChatRenameDialogProps) {
+  const { updateChat } = useStore();
   const [isPending, startTransition] = React.useTransition();
   const [title, setTitle] = React.useState(chat.title);
 
@@ -57,14 +59,9 @@ export function ChatTitleDialog({
                   return;
                 }
 
-                const result = await updateChat(chat.id, { title });
-
-                if (result && 'error' in result) {
-                  toast.error(result.error);
-                  return;
-                }
-
+                await api.updateChat(chat.id, { title });
                 toast.success('Chat title saved');
+                updateChat(chat.id, { title });
                 onClose();
               });
             }}

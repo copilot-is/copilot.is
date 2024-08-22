@@ -9,12 +9,11 @@ import { IconClose, IconPaperclip, IconSpinner } from '@/components/ui/icons';
 import { Tooltip } from '@/components/ui/tooltip';
 
 export interface UploadProps {
-  vision: boolean;
   value: FileInfo[];
   onChange: (value: FileInfo[]) => void;
 }
 
-export function Upload({ vision, value = [], onChange }: UploadProps) {
+export function Upload({ value = [], onChange }: UploadProps) {
   const fileRef = React.useRef<HTMLInputElement>(null);
   const [files, setFiles] = React.useState<FileInfo[]>(value);
   const [isUploadPending, startUploadTransition] = React.useTransition();
@@ -84,7 +83,7 @@ export function Upload({ vision, value = [], onChange }: UploadProps) {
     });
   };
 
-  return vision ? (
+  return (
     <>
       <Tooltip content="Upload images (Max 5, 5MB)" align="center" side="top">
         <Button
@@ -146,5 +145,5 @@ export function Upload({ vision, value = [], onChange }: UploadProps) {
           </div>
         ))}
     </>
-  ) : null;
+  );
 }

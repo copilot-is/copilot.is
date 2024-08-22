@@ -3,6 +3,7 @@
 import * as React from 'react';
 import { toast } from 'react-hot-toast';
 
+import { api } from '@/lib/api';
 import { SupportedModels } from '@/lib/constant';
 import { convertToModelUsage } from '@/lib/convert-to-model-usage';
 import { useMediaQuery } from '@/lib/hooks/use-media-query';
@@ -24,7 +25,6 @@ import {
   IconGoogleAI,
   IconOpenAI
 } from '@/components/ui/icons';
-import { updateChat } from '@/app/actions';
 
 interface ModelMenuProps {
   chat?: Pick<Chat, 'id' | 'usage'>;
@@ -48,7 +48,7 @@ export function ModelMenu({ chat }: ModelMenuProps) {
         model: value,
         prompt: undefined
       });
-      const result = await updateChat(chat.id, { usage });
+      const result = await api.updateChat(chat.id, { usage });
       if (result && 'error' in result) {
         toast.error(result.error);
         return;

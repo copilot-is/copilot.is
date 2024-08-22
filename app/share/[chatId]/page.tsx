@@ -1,21 +1,22 @@
 import { type Metadata } from 'next';
 import { notFound } from 'next/navigation';
 
+import { Message } from '@/lib/types';
 import { formatDate, providerFromModel } from '@/lib/utils';
+import { api } from '@/trpc/server';
 import { ChatList } from '@/components/chat-list';
-import { getSharedChat } from '@/app/actions';
 
 interface SharePageProps {
   params: {
-    id: string;
+    chatId: string;
   };
 }
 
 export async function generateMetadata({
   params
 }: SharePageProps): Promise<Metadata> {
-  const id = params.id;
-  const chat = await getSharedChat(id);
+  const chatId = params.chatId;
+  const chat = await api.chat.getShared.query({ chatId });
 
   return {
     title: chat?.title
@@ -23,8 +24,8 @@ export async function generateMetadata({
 }
 
 export default async function SharePage({ params }: SharePageProps) {
-  const id = params.id;
-  const chat = await getSharedChat(id);
+  const chatId = params.chatId;
+  const chat = await api.chat.getShared.query({ chatId });
 
   if (!chat) {
     notFound();
@@ -44,7 +45,7 @@ export default async function SharePage({ params }: SharePageProps) {
       </div>
       <ChatList
         id={chat.id}
-        messages={chat.messages}
+        messages={chat.messages as Message[]}
         provider={provider}
         className="pb-5"
       />

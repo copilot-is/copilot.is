@@ -3,8 +3,10 @@
 import * as React from 'react';
 import { toast } from 'react-hot-toast';
 
+import { api } from '@/lib/api';
 import { useCopyToClipboard } from '@/lib/hooks/use-copy-to-clipboard';
 import { type Chat } from '@/lib/types';
+import { useStore } from '@/store/useStore';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -16,10 +18,9 @@ import {
   DialogTitle
 } from '@/components/ui/dialog';
 import { IconSpinner } from '@/components/ui/icons';
-import { updateChat } from '@/app/actions';
 
 interface ChatShareDialogProps extends DialogProps {
-  chat?: Chat;
+  chat?: Pick<Chat, 'id' | 'title' | 'sharing'>;
   onClose: () => void;
 }
 
@@ -28,6 +29,7 @@ export function ChatShareDialog({
   onClose,
   ...props
 }: ChatShareDialogProps) {
+  const { updateChat } = useStore();
   const { copyToClipboard } = useCopyToClipboard({ timeout: 1000 });
   const [isSharePending, startShareTransition] = React.useTransition();
   const [isDeletePending, startDeleteTransition] = React.useTransition();
@@ -77,14 +79,9 @@ export function ChatShareDialog({
               disabled={isDeletePending}
               onClick={() => {
                 startDeleteTransition(async () => {
-                  const result = await updateChat(chat.id, { sharing: false });
-
-                  if (result && 'error' in result) {
-                    toast.error(result.error);
-                    return;
-                  }
-
+                  await api.updateChat(chat.id, { sharing: false });
                   toast.success('Shared link deleted success');
+                  updateChat(chat.id, { sharing: false });
                   onClose();
                 });
               }}
@@ -105,12 +102,8 @@ export function ChatShareDialog({
               startShareTransition(async () => {
                 const sharePath = `/share/${chat.id}`;
                 if (!chat.sharing) {
-                  const result = await updateChat(chat.id, { sharing: true });
-
-                  if (result && 'error' in result) {
-                    toast.error(result.error);
-                    return;
-                  }
+                  await api.updateChat(chat.id, { sharing: true });
+                  updateChat(chat.id, { sharing: true });
                 }
 
                 copyShareLink(sharePath);

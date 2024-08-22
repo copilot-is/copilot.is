@@ -12,16 +12,16 @@ import { Upload } from '@/components/upload';
 
 export interface PromptProps
   extends Pick<UseChatHelpers, 'input' | 'setInput'> {
-  vision: boolean;
+  isVision: boolean;
   isLoading: boolean;
   onSubmit: (value: UserContent) => void;
 }
 
 export function PromptForm({
-  vision,
   input,
   setInput,
   isLoading,
+  isVision,
   onSubmit
 }: PromptProps) {
   const { formRef, onKeyDown } = useEnterSubmit();
@@ -39,7 +39,7 @@ export function PromptForm({
         setFiles([]);
 
         const content =
-          vision && files.length > 0
+          isVision && files.length > 0
             ? ([
                 {
                   type: 'text',
@@ -55,11 +55,12 @@ export function PromptForm({
                 )
               ] as UserContent)
             : input;
+
         await onSubmit(content);
       }}
     >
       <div className="flex max-h-60 w-full grow items-start justify-between space-x-2 overflow-hidden bg-background py-4 sm:rounded-md sm:border sm:px-4">
-        <Upload value={files} vision={vision} onChange={setFiles} />
+        {isVision && <Upload value={files} onChange={setFiles} />}
         <Textarea
           autoFocus
           tabIndex={0}
@@ -76,7 +77,7 @@ export function PromptForm({
           <Button
             type="submit"
             size="icon"
-            disabled={isLoading || input === ''}
+            disabled={isLoading || input?.trim() === ''}
           >
             <IconArrowElbow className="size-5" />
             <span className="sr-only">Send message</span>

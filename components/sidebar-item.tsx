@@ -5,9 +5,9 @@ import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import { motion } from 'framer-motion';
 
-import { useLocalStorage } from '@/lib/hooks/use-local-storage';
 import { type Chat } from '@/lib/types';
 import { cn, providerFromModel } from '@/lib/utils';
+import { useStore } from '@/store/useStore';
 import { buttonVariants } from '@/components/ui/button';
 import { IconClaudeAI, IconGoogleAI, IconOpenAI } from '@/components/ui/icons';
 
@@ -18,9 +18,9 @@ interface SidebarItemProps {
 }
 
 export function SidebarItem({ index, chat, children }: SidebarItemProps) {
-  const { id } = useParams();
-  const [newChatId, setNewChatId] = useLocalStorage<string>('new-chat-id');
-  const isActive = id === chat.id;
+  const { chatId } = useParams();
+  const { newChatId, setNewChatId } = useStore();
+  const isActive = chatId === chat.id;
   const shouldAnimate = index === 0 && isActive && newChatId === chat.id;
   const provider = providerFromModel(chat.usage.model);
 
@@ -86,7 +86,7 @@ export function SidebarItem({ index, chat, children }: SidebarItemProps) {
                   }}
                   onAnimationComplete={() => {
                     if (index === chat.title.length - 1) {
-                      setNewChatId('');
+                      setNewChatId();
                     }
                   }}
                 >

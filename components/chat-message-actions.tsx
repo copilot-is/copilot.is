@@ -3,6 +3,7 @@
 import * as React from 'react';
 import { toast } from 'react-hot-toast';
 
+import { api } from '@/lib/api';
 import { useCopyToClipboard } from '@/lib/hooks/use-copy-to-clipboard';
 import { Message, type Chat } from '@/lib/types';
 import {
@@ -33,7 +34,6 @@ import {
 } from '@/components/ui/icons';
 import { Textarea } from '@/components/ui/textarea';
 import { Tooltip } from '@/components/ui/tooltip';
-import { deleteMessage, updateMessage } from '@/app/actions';
 
 interface ChatMessageActionsProps {
   chat: Pick<Chat, 'id' | 'messages'>;
@@ -73,7 +73,7 @@ export function ChatMessageActions({
   };
 
   return (
-    <div className="flex items-center justify-end lg:absolute lg:right-0 lg:top-0">
+    <div className="flex items-center justify-end lg:absolute lg:right-1 lg:top-1">
       <Tooltip content="Copy message">
         <Button variant="ghost" size="icon" onClick={onCopy}>
           {isCopied ? <IconCheck /> : <IconCopy />}
@@ -116,15 +116,10 @@ export function ChatMessageActions({
                         return;
                       }
 
-                      const result = await updateMessage(message.id, chat.id, {
+                      await api.updateMessage(chat.id, message.id, {
                         ...message,
                         content
-                      });
-
-                      if (result && 'error' in result) {
-                        toast.error(result.error);
-                        return;
-                      }
+                      } as Message);
 
                       if (chat.messages) {
                         const messages = chat.messages.map(m =>
@@ -182,34 +177,34 @@ export function ChatMessageActions({
                 <AlertDialogCancel disabled={isDeletePending}>
                   Cancel
                 </AlertDialogCancel>
-                <AlertDialogAction
-                  disabled={isDeletePending}
-                  onClick={event => {
-                    event.preventDefault();
-                    startDeleteTransition(async () => {
-                      const result = await deleteMessage(message.id, chat.id);
+                <AlertDialogAction>
+                  <Button
+                    disabled={isDeletePending}
+                    onClick={() => {
+                      startDeleteTransition(async () => {
+                        await api.removeMessage(chat.id, message.id);
 
-                      if (result && 'error' in result) {
-                        toast.error(result.error);
-                        return;
-                      }
+                        if (chat.messages) {
+                          const messages = chat.messages.filter(
+                            m => m.id !== message.id
+                          );
+                          setMessages(messages);
+                        }
 
-                      if (chat.messages) {
-                        const messages = chat.messages.filter(
-                          m => m.id !== message.id
-                        );
-                        setMessages(messages);
-                      }
-
-                      toast.success('Message deleted');
-                      setDeleteDialogOpen(false);
-                    });
-                  }}
-                >
-                  {isDeletePending && (
-                    <IconSpinner className="mr-2 animate-spin" />
-                  )}
-                  Delete
+                        toast.success('Message deleted');
+                        setDeleteDialogOpen(false);
+                      });
+                    }}
+                  >
+                    {isDeletePending ? (
+                      <>
+                        <IconSpinner className="mr-2 animate-spin" />
+                        Deleting...
+                      </>
+                    ) : (
+                      <>Delete</>
+                    )}
+                  </Button>
                 </AlertDialogAction>
               </AlertDialogFooter>
             </AlertDialogContent>

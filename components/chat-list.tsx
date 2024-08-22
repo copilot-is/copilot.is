@@ -2,12 +2,13 @@ import * as React from 'react';
 
 import { Message, ModelProvider } from '@/lib/types';
 import { cn } from '@/lib/utils';
-import { Separator } from '@/components/ui/separator';
+import { IconTyping } from '@/components/ui/icons';
 import { ChatMessage } from '@/components/chat-message';
 
 export interface ChatListProps extends React.ComponentProps<'div'> {
   id: string;
   messages: Message[];
+  isLoading?: boolean;
   provider: ModelProvider;
   setMessages?: (messages: Message[]) => void;
 }
@@ -15,6 +16,7 @@ export interface ChatListProps extends React.ComponentProps<'div'> {
 export function ChatList({
   id,
   messages,
+  isLoading,
   provider,
   className,
   setMessages
@@ -25,19 +27,20 @@ export function ChatList({
 
   return (
     <div className={cn('mx-auto max-w-4xl px-4', className)}>
-      {messages.map((message, index) => (
-        <React.Fragment key={index}>
-          <ChatMessage
-            chat={{ id, messages }}
-            message={message}
-            provider={provider}
-            setMessages={setMessages}
-          />
-          {index < messages.length - 1 && (
-            <Separator className="my-4 md:my-8" />
-          )}
-        </React.Fragment>
+      {messages.map(message => (
+        <ChatMessage
+          key={message.id}
+          chat={{ id, messages }}
+          message={message}
+          provider={provider}
+          setMessages={setMessages}
+        />
       ))}
+      {isLoading && (
+        <div className="pl-14">
+          <IconTyping className="ml-1 fill-zinc-400 stroke-zinc-400" />
+        </div>
+      )}
     </div>
   );
 }

@@ -3,7 +3,6 @@ import { SettingsProvider } from '@/lib/hooks/use-settings';
 import { SidebarProvider } from '@/lib/hooks/use-sidebar';
 import { getSupportedModels } from '@/lib/utils';
 import { Sidebar } from '@/components/sidebar';
-import { SidebarPanel } from '@/components/sidebar-panel';
 
 interface ChatLayoutProps {
   children: React.ReactNode;
@@ -22,9 +21,7 @@ export default async function ChatLayout({ children }: ChatLayoutProps) {
         allowCustomAPIKey={appConfig.allowCustomAPIKey}
       >
         <div className="relative flex size-full bg-muted/50">
-          <Sidebar>
-            <SidebarPanel />
-          </Sidebar>
+          <Sidebar />
           {children}
         </div>
       </SettingsProvider>

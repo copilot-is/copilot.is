@@ -1,19 +1,32 @@
 'use client';
 
-import * as React from 'react';
+import { Fragment, useEffect, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 
+import { api } from '@/lib/api';
 import { ChatCategories } from '@/lib/constant';
 import { Chat, ChatCategory } from '@/lib/types';
+import { useStore } from '@/store/useStore';
+import { IconLoader } from '@/components/ui/icons';
 import { SidebarActions } from '@/components/sidebar-actions';
 import { SidebarItem } from '@/components/sidebar-item';
 
-export interface SidebarListProps {
-  chats?: Chat[];
-}
+export function SidebarList() {
+  const { chats, setChats } = useStore();
+  const [isLoading, setLoading] = useState(true);
+  const chatEntries = Object.values(chats);
 
-export function SidebarList({ chats }: SidebarListProps) {
-  const getSortedChats = (data: Chat[], category: ChatCategory) => {
+  useEffect(() => {
+    const fetchData = async () => {
+      const data = await api.getChats();
+      setChats(data);
+      setLoading(false);
+    };
+
+    fetchData();
+  }, [setChats]);
+
+  const getSortedChats = (list: Chat[], category: ChatCategory) => {
     const now = new Date();
     const todayStart = new Date(now.setHours(0, 0, 0, 0));
     const yesterdayStart = new Date(
@@ -26,9 +39,9 @@ export function SidebarList({ chats }: SidebarListProps) {
       new Date().setMonth(todayStart.getMonth() - 1)
     );
 
-    return data
+    return list
       .filter((chat: Chat) => {
-        const chatDate = chat.createdAt;
+        const chatDate = new Date(chat.createdAt);
         switch (category) {
           case 'Today':
             return chatDate >= todayStart;
@@ -44,23 +57,36 @@ export function SidebarList({ chats }: SidebarListProps) {
             return true;
         }
       })
-      .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+      .sort(
+        (a, b) =>
+          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+      );
   };
 
   return (
     <div className="flex-1 overflow-auto">
-      {chats?.length ? (
+      {isLoading && (
+        <div className="p-8 text-center">
+          <IconLoader className="mx-auto size-6 animate-spin" />
+        </div>
+      )}
+      {!isLoading && chatEntries.length === 0 && (
+        <div className="p-8 text-center">
+          <p className="text-sm text-muted-foreground">No chat history</p>
+        </div>
+      )}
+      {!isLoading && chatEntries.length > 0 && (
         <div className="space-y-2 px-3">
           <AnimatePresence>
             {ChatCategories.map(category => {
-              const sortedChats = getSortedChats(chats, category);
+              const categoryChats = getSortedChats(chatEntries, category);
               return (
-                sortedChats.length && (
-                  <React.Fragment key={category}>
+                categoryChats.length && (
+                  <Fragment key={category}>
                     <h2 className="px-2 text-xs text-muted-foreground">
                       {category}
                     </h2>
-                    {sortedChats.map(
+                    {categoryChats.map(
                       (chat, index) =>
                         chat && (
                           <motion.div
@@ -76,15 +102,11 @@ export function SidebarList({ chats }: SidebarListProps) {
                           </motion.div>
                         )
                     )}
-                  </React.Fragment>
+                  </Fragment>
                 )
               );
             })}
           </AnimatePresence>
-        </div>
-      ) : (
-        <div className="p-8 text-center">
-          <p className="text-sm text-muted-foreground">No chat history</p>
         </div>
       )}
     </div>

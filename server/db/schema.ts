@@ -14,6 +14,7 @@ import {
 import { type Account } from 'next-auth';
 
 import { appConfig } from '@/lib/appconfig';
+import { type Usage } from '@/lib/types';
 
 /**
  * This is an example of how to use the multi-project schema feature of Drizzle ORM. Use the same
@@ -28,7 +29,7 @@ export const chats = createTable(
   {
     id: varchar('id', { length: 255 }).notNull().primaryKey(),
     title: varchar('title', { length: 255 }).notNull(),
-    usage: jsonb('usage').notNull(),
+    usage: jsonb('usage').notNull().$type<Usage>(),
     userId: varchar('user_id', { length: 255 })
       .notNull()
       .references(() => users.id, { onDelete: 'cascade' }),
