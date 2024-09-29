@@ -1,4 +1,4 @@
-import { and, eq, inArray } from 'drizzle-orm';
+import { and, eq, inArray, or } from 'drizzle-orm';
 import { z } from 'zod';
 
 import { createTRPCRouter, protectedProcedure } from '@/server/api/trpc';
@@ -92,19 +92,15 @@ export const chatRouter = createTRPCRouter({
           .min(1)
           .max(2)
           .refine(
-            messages => {
-              if (messages.length === 1) {
-                return messages[0].role === 'assistant';
-              } else if (messages.length === 2) {
-                return (
-                  messages[0].role === 'user' &&
-                  messages[1].role === 'assistant'
-                );
-              }
-              return false;
-            },
+            messages =>
+              (messages.length === 1 &&
+                ['user', 'assistant'].includes(messages[0].role)) ||
+              (messages.length === 2 &&
+                messages[0].role === 'user' &&
+                messages[1].role === 'assistant'),
             {
-              message: 'Invalid messages'
+              message:
+                'Messages must contain one user/assistant message or exactly one user message followed by one assistant message.'
             }
           ),
         usage: z.object({
@@ -131,61 +127,44 @@ export const chatRouter = createTRPCRouter({
         });
       }
 
-      const userMessage = input.messages.find(m => m.role === 'user');
-      const assistantMessage = input.messages.find(m => m.role === 'assistant');
-
-      if (!userMessage && assistantMessage) {
-        if (input.regenerateId) {
-          await ctx.db
-            .delete(messages)
-            .where(
-              and(
-                eq(messages.id, input.regenerateId),
-                eq(messages.chatId, input.chatId),
-                eq(messages.userId, ctx.session.user.id)
-              )
-            );
-        }
-
-        await ctx.db.insert(messages).values({
-          id: assistantMessage.id,
-          content: assistantMessage.content ?? '',
-          role: assistantMessage.role,
-          chatId: input.chatId,
-          userId: ctx.session.user.id
-        });
-      } else {
-        if (userMessage && assistantMessage) {
-          const exists = await ctx.db.query.messages.findFirst({
-            where: and(
-              inArray(
-                messages.id,
-                input.messages.map(m => m.id)
-              ),
+      if (
+        input.messages.length == 1 &&
+        input.messages[0].role === 'assistant' &&
+        input.regenerateId
+      ) {
+        await ctx.db
+          .delete(messages)
+          .where(
+            and(
+              eq(messages.id, input.regenerateId),
               eq(messages.chatId, input.chatId),
               eq(messages.userId, ctx.session.user.id)
             )
-          });
+          );
+      }
 
-          if (!exists) {
-            await ctx.db.insert(messages).values([
-              {
-                id: userMessage.id,
-                content: userMessage.content ?? '',
-                role: userMessage.role,
-                chatId: input.chatId,
-                userId: ctx.session.user.id
-              },
-              {
-                id: assistantMessage.id,
-                content: assistantMessage.content ?? '',
-                role: assistantMessage.role,
-                chatId: input.chatId,
-                userId: ctx.session.user.id
-              }
-            ]);
-          }
+      const values = [];
+      for (const message of input.messages) {
+        const exists = await ctx.db.query.messages.findFirst({
+          where: and(
+            eq(messages.id, message.id),
+            eq(messages.chatId, input.chatId),
+            eq(messages.userId, ctx.session.user.id)
+          )
+        });
+        if (!exists) {
+          values.push({
+            id: message.id,
+            content: message.content ?? '',
+            role: message.role,
+            chatId: input.chatId,
+            userId: ctx.session.user.id
+          });
         }
+      }
+
+      if (values.length > 0) {
+        await ctx.db.insert(messages).values(values);
       }
 
       return await ctx.db.query.chats.findFirst({
@@ -194,7 +173,9 @@ export const chatRouter = createTRPCRouter({
           eq(chats.userId, ctx.session.user.id)
         ),
         with: {
-          messages: true
+          messages: {
+            orderBy: (messages, { asc }) => [asc(messages.createdAt)]
+          }
         }
       });
     }),
@@ -218,7 +199,9 @@ export const chatRouter = createTRPCRouter({
           eq(chats.userId, ctx.session.user.id)
         ),
         with: {
-          messages: true
+          messages: {
+            orderBy: (messages, { asc }) => [asc(messages.createdAt)]
+          }
         }
       });
 
@@ -231,7 +214,7 @@ export const chatRouter = createTRPCRouter({
         chatId: z.string(),
         chat: z.object({
           title: z.string().trim().min(1).max(255).optional(),
-          sharing: z.boolean().optional(),
+          shared: z.boolean().optional(),
           usage: z
             .object({
               model: z.string().trim().min(1),
@@ -249,7 +232,7 @@ export const chatRouter = createTRPCRouter({
     .mutation(async ({ ctx, input }) => {
       const updates: Record<string, any> = {};
       if ('title' in input.chat) updates.title = input.chat.title;
-      if ('sharing' in input.chat) updates.sharing = input.chat.sharing;
+      if ('shared' in input.chat) updates.shared = input.chat.shared;
       if ('usage' in input.chat) updates.usage = input.chat.usage;
 
       return await ctx.db
@@ -280,9 +263,11 @@ export const chatRouter = createTRPCRouter({
     .input(z.object({ chatId: z.string() }))
     .query(async ({ ctx, input }) => {
       return await ctx.db.query.chats.findFirst({
-        where: and(eq(chats.id, input.chatId), eq(chats.sharing, true)),
+        where: and(eq(chats.id, input.chatId), eq(chats.shared, true)),
         with: {
-          messages: true
+          messages: {
+            orderBy: (messages, { asc }) => [asc(messages.createdAt)]
+          }
         }
       });
     }),

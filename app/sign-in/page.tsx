@@ -17,6 +17,9 @@ export const metadata: Metadata = {
   title: 'Login'
 };
 
+const GITHUB_ENABLED = process.env.AUTH_GITHUB_ENABLED === 'true';
+const GOOGLE_ENABLED = process.env.AUTH_GOOGLE_ENABLED === 'true';
+
 export default async function SignInPage({ searchParams }: SignInPageProps) {
   const error = searchParams.error;
 
@@ -26,12 +29,9 @@ export default async function SignInPage({ searchParams }: SignInPageProps) {
     redirect('/');
   }
 
-  const githubEnabled = process.env.AUTH_GITHUB_ENABLED === 'true';
-  const googleEnabled = process.env.AUTH_GOOGLE_ENABLED === 'true';
-
   return (
     <div className="flex size-full items-center justify-center">
-      <div className="mx-3 max-w-md rounded-lg border bg-background p-8 shadow-md">
+      <div className="mx-6 w-full sm:w-[350px]">
         {error && (
           <div className="space-y-6">
             <h1 className="px-2 text-center text-xl font-bold leading-tight tracking-tight text-gray-900 dark:text-white md:text-2xl">
@@ -60,11 +60,17 @@ export default async function SignInPage({ searchParams }: SignInPageProps) {
             <h1 className="px-2 text-center text-xl font-bold leading-tight tracking-tight text-gray-900 dark:text-white md:text-2xl">
               Sign in to your account
             </h1>
-
-            <LoginButton
-              githubEnabled={githubEnabled}
-              googleEnabled={googleEnabled}
-            />
+            <div className="relative">
+              <div className="absolute inset-0 flex items-center">
+                <span className="w-full border-t" />
+              </div>
+              <div className="relative flex justify-center text-xs uppercase">
+                <span className="bg-background px-2 text-muted-foreground">
+                  Continue with
+                </span>
+              </div>
+            </div>
+            <LoginButton github={GITHUB_ENABLED} google={GOOGLE_ENABLED} />
           </div>
         )}
       </div>

@@ -1,30 +1,21 @@
-import { appConfig } from '@/lib/appconfig';
-import { SettingsProvider } from '@/lib/hooks/use-settings';
-import { SidebarProvider } from '@/lib/hooks/use-sidebar';
-import { getSupportedModels } from '@/lib/utils';
+'use client';
+
+import { SidebarProvider } from '@/hooks/use-sidebar';
 import { Sidebar } from '@/components/sidebar';
 
 interface ChatLayoutProps {
   children: React.ReactNode;
 }
 
-export default async function ChatLayout({ children }: ChatLayoutProps) {
+export default function ChatLayout({ children }: ChatLayoutProps) {
   return (
     <SidebarProvider>
-      <SettingsProvider
-        defaultModel={appConfig.defaultModel}
-        availableModels={getSupportedModels(
-          appConfig.openai.models,
-          appConfig.google.models,
-          appConfig.anthropic.models
-        )}
-        allowCustomAPIKey={appConfig.allowCustomAPIKey}
-      >
-        <div className="relative flex size-full bg-muted/50">
-          <Sidebar />
+      <div className="flex size-full">
+        <Sidebar />
+        <main className="flex size-full flex-col items-center overflow-hidden duration-300 ease-in-out peer-[[data-state=open]]:lg:pl-[250px] peer-[[data-state=open]]:xl:pl-[300px]">
           {children}
-        </div>
-      </SettingsProvider>
+        </main>
+      </div>
     </SidebarProvider>
   );
 }

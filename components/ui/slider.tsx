@@ -1,18 +1,28 @@
 'use client';
 
 import * as React from 'react';
-import * as TooltipPrimitive from '@radix-ui/react-slider';
+import * as SliderPrimitive from '@radix-ui/react-slider';
 
-const Slider = ({ ...props }: TooltipPrimitive.SliderProps) => (
-  <TooltipPrimitive.Root
-    className="relative flex h-9 w-full touch-none select-none items-center justify-center"
+import { cn } from '@/lib/utils';
+
+const Slider = React.forwardRef<
+  React.ElementRef<typeof SliderPrimitive.Root>,
+  React.ComponentPropsWithoutRef<typeof SliderPrimitive.Root>
+>(({ className, ...props }, ref) => (
+  <SliderPrimitive.Root
+    ref={ref}
+    className={cn(
+      'relative flex w-full touch-none select-none items-center',
+      className
+    )}
     {...props}
   >
-    <TooltipPrimitive.Track className="relative h-2 grow rounded-full bg-muted">
-      <TooltipPrimitive.Range className="absolute h-full rounded-full bg-muted" />
-    </TooltipPrimitive.Track>
-    <TooltipPrimitive.Thumb className="block size-5 cursor-pointer rounded-full bg-blue-600 shadow-sm" />
-  </TooltipPrimitive.Root>
-);
+    <SliderPrimitive.Track className="relative h-1.5 w-full grow overflow-hidden rounded-full bg-primary/20">
+      <SliderPrimitive.Range className="absolute h-full bg-primary" />
+    </SliderPrimitive.Track>
+    <SliderPrimitive.Thumb className="block size-4 rounded-full border border-primary/50 bg-background shadow transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50" />
+  </SliderPrimitive.Root>
+));
+Slider.displayName = SliderPrimitive.Root.displayName;
 
 export { Slider };

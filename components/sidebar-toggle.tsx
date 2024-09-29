@@ -1,26 +1,35 @@
 'use client';
 
 import * as React from 'react';
+import { Sidebar } from '@phosphor-icons/react';
 
-import { useSidebar } from '@/lib/hooks/use-sidebar';
+import { useSidebar } from '@/hooks/use-sidebar';
 import { Button } from '@/components/ui/button';
-import { IconSidebar } from '@/components/ui/icons';
-import { Tooltip } from '@/components/ui/tooltip';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger
+} from '@/components/ui/tooltip';
 
 export function SidebarToggle() {
   const { isSidebarOpen, toggleSidebar } = useSidebar();
 
   return (
-    <Tooltip content={isSidebarOpen ? 'Close Sidebar' : 'Open Sidebar'}>
-      <Button
-        variant="ghost"
-        size="icon"
-        className="ml-2 size-9"
-        onClick={toggleSidebar}
-      >
-        <IconSidebar className="size-6" />
-        <span className="sr-only">Toggle Sidebar</span>
-      </Button>
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <Button
+          variant="ghost"
+          size="icon"
+          className="size-9"
+          onClick={toggleSidebar}
+        >
+          <Sidebar className="size-6" />
+          <span className="sr-only">Toggle Sidebar</span>
+        </Button>
+      </TooltipTrigger>
+      <TooltipContent align="start">
+        {isSidebarOpen ? 'Close Sidebar' : 'Open Sidebar'}
+      </TooltipContent>
     </Tooltip>
   );
 }

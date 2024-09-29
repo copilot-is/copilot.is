@@ -1,8 +1,7 @@
-import toast from 'react-hot-toast';
-
 import {
   Message,
   ModelProvider,
+  Result,
   User,
   type Chat,
   type Usage
@@ -24,7 +23,7 @@ const createAI = async (
   const json = await res.json();
 
   if (!res.ok) {
-    toast.error(json.error);
+    return { error: json.error } as Result;
   }
 
   return json as { role: string; content: string };
@@ -41,7 +40,7 @@ const getCurrentUser = async () => {
   const json = await res.json();
 
   if (!res.ok) {
-    toast.error(json.error);
+    return { error: json.error } as Result;
   }
 
   return json as User;
@@ -49,23 +48,24 @@ const getCurrentUser = async () => {
 
 const createChat = async (
   chatId: string,
-  regenerateId: string | undefined | null,
   usage: Usage,
-  messages: Message[]
+  messages: Message[],
+  regenerateId?: string
 ) => {
   const res = await fetch('/api/chat', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json'
     },
-    body: JSON.stringify({ chatId, regenerateId, usage, messages })
+    body: JSON.stringify({ chatId, usage, messages, regenerateId })
   });
 
   const json = await res.json();
 
   if (!res.ok) {
-    toast.error(json.error);
+    return { error: json.error } as Result;
   }
+
   return json as Chat;
 };
 
@@ -80,10 +80,27 @@ const getChats = async () => {
   const json = await res.json();
 
   if (!res.ok) {
-    toast.error(json.error);
+    return { error: json.error } as Result;
   }
 
   return json as Chat[];
+};
+
+const getChatById = async (chatId: string) => {
+  const res = await fetch(`/api/chat/${chatId}`, {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json'
+    }
+  });
+
+  const json = await res.json();
+
+  if (!res.ok) {
+    return { error: json.error } as Result;
+  }
+
+  return json as Chat;
 };
 
 const clearChats = async () => {
@@ -96,13 +113,13 @@ const clearChats = async () => {
 
   if (!res.ok) {
     const json = await res.json();
-    toast.error(json.error);
+    return { error: json.error } as Result;
   }
 };
 
 const updateChat = async (
   chatId: string,
-  chat: Partial<Pick<Chat, 'title' | 'sharing' | 'usage'>>
+  chat: Partial<Pick<Chat, 'title' | 'shared' | 'usage'>>
 ) => {
   const res = await fetch(`/api/chat/${chatId}`, {
     method: 'PUT',
@@ -115,7 +132,7 @@ const updateChat = async (
   const json = await res.json();
 
   if (!res.ok) {
-    toast.error(json.error);
+    return { error: json.error } as Result;
   }
 
   return json as Chat;
@@ -131,7 +148,7 @@ const removeChat = async (chatId: string) => {
 
   if (!res.ok) {
     const json = await res.json();
-    toast.error(json.error);
+    return { error: json.error } as Result;
   }
 };
 
@@ -151,7 +168,7 @@ const updateMessage = async (
   const json = await res.json();
 
   if (!res.ok) {
-    toast.error(json.error);
+    return { error: json.error } as Result;
   }
 
   return json as Message;
@@ -167,7 +184,7 @@ const removeMessage = async (chatId: string, messageId: string) => {
 
   if (!res.ok) {
     const json = await res.json();
-    toast.error(json.error);
+    return { error: json.error } as Result;
   }
 };
 
@@ -176,6 +193,7 @@ export const api = {
   getCurrentUser,
   createChat,
   getChats,
+  getChatById,
   updateChat,
   removeChat,
   clearChats,

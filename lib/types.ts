@@ -9,12 +9,13 @@ export type User = Session['user'];
 export interface Chat extends Record<string, any> {
   id: string;
   title: string;
+  usage: Usage;
+  messages: Message[];
+  shared: boolean;
+  ungenerated?: boolean;
+  userId: string;
   createdAt: string | Date;
   updatedAt: string | Date;
-  userId: string;
-  messages: Message[];
-  sharing: boolean;
-  usage: Usage;
 }
 
 export type Message = CoreMessage & {

@@ -1,11 +1,12 @@
 'use client';
 
 import * as React from 'react';
-import { toast } from 'react-hot-toast';
+import { CircleNotch } from '@phosphor-icons/react';
+import { toast } from 'sonner';
 
 import { api } from '@/lib/api';
-import { useCopyToClipboard } from '@/lib/hooks/use-copy-to-clipboard';
 import { type Chat } from '@/lib/types';
+import { useCopyToClipboard } from '@/hooks/use-copy-to-clipboard';
 import { useStore } from '@/store/useStore';
 import { Button } from '@/components/ui/button';
 import {
@@ -14,20 +15,19 @@ import {
   DialogDescription,
   DialogFooter,
   DialogHeader,
-  DialogProps,
   DialogTitle
 } from '@/components/ui/dialog';
-import { IconSpinner } from '@/components/ui/icons';
 
-interface ChatShareDialogProps extends DialogProps {
-  chat?: Pick<Chat, 'id' | 'title' | 'sharing'>;
-  onClose: () => void;
+interface ChatShareDialogProps {
+  chat?: Pick<Chat, 'id' | 'title' | 'shared'>;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
 }
 
 export function ChatShareDialog({
   chat,
-  onClose,
-  ...props
+  open,
+  onOpenChange
 }: ChatShareDialogProps) {
   const { updateChat } = useStore();
   const { copyToClipboard } = useCopyToClipboard({ timeout: 1000 });
@@ -39,21 +39,10 @@ export function ChatShareDialog({
       const url = new URL(window.location.href);
       url.pathname = sharePath;
       copyToClipboard(url.toString());
-      toast.success('Share link copied to clipboard', {
-        style: {
-          borderRadius: '10px',
-          background: '#333',
-          color: '#fff',
-          fontSize: '14px'
-        },
-        iconTheme: {
-          primary: 'white',
-          secondary: 'black'
-        }
-      });
-      onClose();
+      toast.success('Share link copied to clipboard', { duration: 2000 });
+      onOpenChange(false);
     },
-    [copyToClipboard, onClose]
+    [copyToClipboard, onOpenChange]
   );
 
   if (!chat) {
@@ -61,34 +50,42 @@ export function ChatShareDialog({
   }
 
   return (
-    <Dialog {...props}>
+    <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Share link to chat</DialogTitle>
           <DialogDescription>
-            Anyone with the URL will be able to view the sharing chat.
+            Anyone with the link will be able to view this shared chat.
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-1 rounded-md border p-4 text-sm">
           <div className="font-medium">{chat.title}</div>
         </div>
         <DialogFooter className="items-center">
-          {chat.sharing && (
+          {chat.shared && (
             <Button
               variant="link"
               disabled={isDeletePending}
               onClick={() => {
                 startDeleteTransition(async () => {
-                  await api.updateChat(chat.id, { sharing: false });
-                  toast.success('Shared link deleted success');
-                  updateChat(chat.id, { sharing: false });
-                  onClose();
+                  const result = await api.updateChat(chat.id, {
+                    shared: false
+                  });
+                  if (result && 'error' in result) {
+                    toast.error(result.error);
+                    return;
+                  }
+                  toast.success('Shared link deleted success', {
+                    duration: 2000
+                  });
+                  updateChat(chat.id, { shared: false });
+                  onOpenChange(false);
                 });
               }}
             >
               {isDeletePending ? (
                 <>
-                  <IconSpinner className="mr-2 animate-spin" />
+                  <CircleNotch className="mr-2 animate-spin" />
                   Deleting...
                 </>
               ) : (
@@ -101,9 +98,15 @@ export function ChatShareDialog({
             onClick={() => {
               startShareTransition(async () => {
                 const sharePath = `/share/${chat.id}`;
-                if (!chat.sharing) {
-                  await api.updateChat(chat.id, { sharing: true });
-                  updateChat(chat.id, { sharing: true });
+                if (!chat.shared) {
+                  const result = await api.updateChat(chat.id, {
+                    shared: true
+                  });
+                  if (result && 'error' in result) {
+                    toast.error(result.error);
+                    return;
+                  }
+                  updateChat(chat.id, { shared: true });
                 }
 
                 copyShareLink(sharePath);
@@ -112,7 +115,7 @@ export function ChatShareDialog({
           >
             {isSharePending ? (
               <>
-                <IconSpinner className="mr-2 animate-spin" />
+                <CircleNotch className="mr-2 animate-spin" />
                 Copying...
               </>
             ) : (

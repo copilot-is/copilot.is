@@ -34,10 +34,10 @@ export interface AppConfig {
 
 export const appConfig: AppConfig = {
   product: {
-    name: process.env.PRODUCT_NAME || 'Copilot',
-    subtitle: process.env.PRODUCT_SUBTITLE || 'AI Chatbot',
-    description: process.env.PRODUCT_DESCRIPTION,
-    url: process.env.PRODUCT_URL
+    name: process.env.NEXT_PUBLIC_PRODUCT_NAME || 'Copilot',
+    subtitle: process.env.NEXT_PUBLIC_PRODUCT_SUBTITLE || 'AI Chatbot',
+    description: process.env.NEXT_PUBLIC_PRODUCT_DESCRIPTION,
+    url: process.env.NEXT_PUBLIC_PRODUCT_URL
   },
   db: {
     url: process.env.POSTGRES_URL || '',

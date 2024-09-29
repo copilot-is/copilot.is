@@ -47,9 +47,9 @@ export async function POST(req: NextRequest) {
   const title = json.title || 'Untitled';
   const { regenerateId, messages, usage } = json;
 
-  if (!usage || !messages || messages.length === 0) {
+  if (!usage) {
     return NextResponse.json(
-      { error: 'Invalid usage or message parameters' },
+      { error: 'Invalid usage parameters' },
       { status: 400 }
     );
   }

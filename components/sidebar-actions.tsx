@@ -1,6 +1,12 @@
 'use client';
 
 import * as React from 'react';
+import {
+  DotsThreeVertical,
+  PencilSimple,
+  ShareNetwork,
+  Trash
+} from '@phosphor-icons/react';
 
 import { type Chat } from '@/lib/types';
 import { Button } from '@/components/ui/button';
@@ -10,12 +16,6 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu';
-import {
-  IconDotsThreeVertical,
-  IconEdit,
-  IconShare,
-  IconTrash
-} from '@/components/ui/icons';
 import { ChatDeleteDialog } from '@/components/chat-delete-dialog';
 import { ChatRenameDialog } from '@/components/chat-rename-dialog';
 import { ChatShareDialog } from '@/components/chat-share-dialog';
@@ -38,20 +38,20 @@ export function SidebarActions({ chat }: SidebarActionsProps) {
             size="icon"
             className="size-6 outline-none hover:bg-background data-[state=open]:bg-background"
           >
-            <IconDotsThreeVertical />
+            <DotsThreeVertical weight="bold" />
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent sideOffset={8} align="start">
           <DropdownMenuItem onClick={() => setShareDialogOpen(true)}>
-            <IconShare className="mr-2" />
+            <ShareNetwork className="mr-2" />
             Share
           </DropdownMenuItem>
           <DropdownMenuItem onClick={() => setTitleDialogOpen(true)}>
-            <IconEdit className="mr-2" />
+            <PencilSimple className="mr-2" />
             Rename
           </DropdownMenuItem>
           <DropdownMenuItem onClick={() => setDeleteDialogOpen(true)}>
-            <IconTrash className="mr-2" />
+            <Trash className="mr-2" />
             Delete
           </DropdownMenuItem>
         </DropdownMenuContent>
@@ -60,19 +60,16 @@ export function SidebarActions({ chat }: SidebarActionsProps) {
         chat={chat}
         open={shareDialogOpen}
         onOpenChange={setShareDialogOpen}
-        onClose={() => setShareDialogOpen(false)}
       />
       <ChatDeleteDialog
         chat={chat}
         open={deleteDialogOpen}
         onOpenChange={setDeleteDialogOpen}
-        onClose={() => setDeleteDialogOpen(false)}
       />
       <ChatRenameDialog
         chat={chat}
         open={titleDialogOpen}
         onOpenChange={setTitleDialogOpen}
-        onClose={() => setTitleDialogOpen(false)}
       />
     </>
   );

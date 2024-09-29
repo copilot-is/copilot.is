@@ -3,8 +3,8 @@
 import * as React from 'react';
 
 import { SystemPrompt } from '@/lib/constant';
-import { useLocalStorage } from '@/lib/hooks/use-local-storage';
 import { Model, ModelSettings, type AIToken } from '@/lib/types';
+import { useLocalStorage } from '@/hooks/use-local-storage';
 
 type SettingsContextProps = {
   allowCustomAPIKey: boolean;

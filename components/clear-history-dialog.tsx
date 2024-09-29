@@ -6,7 +6,6 @@ import { CircleNotch } from '@phosphor-icons/react';
 import { toast } from 'sonner';
 
 import { api } from '@/lib/api';
-import { type Chat } from '@/lib/types';
 import { useStore } from '@/store/useStore';
 import {
   AlertDialog,
@@ -19,20 +18,18 @@ import {
   AlertDialogTitle
 } from '@/components/ui/alert-dialog';
 
-interface ChatDeleteDialogProps {
-  chat: Pick<Chat, 'id'>;
+interface ClearHistoryDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }
 
-export function ChatDeleteDialog({
-  chat,
+export function ClearHistoryDialog({
   open,
   onOpenChange
-}: ChatDeleteDialogProps) {
+}: ClearHistoryDialogProps) {
   const router = useRouter();
-  const parsms = useParams();
-  const { removeChat } = useStore();
+  const params = useParams();
+  const { clearChats } = useStore();
   const [isPending, startTransition] = React.useTransition();
 
   return (
@@ -41,7 +38,7 @@ export function ChatDeleteDialog({
         <AlertDialogHeader>
           <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
           <AlertDialogDescription>
-            This will permanently delete your chat message and remove your data
+            This will permanently delete your chat history and remove your data
             from our servers.
           </AlertDialogDescription>
         </AlertDialogHeader>
@@ -52,14 +49,14 @@ export function ChatDeleteDialog({
             onClick={e => {
               e.preventDefault();
               startTransition(async () => {
-                const result = await api.removeChat(chat.id);
+                const result = await api.clearChats();
                 if (result && 'error' in result) {
                   toast.error(result.error);
                   return;
                 }
-                toast.success('Chat deleted', { duration: 2000 });
-                removeChat(chat.id);
-                parsms.chatId === chat.id && router.push('/');
+                toast.success('All chat deleted', { duration: 2000 });
+                params.chatId && router.push('/');
+                clearChats();
                 onOpenChange(false);
               });
             }}

@@ -32,7 +32,7 @@ export async function GET(
 }
 
 type PutData = {
-  chat: Pick<Chat, 'title' | 'sharing' | 'usage'>;
+  chat: Pick<Chat, 'title' | 'shared' | 'usage'>;
 };
 
 export async function PUT(

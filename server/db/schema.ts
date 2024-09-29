@@ -33,12 +33,13 @@ export const chats = createTable(
     userId: varchar('user_id', { length: 255 })
       .notNull()
       .references(() => users.id, { onDelete: 'cascade' }),
-    sharing: boolean('sharing').notNull().default(false),
+    shared: boolean('shared').notNull().default(false),
     createdAt: timestamp('created_at').notNull().defaultNow(),
     updatedAt: timestamp('updated_at').notNull().defaultNow()
   },
   chat => ({
-    userIdIdx: index('chat_userId_idx').on(chat.userId)
+    userIdIdx: index('chat_userId_idx').on(chat.userId),
+    createdAtIdx: index('chat_createdAt_idx').on(chat.createdAt)
   })
 );
 
@@ -64,7 +65,8 @@ export const messages = createTable(
   },
   message => ({
     userIdIdx: index('message_userId_idx').on(message.userId),
-    chatIdIdx: index('message_chatId_idx').on(message.chatId)
+    chatIdIdx: index('message_chatId_idx').on(message.chatId),
+    createdAtIdx: index('message_createdAt_idx').on(message.createdAt)
   })
 );
 

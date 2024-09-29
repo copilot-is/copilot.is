@@ -86,13 +86,11 @@ export enum ServiceProvider {
   anthropic = 'Anthropic'
 }
 
-export const SystemPrompt = `
-You are ChatGPT, a large language model trained by {provider}.
+export const SystemPrompt = `You are ChatGPT, a large language model trained by {provider}.
 Current model: {model}
 Current time: {time}
 Latex inline: \\(x^2\\)
-Latex block: $$e=mc^2$$
-`;
+Latex block: $$e=mc^2$$`;
 
 export const GenerateTitlePrompt =
   'Please generate a four to five word title summarizing our conversation without any lead-in, punctuation, quotation marks, periods, symbols, bold text, or additional text. Remove enclosing quotation marks.';

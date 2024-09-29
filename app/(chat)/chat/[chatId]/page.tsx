@@ -1,9 +1,12 @@
-import { type Metadata } from 'next';
-import { notFound } from 'next/navigation';
+'use client';
 
-import { Message } from '@/lib/types';
-import { api } from '@/trpc/server';
-import { Chat } from '@/components/chat';
+import { useEffect, useState } from 'react';
+
+import { api } from '@/lib/api';
+import { useStore } from '@/store/useStore';
+import { ChatNotFound } from '@/components/chat-notfound';
+import { ChatSpinner } from '@/components/chat-spinner';
+import { ChatUI } from '@/components/chat-ui';
 
 export const dynamic = 'force-dynamic';
 export const maxDuration = 60;
@@ -14,29 +17,45 @@ export interface ChatPageProps {
   };
 }
 
-export async function generateMetadata({
-  params
-}: ChatPageProps): Promise<Metadata> {
+const PRODUCT_NAME = process.env.NEXT_PUBLIC_PRODUCT_NAME;
+
+export default function ChatPage({ params }: ChatPageProps) {
   const chatId = params.chatId;
-  const chat = await api.chat.detail.query({ chatId });
+  const [isLoading, setIsLoading] = useState(false);
+  const { chatDetails, addChatDetail } = useStore();
+  const [notFound, setNotFound] = useState(false);
 
-  return {
-    title: chat?.title
-  };
-}
+  const chat = chatDetails[chatId];
+  const title = chat?.title;
 
-export default async function ChatPage({ params }: ChatPageProps) {
-  const chatId = params.chatId;
-  const chat = await api.chat.detail.query({ chatId });
+  useEffect(() => {
+    if (title) {
+      document.title = `${title} - ${PRODUCT_NAME}`;
+    }
+  }, [title]);
 
-  if (!chat) {
-    notFound();
-  }
+  useEffect(() => {
+    const fetchData = async () => {
+      if (!chat) {
+        setIsLoading(true);
+        const result = await api.getChatById(chatId);
+        if (result && 'error' in result) {
+          setNotFound(true);
+        } else {
+          addChatDetail(result);
+        }
+        setIsLoading(false);
+      }
+    };
 
-  return (
-    <Chat
-      id={chatId}
-      chat={{ ...chat, messages: chat.messages as Message[] }}
-    />
+    fetchData();
+  }, [chatId, chat, addChatDetail]);
+
+  return isLoading ? (
+    <ChatSpinner />
+  ) : notFound ? (
+    <ChatNotFound />
+  ) : (
+    <ChatUI id={chatId} chat={chat} />
   );
 }

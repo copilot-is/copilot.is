@@ -1,11 +1,12 @@
-import { generateId } from '@/lib/utils';
-import { Chat } from '@/components/chat';
+'use client';
 
-export const dynamic = 'force-dynamic';
+import { generateId } from '@/lib/utils';
+import { ChatQuick } from '@/components/chat-quick';
+
 export const maxDuration = 60;
 
 export default function IndexPage() {
   const chatId = generateId();
 
-  return <Chat id={chatId} />;
+  return <ChatQuick id={chatId} />;
 }

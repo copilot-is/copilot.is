@@ -1,11 +1,21 @@
 'use client';
 
 import * as React from 'react';
-import { toast } from 'react-hot-toast';
+import {
+  ArrowsClockwise,
+  CheckCircle,
+  CircleNotch,
+  Copy,
+  PencilSimple,
+  Trash
+} from '@phosphor-icons/react';
+import { toast } from 'sonner';
 
 import { api } from '@/lib/api';
-import { useCopyToClipboard } from '@/lib/hooks/use-copy-to-clipboard';
-import { Message, type Chat } from '@/lib/types';
+import { Message } from '@/lib/types';
+import { cn } from '@/lib/utils';
+import { useCopyToClipboard } from '@/hooks/use-copy-to-clipboard';
+import { useStore } from '@/store/useStore';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -25,27 +35,26 @@ import {
   DialogHeader,
   DialogTitle
 } from '@/components/ui/dialog';
-import {
-  IconCheck,
-  IconCopy,
-  IconEdit,
-  IconSpinner,
-  IconTrash
-} from '@/components/ui/icons';
 import { Textarea } from '@/components/ui/textarea';
-import { Tooltip } from '@/components/ui/tooltip';
 
-interface ChatMessageActionsProps {
-  chat: Pick<Chat, 'id' | 'messages'>;
+interface ChatMessageActionsProps extends React.HTMLAttributes<HTMLDivElement> {
+  chatId: string;
+  reload?: () => void;
   message: Message;
-  setMessages?: (messages: Message[]) => void;
+  isLoading?: boolean;
+  isLastMessage?: boolean;
+  readonly?: boolean;
 }
 
 export function ChatMessageActions({
-  chat,
+  chatId,
+  reload,
   message,
-  setMessages
+  isLoading,
+  isLastMessage,
+  readonly
 }: ChatMessageActionsProps) {
+  const { updateChatMessage, removeChatMessage } = useStore();
   const { isCopied, copyToClipboard } = useCopyToClipboard({ timeout: 3000 });
   const [content, setContent] = React.useState(message.content);
   const [editDialogOpen, setEditDialogOpen] = React.useState(false);
@@ -73,25 +82,48 @@ export function ChatMessageActions({
   };
 
   return (
-    <div className="flex items-center justify-end lg:absolute lg:right-1 lg:top-1">
-      <Tooltip content="Copy message">
-        <Button variant="ghost" size="icon" onClick={onCopy}>
-          {isCopied ? <IconCheck /> : <IconCopy />}
-          <span className="sr-only">Copy message</span>
-        </Button>
-      </Tooltip>
-      {setMessages && (
+    <div
+      className={cn(
+        'absolute bottom-3 right-2 flex items-center justify-end space-x-1 rounded-lg border bg-background p-1 lg:group-hover:flex',
+        isLastMessage ? 'lg:flex' : 'lg:hidden'
+      )}
+    >
+      <Button
+        variant="ghost"
+        size="sm"
+        className="h-4 rounded-sm p-1 font-normal text-muted-foreground"
+        onClick={onCopy}
+        disabled={isCopied}
+      >
+        {isCopied ? <CheckCircle /> : <Copy />}
+        <span className="ml-1">Copy</span>
+      </Button>
+      {!readonly && (
         <>
-          <Tooltip content="Edit message">
+          {isLastMessage && (
             <Button
               variant="ghost"
-              size="icon"
-              disabled={isEditPending || Array.isArray(content)}
+              size="sm"
+              className="h-4 rounded-sm p-1 font-normal text-muted-foreground"
+              onClick={reload}
+              disabled={isLoading}
+            >
+              <ArrowsClockwise />
+              <span className="ml-1">Retry</span>
+            </Button>
+          )}
+          {message.role === 'user' && !Array.isArray(content) && (
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-4 rounded-sm p-1 font-normal text-muted-foreground"
+              disabled={isLoading || isEditPending}
               onClick={() => setEditDialogOpen(true)}
             >
-              <IconEdit />
+              <PencilSimple />
+              <span className="ml-1">Edit</span>
             </Button>
-          </Tooltip>
+          )}
           <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
             <DialogContent>
               <DialogHeader>
@@ -101,7 +133,7 @@ export function ChatMessageActions({
                 </DialogDescription>
               </DialogHeader>
               <Textarea
-                className="min-h-64"
+                className="min-h-32"
                 defaultValue={!Array.isArray(content) ? content : ''}
                 onChange={e => setContent(e.target.value)}
                 required
@@ -116,28 +148,25 @@ export function ChatMessageActions({
                         return;
                       }
 
-                      await api.updateMessage(chat.id, message.id, {
-                        ...message,
-                        content
-                      } as Message);
-
-                      if (chat.messages) {
-                        const messages = chat.messages.map(m =>
-                          m.id === message.id
-                            ? ({ ...m, content } as Message)
-                            : m
-                        );
-                        setMessages(messages);
+                      const updated = { ...message, content } as Message;
+                      const result = await api.updateMessage(
+                        chatId,
+                        message.id,
+                        updated
+                      );
+                      if (result && 'error' in result) {
+                        toast.error(result.error);
+                        return;
                       }
-
-                      toast.success('Message saved');
+                      toast.success('Message saved', { duration: 2000 });
+                      updateChatMessage(chatId, updated);
                       setEditDialogOpen(false);
                     });
                   }}
                 >
                   {isEditPending ? (
                     <>
-                      <IconSpinner className="mr-2 animate-spin" />
+                      <CircleNotch className="mr-2 animate-spin" />
                       Saving...
                     </>
                   ) : (
@@ -147,20 +176,16 @@ export function ChatMessageActions({
               </DialogFooter>
             </DialogContent>
           </Dialog>
-          <Tooltip content="Delete message">
-            <Button
-              variant="ghost"
-              size="icon"
-              disabled={
-                isDeletePending ||
-                Array.isArray(content) ||
-                chat.messages?.length === 1
-              }
-              onClick={() => setDeleteDialogOpen(true)}
-            >
-              <IconTrash />
-            </Button>
-          </Tooltip>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="h-4 rounded-sm p-1 font-normal text-muted-foreground"
+            disabled={isLoading || isDeletePending}
+            onClick={() => setDeleteDialogOpen(true)}
+          >
+            <Trash />
+            <span className="ml-1">Delete</span>
+          </Button>
           <AlertDialog
             open={deleteDialogOpen}
             onOpenChange={setDeleteDialogOpen}
@@ -177,34 +202,33 @@ export function ChatMessageActions({
                 <AlertDialogCancel disabled={isDeletePending}>
                   Cancel
                 </AlertDialogCancel>
-                <AlertDialogAction>
-                  <Button
-                    disabled={isDeletePending}
-                    onClick={() => {
-                      startDeleteTransition(async () => {
-                        await api.removeMessage(chat.id, message.id);
-
-                        if (chat.messages) {
-                          const messages = chat.messages.filter(
-                            m => m.id !== message.id
-                          );
-                          setMessages(messages);
-                        }
-
-                        toast.success('Message deleted');
-                        setDeleteDialogOpen(false);
-                      });
-                    }}
-                  >
-                    {isDeletePending ? (
-                      <>
-                        <IconSpinner className="mr-2 animate-spin" />
-                        Deleting...
-                      </>
-                    ) : (
-                      <>Delete</>
-                    )}
-                  </Button>
+                <AlertDialogAction
+                  disabled={isDeletePending}
+                  onClick={e => {
+                    e.preventDefault();
+                    startDeleteTransition(async () => {
+                      const result = await api.removeMessage(
+                        chatId,
+                        message.id
+                      );
+                      if (result && 'error' in result) {
+                        toast.error(result.error);
+                        return;
+                      }
+                      toast.success('Message deleted', { duration: 2000 });
+                      removeChatMessage(chatId, message.id);
+                      setDeleteDialogOpen(false);
+                    });
+                  }}
+                >
+                  {isDeletePending ? (
+                    <>
+                      <CircleNotch className="mr-2 animate-spin" />
+                      Deleting...
+                    </>
+                  ) : (
+                    <>Delete</>
+                  )}
                 </AlertDialogAction>
               </AlertDialogFooter>
             </AlertDialogContent>

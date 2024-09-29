@@ -2,8 +2,8 @@
 
 import * as React from 'react';
 
-import { useLocalStorage } from '@/lib/hooks/use-local-storage';
-import { useMediaQuery } from '@/lib/hooks/use-media-query';
+import { useLocalStorage } from '@/hooks/use-local-storage';
+import { useMediaQuery } from '@/hooks/use-media-query';
 
 interface SidebarContextProps {
   isSidebarOpen: boolean;

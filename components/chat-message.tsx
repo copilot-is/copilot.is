@@ -1,40 +1,24 @@
 'use client';
 
 import React from 'react';
+import { User } from '@phosphor-icons/react';
 
-import { Message, ModelProvider, type Chat } from '@/lib/types';
+import { Message, ModelProvider } from '@/lib/types';
 import { cn } from '@/lib/utils';
-import {
-  IconClaudeAI,
-  IconGoogleAI,
-  IconOpenAI,
-  IconUser
-} from '@/components/ui/icons';
-import { ChatMessageActions } from '@/components/chat-message-actions';
+import { IconClaudeAI, IconGoogleAI, IconOpenAI } from '@/components/ui/icons';
 import { ChatMessageMarkdown } from '@/components/chat-message-markdown';
 
 export interface ChatMessageProps {
-  chat: Pick<Chat, 'id' | 'messages'>;
   message: Message;
   provider: ModelProvider;
-  setMessages?: (messages: Message[]) => void;
+  children: React.ReactNode;
 }
 
-export function ChatMessage({
-  chat,
-  message,
-  provider,
-  setMessages
-}: ChatMessageProps) {
+export function ChatMessage({ message, provider, children }: ChatMessageProps) {
   return (
-    <div
-      className={cn(
-        'relative mb-4 flex items-start rounded-xl bg-zinc-200/40 px-2.5 py-3 dark:bg-zinc-800',
-        message.role === 'user' && 'bg-zinc-100 dark:bg-zinc-100/5'
-      )}
-    >
-      <div className="flex size-8 shrink-0 select-none items-center justify-center rounded-full border bg-background">
-        {message.role === 'user' ? <IconUser /> : null}
+    <div className="group relative flex items-start pb-6">
+      <div className="flex size-8 shrink-0 select-none items-center justify-center rounded-full border">
+        {message.role === 'user' ? <User /> : null}
         {message.role !== 'user' && (
           <>
             {provider === 'openai' && <IconOpenAI />}
@@ -43,12 +27,17 @@ export function ChatMessage({
           </>
         )}
       </div>
-      <div className="ml-4 mt-1 flex-1 overflow-hidden">
+      <div
+        className={cn(
+          'ml-4 flex min-h-8 flex-1 items-center overflow-hidden',
+          message.role === 'assistant' ? 'rounded-lg bg-accent p-4' : ''
+        )}
+      >
         <div className="prose break-words dark:prose-invert prose-p:leading-relaxed prose-pre:p-0">
           {message.role === 'user' && (
             <>
               {Array.isArray(message.content) && message.content.length > 0 && (
-                <p className="mb-2 flex space-x-2">
+                <p className="mb-0 space-x-2 space-y-2">
                   {message.content.map((c, i) => {
                     if (c.type === 'image') {
                       return (
@@ -57,7 +46,7 @@ export function ChatMessage({
                             alt=""
                             key={i}
                             loading="lazy"
-                            className="mb-3 mt-0 h-auto w-full max-w-xs"
+                            className="m-0 h-auto max-w-32 rounded-md"
                             src={c.image.toString()}
                           />
                         )
@@ -86,11 +75,7 @@ export function ChatMessage({
               <ChatMessageMarkdown content={message.content} />
             )}
         </div>
-        <ChatMessageActions
-          chat={chat}
-          message={message}
-          setMessages={setMessages}
-        />
+        {children}
       </div>
     </div>
   );

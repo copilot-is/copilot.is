@@ -1,13 +1,13 @@
 'use client';
 
 import { Fragment, useEffect, useState } from 'react';
+import { CircleNotch } from '@phosphor-icons/react';
 import { AnimatePresence, motion } from 'framer-motion';
 
 import { api } from '@/lib/api';
 import { ChatCategories } from '@/lib/constant';
 import { Chat, ChatCategory } from '@/lib/types';
 import { useStore } from '@/store/useStore';
-import { IconLoader } from '@/components/ui/icons';
 import { SidebarActions } from '@/components/sidebar-actions';
 import { SidebarItem } from '@/components/sidebar-item';
 
@@ -18,8 +18,10 @@ export function SidebarList() {
 
   useEffect(() => {
     const fetchData = async () => {
-      const data = await api.getChats();
-      setChats(data);
+      const result = await api.getChats();
+      if (result && !('error' in result)) {
+        setChats(result);
+      }
       setLoading(false);
     };
 
@@ -66,8 +68,8 @@ export function SidebarList() {
   return (
     <div className="flex-1 overflow-auto">
       {isLoading && (
-        <div className="p-8 text-center">
-          <IconLoader className="mx-auto size-6 animate-spin" />
+        <div className="flex size-full items-center justify-center">
+          <CircleNotch className="size-8 animate-spin text-muted-foreground" />
         </div>
       )}
       {!isLoading && chatEntries.length === 0 && (

@@ -1,31 +1,21 @@
 'use client';
 
-import { cn } from '@/lib/utils';
-import { Button, type ButtonProps } from '@/components/ui/button';
+import { useScrollToBottom, useSticky } from 'react-scroll-to-bottom';
+
+import { Button } from '@/components/ui/button';
 import { IconArrowDown } from '@/components/ui/icons';
 
-interface ButtonScrollToBottomProps extends ButtonProps {
-  isAtBottom: boolean;
-  scrollToBottom: () => void;
-}
+export function ButtonScrollToBottom() {
+  const [sticky] = useSticky();
+  const scrollToBottom = useScrollToBottom();
 
-export function ButtonScrollToBottom({
-  className,
-  isAtBottom,
-  scrollToBottom,
-  ...props
-}: ButtonScrollToBottomProps) {
   return (
     <Button
       variant="outline"
       size="icon"
-      className={cn(
-        'absolute right-4 top-3 z-10 bg-background transition-opacity duration-300 sm:right-8',
-        isAtBottom ? 'cursor-default opacity-0' : 'opacity-100',
-        className
-      )}
-      onClick={scrollToBottom}
-      {...props}
+      className="absolute bottom-28 left-1/2 z-10 size-8 -translate-x-1/2 rounded-full bg-background transition-opacity duration-300 disabled:cursor-default disabled:opacity-0 sm:right-8"
+      disabled={sticky}
+      onClick={() => scrollToBottom()}
     >
       <IconArrowDown />
       <span className="sr-only">Scroll to bottom</span>

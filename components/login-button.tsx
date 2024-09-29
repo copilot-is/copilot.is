@@ -1,22 +1,23 @@
 'use client';
 
 import * as React from 'react';
+import { CircleNotch } from '@phosphor-icons/react';
 import { signIn } from 'next-auth/react';
 
 import { cn } from '@/lib/utils';
 import { Button, type ButtonProps } from '@/components/ui/button';
-import { IconGitHub, IconGoogle, IconSpinner } from '@/components/ui/icons';
+import { IconGitHub, IconGoogle } from '@/components/ui/icons';
 
 interface LoginButtonProps
   extends Omit<ButtonProps, 'children' | 'disabled' | 'onClick'> {
-  githubEnabled?: boolean;
-  googleEnabled?: boolean;
+  github?: boolean;
+  google?: boolean;
   className?: string;
 }
 
 export function LoginButton({
-  githubEnabled = false,
-  googleEnabled = false,
+  github = false,
+  google = false,
   className,
   ...buttonProps
 }: LoginButtonProps) {
@@ -31,7 +32,7 @@ export function LoginButton({
 
   return (
     <div className={cn('flex flex-col space-y-4', className)}>
-      {githubEnabled && (
+      {github && (
         <Button
           {...buttonProps}
           variant="outline"
@@ -41,15 +42,15 @@ export function LoginButton({
           className="w-full shadow-none"
         >
           {loadingProvider === 'github' ? (
-            <IconSpinner className="size-5 animate-spin" />
+            <CircleNotch className="size-4 animate-spin" />
           ) : (
-            <IconGitHub className="size-5" />
+            <IconGitHub className="size-4" />
           )}
           <span className="ml-2">Login with GitHub</span>
         </Button>
       )}
 
-      {googleEnabled && (
+      {google && (
         <Button
           {...buttonProps}
           variant="outline"
@@ -59,9 +60,9 @@ export function LoginButton({
           className="w-full shadow-none"
         >
           {loadingProvider === 'google' ? (
-            <IconSpinner className="size-5 animate-spin" />
+            <CircleNotch className="size-4 animate-spin" />
           ) : (
-            <IconGoogle className="size-5" />
+            <IconGoogle className="size-4" />
           )}
           <span className="ml-2">Login with Google</span>
         </Button>

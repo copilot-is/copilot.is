@@ -1,7 +1,8 @@
 'use client';
 
 import * as React from 'react';
-import { toast } from 'react-hot-toast';
+import { CircleNotch } from '@phosphor-icons/react';
+import { toast } from 'sonner';
 
 import { api } from '@/lib/api';
 import { type Chat } from '@/lib/types';
@@ -13,21 +14,20 @@ import {
   DialogDescription,
   DialogFooter,
   DialogHeader,
-  DialogProps,
   DialogTitle
 } from '@/components/ui/dialog';
-import { IconSpinner } from '@/components/ui/icons';
 import { Input } from '@/components/ui/input';
 
-interface ChatRenameDialogProps extends DialogProps {
+interface ChatRenameDialogProps {
   chat: Pick<Chat, 'id' | 'title'>;
-  onClose: () => void;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
 }
 
 export function ChatRenameDialog({
   chat,
-  onClose,
-  ...props
+  open,
+  onOpenChange
 }: ChatRenameDialogProps) {
   const { updateChat } = useStore();
   const [isPending, startTransition] = React.useTransition();
@@ -38,7 +38,7 @@ export function ChatRenameDialog({
   }, [chat.title]);
 
   return (
-    <Dialog {...props}>
+    <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Rename title</DialogTitle>
@@ -51,7 +51,7 @@ export function ChatRenameDialog({
         />
         <DialogFooter className="items-center">
           <Button
-            disabled={isPending}
+            disabled={isPending || !title || title === chat.title}
             onClick={() => {
               startTransition(async () => {
                 if (!title) {
@@ -59,16 +59,20 @@ export function ChatRenameDialog({
                   return;
                 }
 
-                await api.updateChat(chat.id, { title });
-                toast.success('Chat title saved');
+                const result = await api.updateChat(chat.id, { title });
+                if (result && 'error' in result) {
+                  toast.error(result.error);
+                  return;
+                }
+                toast.success('Chat title saved', { duration: 2000 });
                 updateChat(chat.id, { title });
-                onClose();
+                onOpenChange(false);
               });
             }}
           >
             {isPending ? (
               <>
-                <IconSpinner className="mr-2 animate-spin" />
+                <CircleNotch className="mr-2 animate-spin" />
                 Saving...
               </>
             ) : (

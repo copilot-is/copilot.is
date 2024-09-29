@@ -31,6 +31,7 @@ export default async function SharePage({ params }: SharePageProps) {
     notFound();
   }
 
+  const messages = chat.messages as Message[];
   const provider = providerFromModel(chat.usage.model);
 
   return (
@@ -39,15 +40,16 @@ export default async function SharePage({ params }: SharePageProps) {
         <div className="space-y-1 border-b bg-background py-6">
           <h1 className="text-2xl font-bold">{chat.title}</h1>
           <div className="text-sm text-muted-foreground">
-            {formatDate(chat.createdAt)} · {chat.messages.length} messages
+            {formatDate(chat.createdAt)} · {messages.length} messages
           </div>
         </div>
       </div>
       <ChatList
         id={chat.id}
-        messages={chat.messages as Message[]}
+        messages={messages}
         provider={provider}
         className="pb-5"
+        readonly
       />
     </div>
   );
