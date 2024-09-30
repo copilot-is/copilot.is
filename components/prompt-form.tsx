@@ -144,7 +144,7 @@ export function PromptForm({
         <div className="mx-3 flex space-x-2 rounded-t-xl border border-b-0 bg-accent p-3 shadow-md">
           {Array.from(files).map((file, index) => (
             <div key={index} className="relative">
-              <div className="h-16 w-24 cursor-pointer overflow-hidden rounded-md border p-px">
+              <div className="h-7 w-11 cursor-pointer overflow-hidden rounded-md border p-px sm:h-16 sm:w-24">
                 <img
                   src={URL.createObjectURL(file)}
                   alt={file.name}
@@ -167,11 +167,11 @@ export function PromptForm({
       )}
       <div
         className={cn(
-          'w-full rounded-t-xl border border-b-0 bg-background p-3 shadow-md sm:p-4',
+          'w-full rounded-t-xl border border-b-0 bg-background p-3 shadow-md',
           containerClassName
         )}
       >
-        <div className="relative flex max-h-96 w-full items-start space-x-2 overflow-hidden">
+        <div className="relative flex max-h-96 w-full items-start overflow-hidden">
           {isVision && (
             <Tooltip>
               <TooltipTrigger asChild>
@@ -179,7 +179,7 @@ export function PromptForm({
                   type="button"
                   variant="ghost"
                   size="icon"
-                  className="rounded-full"
+                  className="size-8 rounded-full"
                   disabled={isUploadPending}
                   onClick={() => {
                     fileRef.current?.click();
@@ -237,13 +237,13 @@ export function PromptForm({
             onChange={e => setInput(e.target.value)}
             placeholder="Send a message."
             spellCheck={false}
-            className="min-h-8 flex-1 resize-none bg-transparent py-2 focus-within:outline-none"
+            className="min-h-8 flex-1 resize-none bg-transparent px-2 py-1 focus-within:outline-none"
           />
           {isLoading && stop ? (
             <Button
               type="button"
               size="icon"
-              className="rounded-full"
+              className="size-8 rounded-full"
               onClick={stop}
             >
               <Stop weight="fill" className="size-4" />
@@ -253,7 +253,7 @@ export function PromptForm({
             <Button
               type="submit"
               size="icon"
-              className="rounded-full"
+              className="size-8 rounded-full"
               disabled={input?.trim() === ''}
             >
               {isLoading ? (

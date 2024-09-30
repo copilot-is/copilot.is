@@ -84,7 +84,7 @@ export function ChatMessageActions({
   return (
     <div
       className={cn(
-        'absolute bottom-3 right-2 flex items-center justify-end space-x-1 rounded-lg border bg-background p-1 lg:group-hover:flex',
+        'absolute bottom-2 right-2 flex items-center justify-end space-x-1 rounded-lg border bg-background p-1 sm:bottom-4 lg:group-hover:flex',
         isLastMessage ? 'lg:flex' : 'lg:hidden'
       )}
     >
