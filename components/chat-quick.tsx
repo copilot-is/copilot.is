@@ -34,7 +34,7 @@ export function ChatQuick({ id }: ChatUIProps) {
       <ChatHeader />
       <EmptyScreen />
       <PromptForm
-        className="flex max-w-2xl"
+        className="flex max-w-2xl px-4"
         containerClassName="rounded-xl border"
         isVision={isVision}
         isLoading={isLoading}
