@@ -1,9 +1,9 @@
 'use client';
 
+import { ArrowDown } from '@phosphor-icons/react';
 import { useScrollToBottom, useSticky } from 'react-scroll-to-bottom';
 
 import { Button } from '@/components/ui/button';
-import { IconArrowDown } from '@/components/ui/icons';
 
 export function ButtonScrollToBottom() {
   const [sticky] = useSticky();
@@ -17,7 +17,7 @@ export function ButtonScrollToBottom() {
       disabled={sticky}
       onClick={() => scrollToBottom()}
     >
-      <IconArrowDown />
+      <ArrowDown />
       <span className="sr-only">Scroll to bottom</span>
     </Button>
   );

@@ -37,7 +37,7 @@ export function ChatMessage({ message, provider, children }: ChatMessageProps) {
           {message.role === 'user' && (
             <>
               {Array.isArray(message.content) && message.content.length > 0 && (
-                <p className="mb-0 space-x-2 space-y-2">
+                <p className="mb-0 flex space-x-2">
                   {message.content.map((c, i) => {
                     if (c.type === 'image') {
                       return (
@@ -46,7 +46,7 @@ export function ChatMessage({ message, provider, children }: ChatMessageProps) {
                             alt=""
                             key={i}
                             loading="lazy"
-                            className="m-0 h-auto max-w-32 rounded-md"
+                            className="m-0 h-auto max-w-10 rounded-md sm:max-w-32"
                             src={c.image.toString()}
                           />
                         )
