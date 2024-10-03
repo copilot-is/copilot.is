@@ -39,9 +39,7 @@ export function ModelMenu() {
   const [isPending, startTransition] = React.useTransition();
   const isMobile = useMediaQuery('(max-width: 1023px)');
   const [isAlertOpen, setIsAlertOpen] = useState(false);
-  const [pendingModelValue, setPendingModelValue] = useState<Model | null>(
-    null
-  );
+  const [pendingModel, setPendingModel] = useState<Model | null>(null);
 
   const chat = chatDetails[chatId?.toString()];
   const chatModel = chat?.usage?.model;
@@ -57,25 +55,25 @@ export function ModelMenu() {
     [chatModel]
   );
   const newModelInfo = useMemo(
-    () => SupportedModels.find(m => m.value === pendingModelValue),
-    [pendingModelValue]
+    () => SupportedModels.find(m => m.value === pendingModel),
+    [pendingModel]
   );
 
   const handleModelChange = (value: Model) => {
     if (chatModel && chatModel !== value) {
       setIsAlertOpen(true);
-      setPendingModelValue(value);
+      setPendingModel(value);
     } else {
       setModel(value);
     }
   };
 
   const confirmModelChange = async () => {
-    if (pendingModelValue) {
+    if (pendingModel) {
       startTransition(async () => {
         const usage = convertToModelUsage({
           ...modelSettings,
-          model: pendingModelValue,
+          model: pendingModel,
           prompt: undefined
         });
         const result = await api.updateChat(chat.id, { usage });
@@ -86,7 +84,7 @@ export function ModelMenu() {
         updateChatDetail(chat.id, { usage });
         updateChat(chat.id, { usage });
         setIsAlertOpen(false);
-        setPendingModelValue(null);
+        setPendingModel(null);
       });
     }
   };

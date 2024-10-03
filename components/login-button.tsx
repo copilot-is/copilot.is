@@ -39,7 +39,7 @@ export function LoginButton({
           size="lg"
           onClick={() => handleSignIn('github')}
           disabled={loadingProvider !== null}
-          className="w-full shadow-none"
+          className="w-full"
         >
           {loadingProvider === 'github' ? (
             <CircleNotch className="size-4 animate-spin" />
@@ -57,7 +57,7 @@ export function LoginButton({
           size="lg"
           onClick={() => handleSignIn('google')}
           disabled={loadingProvider !== null}
-          className="w-full shadow-none"
+          className="w-full"
         >
           {loadingProvider === 'google' ? (
             <CircleNotch className="size-4 animate-spin" />

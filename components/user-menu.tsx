@@ -56,7 +56,7 @@ export function UserMenu() {
   return (
     <div className="flex items-center p-3">
       {isLoading ? (
-        <div className="flex w-full items-center rounded-md border border-input bg-slate-50 p-2 dark:bg-slate-900">
+        <div className="flex w-full items-center rounded-md border bg-background p-2 shadow-sm">
           <Skeleton className="size-8 rounded-full" />
           <div className="flex flex-col pl-2">
             <Skeleton className="h-4 w-24" />
@@ -69,20 +69,20 @@ export function UserMenu() {
             <DropdownMenuTrigger asChild>
               <div
                 tabIndex={0}
-                className="flex w-full cursor-pointer items-center rounded-md border border-input bg-slate-50 p-2 text-sm font-medium transition-colors hover:border-slate-300 hover:bg-slate-200/40 hover:text-accent-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 dark:bg-slate-900 dark:hover:bg-slate-300/10"
+                className="flex w-full cursor-pointer items-center rounded-md border bg-background p-2 text-sm font-medium shadow-sm transition-colors hover:bg-accent focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
               >
-                <div className="size-8 rounded-full">
+                <div className="size-8 overflow-hidden rounded-full border">
                   <Image
-                    className="rounded-full ring-1 ring-slate-100/10 transition-opacity duration-300 hover:opacity-80"
+                    className="size-full object-cover"
                     src={user.image ? `${user.image}` : ''}
                     alt={user.name ?? ''}
                     height={32}
                     width={32}
                   />
                 </div>
-                <div className="mx-2 flex flex-1 flex-col items-start">
-                  <span className="text-xs font-medium">{user.name}</span>
-                  <span className="text-xs text-slate-500">{user.email}</span>
+                <div className="mx-2 flex flex-1 flex-col items-start text-xs">
+                  <span className="font-medium">{user.name}</span>
+                  <span className="text-muted-foreground">{user.email}</span>
                 </div>
                 <CaretDown className="opacity-50" />
               </div>

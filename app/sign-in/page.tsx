@@ -34,10 +34,10 @@ export default async function SignInPage({ searchParams }: SignInPageProps) {
       <div className="mx-6 w-full sm:w-[350px]">
         {error && (
           <div className="space-y-6">
-            <h1 className="px-2 text-center text-xl font-bold leading-tight tracking-tight text-gray-900 dark:text-white md:text-2xl">
+            <h1 className="px-2 text-center text-xl font-bold leading-tight tracking-tight md:text-2xl">
               Oops!
             </h1>
-            <div>
+            <div className="text-muted-foreground">
               {error === 'OAuthAccountNotLinked'
                 ? 'You tried signing in with a different authentication method than the one you used during signup. Please try again using your original authentication method.'
                 : 'There was an error during signing in, please try signing in again.'}
@@ -57,7 +57,7 @@ export default async function SignInPage({ searchParams }: SignInPageProps) {
         )}
         {!error && (
           <div className="space-y-6">
-            <h1 className="px-2 text-center text-xl font-bold leading-tight tracking-tight text-gray-900 dark:text-white md:text-2xl">
+            <h1 className="px-2 text-center text-xl font-bold leading-tight tracking-tight md:text-2xl">
               Sign in to your account
             </h1>
             <div className="relative">

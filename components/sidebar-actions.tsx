@@ -1,6 +1,7 @@
 'use client';
 
 import * as React from 'react';
+import { useParams } from 'next/navigation';
 import {
   DotsThreeVertical,
   PencilSimple,
@@ -9,6 +10,7 @@ import {
 } from '@phosphor-icons/react';
 
 import { type Chat } from '@/lib/types';
+import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -25,6 +27,8 @@ interface SidebarActionsProps {
 }
 
 export function SidebarActions({ chat }: SidebarActionsProps) {
+  const { chatId } = useParams();
+  const isActive = chatId === chat.id;
   const [shareDialogOpen, setShareDialogOpen] = React.useState(false);
   const [titleDialogOpen, setTitleDialogOpen] = React.useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = React.useState(false);
@@ -36,7 +40,12 @@ export function SidebarActions({ chat }: SidebarActionsProps) {
           <Button
             variant="ghost"
             size="icon"
-            className="size-6 outline-none hover:bg-background data-[state=open]:bg-background"
+            className={cn(
+              'size-6 hover:bg-background data-[state=open]:bg-background dark:hover:bg-accent dark:data-[state=open]:bg-accent',
+              isActive
+                ? 'hover:bg-accent data-[state=open]:bg-accent dark:hover:bg-background dark:data-[state=open]:bg-background'
+                : ''
+            )}
           >
             <DotsThreeVertical weight="bold" />
           </Button>

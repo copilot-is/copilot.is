@@ -9,6 +9,7 @@ import { cn, getSupportedModels } from '@/lib/utils';
 import { SettingsProvider } from '@/hooks/use-settings';
 import { TRPCReactProvider } from '@/trpc/react';
 import { Providers } from '@/components/providers';
+import { TailwindColor } from '@/components/tailwind-color';
 import { TailwindIndicator } from '@/components/tailwind-indicator';
 
 export const metadata: Metadata = {
@@ -76,6 +77,7 @@ export default function RootLayout({ children }: RootLayoutProps) {
               {children}
             </SettingsProvider>
             <TailwindIndicator />
+            <TailwindColor />
           </Providers>
         </TRPCReactProvider>
       </body>

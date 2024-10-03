@@ -17,7 +17,12 @@ export interface ChatMessageProps {
 export function ChatMessage({ message, provider, children }: ChatMessageProps) {
   return (
     <div className="group relative flex items-start pb-7">
-      <div className="flex size-8 shrink-0 select-none items-center justify-center rounded-full border">
+      <div
+        className={cn(
+          'flex size-8 shrink-0 select-none items-center justify-center rounded-full border',
+          message.role !== 'user' ? 'bg-muted' : ''
+        )}
+      >
         {message.role === 'user' ? <User /> : null}
         {message.role !== 'user' && (
           <>
@@ -30,7 +35,7 @@ export function ChatMessage({ message, provider, children }: ChatMessageProps) {
       <div
         className={cn(
           'ml-3 flex min-h-8 flex-1 items-center overflow-hidden',
-          message.role === 'assistant' ? 'rounded-lg bg-accent p-3' : ''
+          message.role === 'assistant' ? 'rounded-lg bg-muted p-3' : ''
         )}
       >
         <div className="prose break-words dark:prose-invert prose-p:leading-relaxed prose-pre:p-0">

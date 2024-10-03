@@ -50,7 +50,7 @@ export function ChatList({
       })}
       {isLoading && (
         <div className="-mt-3 pl-12">
-          <IconTyping className="fill-zinc-400 stroke-zinc-400" />
+          <IconTyping className="stroke-muted-foreground text-muted-foreground" />
         </div>
       )}
       <ButtonScrollToBottom />

@@ -141,7 +141,7 @@ export function PromptForm({
       className={cn('w-full max-w-4xl flex-col px-2', className)}
     >
       {isVision && files && (
-        <div className="mx-3 flex space-x-2 rounded-t-xl border border-b-0 bg-accent p-3 shadow-md">
+        <div className="mx-3 flex space-x-2 rounded-t-xl border border-b-0 bg-muted p-3 shadow-md">
           {Array.from(files).map((file, index) => (
             <div key={index} className="relative">
               <div className="h-7 w-11 cursor-pointer overflow-hidden rounded-md border p-px sm:h-16 sm:w-24">
@@ -155,11 +155,11 @@ export function PromptForm({
                 type="button"
                 variant="ghost"
                 disabled={isLoading || isUploadPending}
-                className="absolute -right-2 -top-2 size-5 rounded-full border bg-accent p-0 hover:bg-red-700 hover:text-white"
+                className="absolute -right-2 -top-2 size-5 rounded-full border bg-background p-0 hover:bg-red-500 hover:text-white"
                 onClick={() => removeFile(index)}
               >
-                <X className="size-3" />
-                <span className="sr-only">Delete file</span>
+                <X className="size-2.5" />
+                <span className="sr-only">Remove file</span>
               </Button>
             </div>
           ))}

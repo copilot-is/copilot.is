@@ -85,7 +85,7 @@ export function SidebarList() {
               return (
                 categoryChats.length && (
                   <Fragment key={category}>
-                    <h2 className="px-2 text-xs text-muted-foreground">
+                    <h2 className="px-3 text-xs text-muted-foreground">
                       {category}
                     </h2>
                     {categoryChats.map(

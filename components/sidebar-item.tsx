@@ -44,7 +44,7 @@ export function SidebarItem({ index, chat, children }: SidebarItemProps) {
         ease: 'easeIn'
       }}
     >
-      <div className="absolute left-1 flex size-6 items-center justify-center rounded-full border border-slate-300 bg-white dark:border-slate-600 dark:bg-slate-800">
+      <div className="absolute left-1.5 flex size-6 items-center justify-center rounded-full border bg-background">
         {provider === 'openai' && <IconOpenAI className="size-4" />}
         {provider === 'google' && <IconGoogleAI className="size-4" />}
         {provider === 'anthropic' && <IconClaudeAI className="size-4" />}
@@ -53,8 +53,8 @@ export function SidebarItem({ index, chat, children }: SidebarItemProps) {
         href={`/chat/${chat.id}`}
         className={cn(
           buttonVariants({ variant: 'ghost' }),
-          'w-full pl-8 pr-10 font-normal transition-colors hover:bg-slate-300/60 dark:hover:bg-slate-600/10',
-          isActive ? 'bg-slate-200 font-medium dark:bg-slate-800' : ''
+          'w-full pl-9 pr-10 font-normal transition-colors hover:bg-background hover:shadow-sm dark:hover:bg-accent',
+          isActive ? 'bg-background font-medium shadow-sm dark:bg-accent' : ''
         )}
       >
         <div className="relative flex-1 truncate break-all">
@@ -94,7 +94,7 @@ export function SidebarItem({ index, chat, children }: SidebarItemProps) {
           )}
         </div>
       </Link>
-      <div className="absolute right-1 flex items-center justify-center">
+      <div className="absolute right-1.5 flex items-center justify-center">
         {children}
       </div>
     </motion.div>

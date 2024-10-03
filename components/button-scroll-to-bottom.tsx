@@ -17,7 +17,7 @@ export function ButtonScrollToBottom() {
       disabled={sticky}
       onClick={() => scrollToBottom()}
     >
-      <ArrowDown />
+      <ArrowDown className="text-muted-foreground" />
       <span className="sr-only">Scroll to bottom</span>
     </Button>
   );

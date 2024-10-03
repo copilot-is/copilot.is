@@ -37,7 +37,7 @@ export default async function SharePage({ params }: SharePageProps) {
   return (
     <div className="space-y-6">
       <div className="mx-auto max-w-4xl px-4">
-        <div className="space-y-1 border-b bg-background py-6">
+        <div className="space-y-1 border-b py-6">
           <h1 className="text-2xl font-bold">{chat.title}</h1>
           <div className="text-sm text-muted-foreground">
             {formatDate(chat.createdAt)} · {messages.length} messages
