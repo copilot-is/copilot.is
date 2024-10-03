@@ -1,7 +1,10 @@
+'use client';
+
 import * as React from 'react';
 
 import { Message, ModelProvider } from '@/lib/types';
 import { cn } from '@/lib/utils';
+import { Badge } from '@/components/ui/badge';
 import { IconTyping } from '@/components/ui/icons';
 import { ButtonScrollToBottom } from '@/components/button-scroll-to-bottom';
 import { ChatMessage } from '@/components/chat-message';
@@ -49,9 +52,9 @@ export function ChatList({
         );
       })}
       {isLoading && (
-        <div className="-mt-3 pl-12">
+        <Badge variant="secondary" className="ml-11 rounded-full">
           <IconTyping className="stroke-muted-foreground text-muted-foreground" />
-        </div>
+        </Badge>
       )}
       <ButtonScrollToBottom />
     </div>

@@ -56,6 +56,6 @@ export default function ChatPage({ params }: ChatPageProps) {
   ) : notFound ? (
     <ChatNotFound />
   ) : (
-    <ChatUI id={chatId} chat={chat} />
+    <ChatUI id={chatId} />
   );
 }

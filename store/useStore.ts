@@ -1,6 +1,8 @@
 import { create } from 'zustand';
 import { devtools } from 'zustand/middleware';
 
+import type {} from '@redux-devtools/extension';
+
 import { Message, User, type Chat } from '@/lib/types';
 
 type State = {

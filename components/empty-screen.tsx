@@ -1,3 +1,5 @@
+'use client';
+
 import { providerFromModel } from '@/lib/utils';
 import { useSettings } from '@/hooks/use-settings';
 import { IconClaudeAI, IconGoogleAI, IconOpenAI } from '@/components/ui/icons';

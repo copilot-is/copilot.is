@@ -32,8 +32,8 @@ export async function PUT(
 
   try {
     const data = await api.chat.updateMessage.mutate({
-      messageId,
       chatId,
+      messageId,
       message
     });
 
@@ -59,7 +59,7 @@ export async function DELETE(
   try {
     const chatId = params.chatId;
     const messageId = params.messageId;
-    await api.chat.deleteMessage.mutate({ messageId, chatId });
+    await api.chat.deleteMessage.mutate({ chatId, messageId });
 
     return new Response(null, { status: 204 });
   } catch (err) {

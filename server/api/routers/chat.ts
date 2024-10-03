@@ -235,14 +235,24 @@ export const chatRouter = createTRPCRouter({
       if ('shared' in input.chat) updates.shared = input.chat.shared;
       if ('usage' in input.chat) updates.usage = input.chat.usage;
 
-      return await ctx.db
+      await ctx.db
         .update(chats)
         .set(updates)
         .where(
           and(eq(chats.id, input.chatId), eq(chats.userId, ctx.session.user.id))
-        )
-        .returning()
-        .then(data => data[0]);
+        );
+
+      return await ctx.db.query.chats.findFirst({
+        where: and(
+          eq(chats.id, input.chatId),
+          eq(chats.userId, ctx.session.user.id)
+        ),
+        with: {
+          messages: {
+            orderBy: (messages, { asc }) => [asc(messages.createdAt)]
+          }
+        }
+      });
     }),
 
   delete: protectedProcedure
@@ -275,8 +285,8 @@ export const chatRouter = createTRPCRouter({
   updateMessage: protectedProcedure
     .input(
       z.object({
-        messageId: z.string(),
         chatId: z.string(),
+        messageId: z.string(),
         message: Message
       })
     )
@@ -298,8 +308,8 @@ export const chatRouter = createTRPCRouter({
   deleteMessage: protectedProcedure
     .input(
       z.object({
-        messageId: z.string(),
-        chatId: z.string()
+        chatId: z.string(),
+        messageId: z.string()
       })
     )
     .mutation(async ({ ctx, input }) => {

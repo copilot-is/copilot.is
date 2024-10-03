@@ -126,7 +126,7 @@ const updateChat = async (
     headers: {
       'Content-Type': 'application/json'
     },
-    body: JSON.stringify({ chat })
+    body: JSON.stringify(chat)
   });
 
   const json = await res.json();

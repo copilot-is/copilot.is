@@ -8,7 +8,7 @@ import { toast } from 'sonner';
 import { api } from '@/lib/api';
 import { GenerateTitlePrompt } from '@/lib/constant';
 import { convertToModelUsage } from '@/lib/convert-to-model-usage';
-import { UserContent, type Chat, type Message } from '@/lib/types';
+import { UserContent, type Message } from '@/lib/types';
 import {
   generateId,
   isImageModel,
@@ -23,23 +23,26 @@ import { PromptForm } from '@/components/prompt-form';
 
 interface ChatUIProps {
   id: string;
-  chat: Chat;
 }
 
-export function ChatUI({ id, chat }: ChatUIProps) {
+export function ChatUI({ id }: ChatUIProps) {
   const messageId = generateId();
   const hasExecutedRef = useRef(false);
   const regenerateIdRef = useRef<string>();
   const userMessageRef = useRef<Message>();
   const [isFetching, setIsFetching] = useState(false);
   const { allowCustomAPIKey, token, modelSettings } = useSettings();
-  const { addChat, updateChat, updateChatDetail, setNewChatId } = useStore();
   const {
-    usage: { model },
-    messages: initialMessages,
-    ungenerated
-  } = chat ?? { usage: {} };
+    chatDetails,
+    addChatDetail,
+    updateChat,
+    updateChatDetail,
+    setNewChatId
+  } = useStore();
 
+  const chat = chatDetails[id];
+  const model = chat?.usage?.model;
+  const ungenerated = chat?.ungenerated;
   const isImage = isImageModel(model);
   const isVision = isVisionModel(model);
   const provider = providerFromModel(model);
@@ -51,60 +54,71 @@ export function ChatUI({ id, chat }: ChatUIProps) {
     previewToken
   });
 
-  const { append, reload, stop, isLoading, messages, input, setInput } =
-    useChat({
-      id,
-      api: `/api/${isImage ? 'images' : 'chat'}/${provider}`,
-      initialMessages: initialMessages as AIMessage[],
-      sendExtraMessageFields: true,
-      generateId: () => generateId(),
-      body: { usage },
-      async onResponse(res) {
-        if (res.status !== 200) {
-          setInput(input);
-          const json = await res.json();
-          toast.error(json.error);
-        }
-      },
-      async onFinish(message) {
-        setIsFetching(true);
-        const regenerateId = regenerateIdRef.current;
-        const userMessage = userMessageRef.current;
-        const chatMessages = [userMessage, message].filter(
-          Boolean
-        ) as Message[];
-
-        const result = await api.createChat(
-          id,
-          usage,
-          chatMessages,
-          regenerateId
-        );
-        if (result && 'error' in result) {
-          toast.error(result.error);
-        } else {
-          addChat(result);
-          if (result.title === 'Untitled') {
-            await generateTitle(id, chatMessages);
-          }
-        }
-        setIsFetching(false);
+  const {
+    append,
+    reload,
+    stop,
+    isLoading,
+    messages,
+    setMessages,
+    input,
+    setInput
+  } = useChat({
+    id,
+    api: `/api/${isImage ? 'images' : 'chat'}/${provider}`,
+    sendExtraMessageFields: true,
+    generateId: () => generateId(),
+    body: { usage },
+    async onResponse(res) {
+      if (res.status !== 200) {
+        setInput(input);
+        const json = await res.json();
+        toast.error(json.error);
       }
-    });
+    },
+    async onFinish(message) {
+      setIsFetching(true);
+      const regenerateId = regenerateIdRef.current;
+      const userMessage = userMessageRef.current;
+
+      const result = await api.createChat(
+        id,
+        usage,
+        [userMessage, message].filter(Boolean) as Message[],
+        regenerateId
+      );
+      if (result && 'error' in result) {
+        toast.error(result.error);
+      } else {
+        addChatDetail(result);
+        if (result.title === 'Untitled') {
+          await generateTitle(id, result.messages);
+        }
+      }
+      setIsFetching(false);
+    }
+  });
+
+  useEffect(() => {
+    if (chat && chat.messages) {
+      setMessages(chat.messages as AIMessage[]);
+    }
+  }, [chat, setMessages]);
 
   useEffect(() => {
     if (!hasExecutedRef.current) {
       if (
         ungenerated &&
-        initialMessages &&
-        initialMessages.length === 1 &&
-        initialMessages[0].role === 'user'
+        chat &&
+        chat.messages &&
+        chat.messages.length === 1 &&
+        chat.messages[0].role === 'user'
       ) {
         regenerateIdRef.current = undefined;
         const userMessage = {
-          id: initialMessages[0].id,
-          role: initialMessages[0].role,
-          content: initialMessages[0].content
+          id: chat.messages[0].id,
+          role: chat.messages[0].role,
+          content: chat.messages[0].content
         };
         userMessageRef.current = userMessage as Message;
         reload();
@@ -176,7 +190,7 @@ export function ChatUI({ id, chat }: ChatUIProps) {
         <ChatHeader />
         <ChatList
           id={id}
-          isLoading={isLoading}
+          isLoading={isLoading || isFetching}
           provider={provider}
           messages={messages as Message[]}
           reload={async () => {

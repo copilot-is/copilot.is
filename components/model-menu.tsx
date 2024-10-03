@@ -81,8 +81,8 @@ export function ModelMenu() {
           toast.error(result.error);
           return;
         }
-        updateChatDetail(chat.id, { usage });
         updateChat(chat.id, { usage });
+        updateChatDetail(chat.id, { usage });
         setIsAlertOpen(false);
         setPendingModel(null);
       });
@@ -130,7 +130,6 @@ export function ModelMenu() {
           ))}
         </SelectContent>
       </Select>
-
       <AlertDialog open={isAlertOpen} onOpenChange={setIsAlertOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>

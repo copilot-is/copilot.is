@@ -31,9 +31,7 @@ export async function GET(
   }
 }
 
-type PutData = {
-  chat: Pick<Chat, 'title' | 'shared' | 'usage'>;
-};
+type PutData = Pick<Chat, 'title' | 'shared' | 'usage'>;
 
 export async function PUT(
   req: NextRequest,
@@ -46,8 +44,7 @@ export async function PUT(
   }
 
   const chatId = params.chatId;
-  const json: PutData = await req.json();
-  const { chat } = json;
+  const chat: PutData = await req.json();
 
   if (!chat) {
     return NextResponse.json(
