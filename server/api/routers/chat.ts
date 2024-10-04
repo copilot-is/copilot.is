@@ -1,4 +1,4 @@
-import { and, eq, inArray, or } from 'drizzle-orm';
+import { and, eq } from 'drizzle-orm';
 import { z } from 'zod';
 
 import { createTRPCRouter, protectedProcedure } from '@/server/api/trpc';
@@ -32,9 +32,21 @@ const Message = z.discriminatedUnion('role', [
               z.instanceof(Uint8Array),
               z.instanceof(ArrayBuffer),
               z.instanceof(Buffer),
-              z.custom<URL>(data => data instanceof URL)
+              z.instanceof(URL)
             ]),
             mimeType: z.string().optional()
+          }),
+          // FilePart
+          z.object({
+            type: z.literal('file'),
+            data: z.union([
+              z.string(),
+              z.instanceof(Uint8Array),
+              z.instanceof(ArrayBuffer),
+              z.instanceof(Buffer),
+              z.instanceof(URL)
+            ]),
+            mimeType: z.string()
           })
         ])
       )

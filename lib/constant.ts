@@ -98,7 +98,7 @@ export enum ServiceProvider {
   anthropic = 'Anthropic'
 }
 
-export const SystemPrompt = `You are ChatGPT, a large language model trained by {provider}.
+export const SystemPrompt = `A large language model trained by {provider}.
 Current model: {model}
 Current time: {time}
 Latex inline: \\(x^2\\)
