@@ -99,15 +99,9 @@ export function ModelMenu() {
         <SelectTrigger className="size-auto border-none shadow-none hover:bg-accent data-[state=open]:bg-accent">
           <SelectValue placeholder="Select a model">
             <div className="flex items-center">
-              {isPending ? (
-                <CircleNotch className="size-4 animate-spin" />
-              ) : (
-                <>
-                  {selectedModel?.provider === 'openai' && <IconOpenAI />}
-                  {selectedModel?.provider === 'google' && <IconGoogleAI />}
-                  {selectedModel?.provider === 'anthropic' && <IconClaudeAI />}
-                </>
-              )}
+              {selectedModel?.provider === 'openai' && <IconOpenAI />}
+              {selectedModel?.provider === 'google' && <IconGoogleAI />}
+              {selectedModel?.provider === 'anthropic' && <IconClaudeAI />}
               <span className="ml-2 font-medium">{selectedModel?.text}</span>
             </div>
           </SelectValue>
@@ -143,13 +137,22 @@ export function ModelMenu() {
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction
+              disabled={isPending}
               onClick={e => {
+                e.preventDefault();
                 startTransition(async () => {
                   await confirmModelChange();
                 });
               }}
             >
-              Continue
+              {isPending ? (
+                <>
+                  <CircleNotch className="mr-2 animate-spin" />
+                  Saving...
+                </>
+              ) : (
+                <>Save</>
+              )}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
