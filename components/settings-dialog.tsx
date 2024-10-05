@@ -22,7 +22,7 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[700px]">
+      <DialogContent className="sm:max-w-xl">
         <DialogHeader>
           <DialogTitle className="flex items-center">
             <Gear className="mr-2 size-6" />
@@ -31,14 +31,10 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
         </DialogHeader>
         <Separator className="my-1" />
         <Tabs defaultValue="models">
-          <TabsList className="w-full">
-            <TabsTrigger value="models" className="grow">
-              Models
-            </TabsTrigger>
+          <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="models">Models</TabsTrigger>
             {allowCustomAPIKey && (
-              <TabsTrigger value="apikeys" className="grow">
-                API Keys
-              </TabsTrigger>
+              <TabsTrigger value="apikeys">API Keys</TabsTrigger>
             )}
           </TabsList>
           <TabsContent value="models" className="px-px">
