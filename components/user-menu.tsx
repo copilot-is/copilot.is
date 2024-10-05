@@ -5,7 +5,6 @@ import Image from 'next/image';
 import {
   ArrowSquareOut,
   CaretDown,
-  Check,
   ClockCounterClockwise,
   Gear,
   GithubLogo,
@@ -22,12 +21,10 @@ import { api } from '@/lib/api';
 import { useStore } from '@/store/useStore';
 import {
   DropdownMenu,
+  DropdownMenuCheckboxItem,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
-  DropdownMenuSub,
-  DropdownMenuSubContent,
-  DropdownMenuSubTrigger,
   DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -36,10 +33,11 @@ import { SettingsDialog } from '@/components/settings-dialog';
 
 export function UserMenu() {
   const { user, setUser } = useStore();
-  const [isLoading, setLoading] = useState(true);
   const { theme, setTheme } = useTheme();
+  const [isLoading, setLoading] = useState(true);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isHistoryOpen, setIsHistoryOpen] = useState(false);
+  const [isAppearanceOpen, setIsAppearanceOpen] = useState(false);
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -89,57 +87,65 @@ export function UserMenu() {
             </DropdownMenuTrigger>
             <DropdownMenuContent className="w-[255px] lg:w-[225px] xl:w-[275px]">
               <DropdownMenuItem
-                onClick={() => setIsSettingsOpen(true)}
                 className="flex items-center"
+                onClick={() => setIsSettingsOpen(true)}
               >
                 <Gear className="mr-2 size-4" />
                 Settings
               </DropdownMenuItem>
               <DropdownMenuItem
-                onClick={() => setIsHistoryOpen(true)}
                 className="flex items-center"
+                onClick={() => setIsHistoryOpen(true)}
               >
                 <ClockCounterClockwise className="mr-2 size-4" />
                 Clear history
               </DropdownMenuItem>
-              <DropdownMenuSub>
-                <DropdownMenuSubTrigger className="flex items-center">
+              <DropdownMenuSeparator />
+              <DropdownMenuItem
+                className="flex items-center justify-between"
+                onClick={e => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  setIsAppearanceOpen(prev => !prev);
+                }}
+              >
+                <div className="flex items-center">
                   <PaintBrush className="mr-2 size-4" />
                   Appearance
-                </DropdownMenuSubTrigger>
-                <DropdownMenuSubContent>
-                  <DropdownMenuItem
-                    className="flex items-center justify-between"
-                    onClick={() => setTheme('system')}
+                </div>
+                <CaretDown
+                  className={`size-4 transition-transform ${isAppearanceOpen ? 'rotate-180' : ''}`}
+                />
+              </DropdownMenuItem>
+              {isAppearanceOpen && (
+                <>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuCheckboxItem
+                    className="flex items-center"
+                    checked={theme === 'system'}
+                    onCheckedChange={() => setTheme('system')}
                   >
-                    <div className="flex items-center">
-                      <Monitor className="mr-2 size-4" />
-                      System
-                    </div>
-                    {theme === 'system' && <Check className="size-4" />}
-                  </DropdownMenuItem>
-                  <DropdownMenuItem
-                    className="flex items-center justify-between"
-                    onClick={() => setTheme('light')}
+                    <Monitor className="mr-2 size-4" />
+                    System
+                  </DropdownMenuCheckboxItem>
+                  <DropdownMenuCheckboxItem
+                    className="flex items-center"
+                    checked={theme === 'light'}
+                    onCheckedChange={() => setTheme('light')}
                   >
-                    <div className="flex items-center">
-                      <Sun className="mr-2 size-4" />
-                      Light
-                    </div>
-                    {theme === 'light' && <Check className="size-4" />}
-                  </DropdownMenuItem>
-                  <DropdownMenuItem
-                    className="flex items-center justify-between"
-                    onClick={() => setTheme('dark')}
+                    <Sun className="mr-2 size-4" />
+                    Light
+                  </DropdownMenuCheckboxItem>
+                  <DropdownMenuCheckboxItem
+                    className="flex items-center"
+                    checked={theme === 'dark'}
+                    onCheckedChange={() => setTheme('dark')}
                   >
-                    <div className="flex items-center">
-                      <Moon className="mr-2 size-4" />
-                      Dark
-                    </div>
-                    {theme === 'dark' && <Check className="size-4" />}
-                  </DropdownMenuItem>
-                </DropdownMenuSubContent>
-              </DropdownMenuSub>
+                    <Moon className="mr-2 size-4" />
+                    Dark
+                  </DropdownMenuCheckboxItem>
+                </>
+              )}
               <DropdownMenuSeparator />
               <DropdownMenuItem asChild>
                 <a
