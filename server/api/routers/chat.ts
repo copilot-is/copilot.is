@@ -299,7 +299,9 @@ export const chatRouter = createTRPCRouter({
       z.object({
         chatId: z.string(),
         messageId: z.string(),
-        message: Message
+        message: Message.refine(msg => msg.role === 'user', {
+          message: 'Only messages with role "user" can be updated.'
+        })
       })
     )
     .mutation(async ({ ctx, input }) => {
