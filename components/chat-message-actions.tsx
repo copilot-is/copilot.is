@@ -96,7 +96,7 @@ export function ChatMessageActions({
         disabled={isCopied}
       >
         {isCopied ? <CheckCircle /> : <Copy />}
-        <span className="ml-1">Copy</span>
+        <span className="ml-1 hidden sm:inline">Copy</span>
       </Button>
       {!readonly && (
         <>
@@ -109,7 +109,7 @@ export function ChatMessageActions({
               disabled={isLoading}
             >
               <ArrowsClockwise />
-              <span className="ml-1">Retry</span>
+              <span className="ml-1 hidden sm:inline">Retry</span>
             </Button>
           )}
           {message.role === 'user' && !Array.isArray(content) && (
@@ -121,7 +121,7 @@ export function ChatMessageActions({
               onClick={() => setEditDialogOpen(true)}
             >
               <PencilSimple />
-              <span className="ml-1">Edit</span>
+              <span className="ml-1 hidden sm:inline">Edit</span>
             </Button>
           )}
           <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
@@ -184,7 +184,7 @@ export function ChatMessageActions({
             onClick={() => setDeleteDialogOpen(true)}
           >
             <Trash />
-            <span className="ml-1">Delete</span>
+            <span className="ml-1 hidden sm:inline">Delete</span>
           </Button>
           <AlertDialog
             open={deleteDialogOpen}
