@@ -2,7 +2,7 @@ import { generateId as generateIdFunc } from 'ai';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 
-import { SupportedModels } from '@/lib/constant';
+import { ServiceProvider, SupportedModels } from '@/lib/constant';
 import { Model, ModelProvider } from '@/lib/types';
 
 export function cn(...inputs: ClassValue[]) {
@@ -36,6 +36,11 @@ export function formatString(
   return formattedString;
 }
 
+export const apiFromModel = (value: Model): string => {
+  const model = SupportedModels.find(m => m.value === value);
+  return model?.api || `/api/chat/${model?.provider}`;
+};
+
 export const providerFromModel = (value: Model): ModelProvider => {
   const model = SupportedModels.find(m => m.value === value);
   return model ? model.provider : 'openai';
@@ -44,11 +49,6 @@ export const providerFromModel = (value: Model): ModelProvider => {
 export const isVisionModel = (value: Model): boolean => {
   const model = SupportedModels.find(m => m.value === value);
   return model?.vision ?? false;
-};
-
-export const isImageModel = (value: Model): boolean => {
-  const model = SupportedModels.find(m => m.value === value);
-  return model?.image ?? false;
 };
 
 export const getSupportedModels = (
@@ -94,4 +94,17 @@ export async function readFileAsBase64(file: File): Promise<string> {
     reader.onerror = () => reject(reader.error);
     reader.readAsDataURL(file);
   });
+}
+
+export function formatSystemPrompt(model: Model, prompt?: string) {
+  if (prompt) {
+    const provider = providerFromModel(model);
+    const time = new Date().toLocaleString();
+    const systemPrompt = formatString(prompt, {
+      provider: ServiceProvider[provider],
+      model,
+      time
+    });
+    return systemPrompt;
+  }
 }

@@ -45,9 +45,9 @@ export function SidebarItem({ index, chat, children }: SidebarItemProps) {
       }}
     >
       <div className="absolute left-1.5 flex size-6 items-center justify-center rounded-full border bg-background">
-        {provider === 'openai' && <IconOpenAI className="size-4" />}
-        {provider === 'google' && <IconGoogleAI className="size-4" />}
-        {provider === 'anthropic' && <IconClaudeAI className="size-4" />}
+        {provider === 'openai' && <IconOpenAI />}
+        {provider === 'google' && <IconGoogleAI />}
+        {provider === 'anthropic' && <IconClaudeAI />}
       </div>
       <Link
         href={`/chat/${chat.id}`}

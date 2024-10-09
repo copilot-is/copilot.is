@@ -18,6 +18,7 @@
   "dependencies": {
     "@ai-sdk/anthropic": "^0.0.51",
     "@ai-sdk/google": "^0.0.51",
+    "@ai-sdk/google-vertex": "^0.0.40",
     "@ai-sdk/openai": "^0.0.66",
     "@auth/drizzle-adapter": "^0.8.2",
     "@hookform/resolvers": "^3.9.0",

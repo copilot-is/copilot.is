@@ -3,9 +3,9 @@ import { ChatCategory, Model, ModelProvider } from '@/lib/types';
 export const SupportedModels: {
   text: string;
   value: Model;
-  image?: boolean;
   vision?: boolean;
   provider: ModelProvider;
+  api?: string;
 }[] = [
   {
     text: 'GPT-4o',
@@ -44,8 +44,8 @@ export const SupportedModels: {
   {
     text: 'DALL·E 3',
     value: 'dall-e-3',
-    image: true,
-    provider: 'openai'
+    provider: 'openai',
+    api: '/api/images/openai'
   },
   {
     text: 'Gemini 1.5 Flash',
@@ -95,6 +95,7 @@ export const SupportedModels: {
 export enum ServiceProvider {
   openai = 'OpenAI',
   google = 'Google',
+  vertex = 'Google Vertex',
   anthropic = 'Anthropic'
 }
 

@@ -34,8 +34,6 @@ export interface Usage extends Record<string, any> {
   temperature?: number;
   frequencyPenalty?: number;
   presencePenalty?: number;
-  topP?: number;
-  topK?: number;
   maxTokens?: number;
 }
 
@@ -60,8 +58,6 @@ export interface ModelSettings extends Record<string, any> {
   temperature: number;
   frequencyPenalty: number;
   presencePenalty: number;
-  topP: number;
-  topK: number;
   maxTokens: number;
 }
 
@@ -77,12 +73,6 @@ export type ChatCategory =
   | 'Previous 7 Days'
   | 'Previous Month'
   | 'Older';
-
-export interface FileInfo extends Record<string, any> {
-  name: string;
-  type: string;
-  data: string;
-}
 
 export type Result = {
   error: string;

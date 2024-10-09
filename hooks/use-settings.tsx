@@ -51,11 +51,9 @@ export const SettingsProvider = ({
 
   const defaultModelSettings: ModelSettings = {
     prompt: SystemPrompt,
-    temperature: 0.5,
+    temperature: 1,
     frequencyPenalty: 0,
     presencePenalty: 0,
-    topP: 1,
-    topK: 1,
     maxTokens: 4096
   };
   const [modelSettings, setModelSettings, modelSettingsLoading] =

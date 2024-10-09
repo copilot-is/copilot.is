@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { createAnthropic } from '@ai-sdk/anthropic';
+import { createVertex } from '@ai-sdk/google-vertex';
 import { generateText, streamText } from 'ai';
 
 import { appConfig } from '@/lib/appconfig';
@@ -35,16 +35,17 @@ export async function POST(req: Request) {
   } = usage;
 
   try {
-    const anthropic = createAnthropic({
-      apiKey:
-        !appConfig.anthropic.apiKey && previewToken
-          ? previewToken
-          : appConfig.anthropic.apiKey,
-      baseURL: appConfig.anthropic.baseURL
-    });
+    const vertex = createVertex(
+      previewToken
+        ? {}
+        : {
+            project: appConfig.vertex.project,
+            location: appConfig.vertex.location
+          }
+    );
 
     const parameters = {
-      model: anthropic(model),
+      model: vertex(model),
       system: prompt,
       messages,
       temperature,

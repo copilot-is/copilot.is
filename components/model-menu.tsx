@@ -8,7 +8,6 @@ import { toast } from 'sonner';
 
 import { api } from '@/lib/api';
 import { SupportedModels } from '@/lib/constant';
-import { convertToModelUsage } from '@/lib/convert-to-model-usage';
 import { Model } from '@/lib/types';
 import { useMediaQuery } from '@/hooks/use-media-query';
 import { useSettings } from '@/hooks/use-settings';
@@ -33,11 +32,11 @@ import {
 } from '@/components/ui/select';
 
 export function ModelMenu() {
+  const isMobile = useMediaQuery('(max-width: 1023px)');
   const { chatId } = useParams();
   const { chatDetails, updateChatDetail, updateChat } = useStore();
   const { availableModels, model, setModel, modelSettings } = useSettings();
   const [isPending, startTransition] = React.useTransition();
-  const isMobile = useMediaQuery('(max-width: 1023px)');
   const [isAlertOpen, setIsAlertOpen] = useState(false);
   const [pendingModel, setPendingModel] = useState<Model | null>(null);
 
@@ -50,11 +49,7 @@ export function ModelMenu() {
     m => m.value === (chatModel || model)
   );
 
-  const oldModelInfo = useMemo(
-    () => SupportedModels.find(m => m.value === chatModel),
-    [chatModel]
-  );
-  const newModelInfo = useMemo(
+  const newModel = useMemo(
     () => SupportedModels.find(m => m.value === pendingModel),
     [pendingModel]
   );
@@ -71,11 +66,11 @@ export function ModelMenu() {
   const confirmModelChange = async () => {
     if (pendingModel) {
       startTransition(async () => {
-        const usage = convertToModelUsage({
+        const usage = {
           ...modelSettings,
           model: pendingModel,
           prompt: undefined
-        });
+        };
         const result = await api.updateChat(chat.id, { usage });
         if (result && 'error' in result) {
           toast.error(result.error);
@@ -130,8 +125,8 @@ export function ModelMenu() {
             <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
             <AlertDialogDescription>
               Are you sure you want to change the model from{' '}
-              <strong>{oldModelInfo?.text}</strong> to{' '}
-              <strong>{newModelInfo?.text}</strong>?
+              <strong>{selectedModel?.text}</strong> to{' '}
+              <strong>{newModel?.text}</strong>?
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

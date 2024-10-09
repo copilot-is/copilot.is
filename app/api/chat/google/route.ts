@@ -28,9 +28,9 @@ export async function POST(req: Request) {
     stream,
     prompt,
     previewToken,
-    temperature = 0.5,
-    topP = 1,
-    topK = 40,
+    temperature,
+    frequencyPenalty,
+    presencePenalty,
     maxTokens
   } = usage;
 
@@ -44,11 +44,12 @@ export async function POST(req: Request) {
     });
 
     const parameters = {
-      model: google('models/' + model, { topK }),
+      model: google('models/' + model),
       system: prompt,
       messages,
       temperature,
-      topP,
+      frequencyPenalty,
+      presencePenalty,
       maxTokens
     };
 

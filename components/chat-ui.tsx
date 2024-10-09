@@ -7,11 +7,11 @@ import { toast } from 'sonner';
 
 import { api } from '@/lib/api';
 import { GenerateTitlePrompt } from '@/lib/constant';
-import { convertToModelUsage } from '@/lib/convert-to-model-usage';
 import { UserContent, type Message } from '@/lib/types';
 import {
+  apiFromModel,
+  formatSystemPrompt,
   generateId,
-  isImageModel,
   isVisionModel,
   providerFromModel
 } from '@/lib/utils';
@@ -43,16 +43,16 @@ export function ChatUI({ id }: ChatUIProps) {
   const chat = chatDetails[id];
   const model = chat?.usage?.model;
   const ungenerated = chat?.ungenerated;
-  const isImage = isImageModel(model);
   const isVision = isVisionModel(model);
   const provider = providerFromModel(model);
+  const prompt = formatSystemPrompt(model, modelSettings.prompt);
   const previewToken = allowCustomAPIKey ? token?.[provider] : undefined;
-  const usage = convertToModelUsage({
+  const usage = {
     ...chat?.usage,
-    prompt: modelSettings.prompt,
     stream: true,
+    prompt,
     previewToken
-  });
+  };
 
   const {
     append,
@@ -65,7 +65,7 @@ export function ChatUI({ id }: ChatUIProps) {
     setInput
   } = useChat({
     id,
-    api: `/api/${isImage ? 'images' : 'chat'}/${provider}`,
+    api: apiFromModel(model),
     sendExtraMessageFields: true,
     generateId: () => generateId(),
     body: { usage },
@@ -80,7 +80,6 @@ export function ChatUI({ id }: ChatUIProps) {
       setIsFetching(true);
       const regenerateId = regenerateIdRef.current;
       const userMessage = userMessageRef.current;
-
       const result = await api.createChat(
         id,
         usage,
@@ -159,12 +158,12 @@ export function ChatUI({ id }: ChatUIProps) {
           { role: 'user', content: GenerateTitlePrompt }
         ];
 
-        const genUsage = convertToModelUsage({
+        const genUsage = {
           ...chat?.usage,
           model: genModel[provider],
           prompt: undefined,
           previewToken
-        });
+        };
 
         const result = await api.createAI(provider, genMessages, genUsage);
         if (result && !('error' in result)) {

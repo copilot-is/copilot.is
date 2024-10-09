@@ -5,7 +5,6 @@ import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 
 import { api } from '@/lib/api';
-import { convertToModelUsage } from '@/lib/convert-to-model-usage';
 import { UserContent, type Message } from '@/lib/types';
 import { generateId, isVisionModel } from '@/lib/utils';
 import { useSettings } from '@/hooks/use-settings';
@@ -26,8 +25,8 @@ export function ChatQuick({ id }: ChatUIProps) {
   const { model, modelSettings } = useSettings();
   const { addChat, addChatDetail, setNewChatId } = useStore();
 
-  const usage = convertToModelUsage({ ...modelSettings, model });
-  const isVision = isVisionModel(usage.model);
+  const isVision = isVisionModel(model);
+  const usage = { ...modelSettings, model, prompt: undefined };
 
   return (
     <>

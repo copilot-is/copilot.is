@@ -28,10 +28,9 @@ export async function POST(req: Request) {
     stream,
     prompt,
     previewToken,
-    frequencyPenalty = 0,
-    presencePenalty = 0,
-    temperature = 0.5,
-    topP = 1,
+    temperature,
+    frequencyPenalty,
+    presencePenalty,
     maxTokens
   } = usage;
 
@@ -51,7 +50,6 @@ export async function POST(req: Request) {
       temperature,
       frequencyPenalty,
       presencePenalty,
-      topP,
       maxTokens
     };
 

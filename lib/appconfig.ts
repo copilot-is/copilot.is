@@ -24,6 +24,10 @@ export interface AppConfig {
     baseURL?: string;
     models?: string;
   };
+  readonly vertex: {
+    project?: string;
+    location?: string;
+  };
   readonly defaultModel?: string;
   readonly allowCustomAPIKey: boolean;
   readonly umami: {
@@ -49,13 +53,18 @@ export const appConfig: AppConfig = {
     models: process.env.OPENAI_MODELS
   },
   google: {
-    apiKey: process.env.GOOGLE_API_KEY || '',
-    models: process.env.GOOGLE_MODELS
+    apiKey: process.env.GOOGLE_GENERATIVE_AI_API_KEY || '',
+    baseURL: process.env.GOOGLE_GENERATIVE_AI_BASE_URL,
+    models: process.env.GOOGLE_GENERATIVE_AI_MODELS
   },
   anthropic: {
     apiKey: process.env.ANTHROPIC_API_KEY || '',
     baseURL: process.env.ANTHROPIC_BASE_URL,
     models: process.env.ANTHROPIC_MODELS
+  },
+  vertex: {
+    project: process.env.GOOGLE_VERTEX_PROJECT,
+    location: process.env.GOOGLE_VERTEX_LOCATION
   },
   defaultModel: process.env.DEFAULT_MODEL,
   allowCustomAPIKey:
