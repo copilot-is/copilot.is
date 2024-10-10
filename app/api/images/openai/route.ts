@@ -47,9 +47,6 @@ const openai = new OpenAI({
 });
 
 type PostData = {
-  id?: string;
-  title?: string;
-  generateId: string;
   messages: Message[];
   usage: Usage;
 };
