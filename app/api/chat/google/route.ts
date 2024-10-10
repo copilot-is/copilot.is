@@ -37,7 +37,7 @@ export async function POST(req: Request) {
   try {
     const google = createGoogleGenerativeAI({
       apiKey:
-        !appConfig.google.apiKey && previewToken
+        appConfig.allowCustomAPIKey && previewToken
           ? previewToken
           : appConfig.google.apiKey,
       baseURL: appConfig.google.baseURL

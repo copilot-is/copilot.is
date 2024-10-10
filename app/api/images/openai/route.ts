@@ -65,7 +65,7 @@ export async function POST(req: Request) {
   const { messages, usage } = json;
   const { model, stream, previewToken } = usage;
 
-  if (!openai.apiKey && previewToken) {
+  if (appConfig.allowCustomAPIKey && previewToken) {
     openai.apiKey = previewToken;
   }
 
