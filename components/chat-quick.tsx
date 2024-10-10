@@ -35,6 +35,7 @@ export function ChatQuick({ id }: ChatUIProps) {
       <PromptForm
         className="flex max-w-2xl px-4"
         containerClassName="rounded-xl border"
+        isWaiting={true}
         isVision={isVision}
         isLoading={isLoading}
         input={input}

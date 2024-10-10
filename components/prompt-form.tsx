@@ -27,6 +27,7 @@ export interface PromptProps
   onSubmit: (value: UserContent) => Promise<void>;
   className?: string;
   containerClassName?: string;
+  isWaiting?: boolean;
 }
 
 export function PromptForm({
@@ -35,6 +36,7 @@ export function PromptForm({
   setInput,
   isLoading,
   isVision,
+  isWaiting,
   onSubmit,
   className,
   containerClassName
@@ -129,9 +131,15 @@ export function PromptForm({
       }
     }
 
-    setInput('');
-    setFiles(undefined);
+    if (!isWaiting) {
+      setInput('');
+      setFiles(undefined);
+    }
     await onSubmit(content);
+    if (isWaiting) {
+      setInput('');
+      setFiles(undefined);
+    }
   };
 
   return (

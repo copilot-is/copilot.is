@@ -138,7 +138,7 @@ export const chatRouter = createTRPCRouter({
       }
 
       if (
-        input.messages.length == 1 &&
+        input.messages.length === 1 &&
         input.messages[0].role === 'assistant' &&
         input.regenerateId
       ) {

@@ -122,6 +122,7 @@ export function ChatUI({ id }: ChatUIProps) {
         userMessageRef.current = userMessage as Message;
         reload();
         updateChatDetail(id, { ungenerated: false });
+        userMessageRef.current = undefined;
       }
       hasExecutedRef.current = true;
     }
