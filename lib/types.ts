@@ -53,6 +53,14 @@ export type Model =
 
 export type ModelProvider = 'openai' | 'google' | 'anthropic';
 
+export interface ModelProfile extends Record<string, any> {
+  text: string;
+  value: Model;
+  vision?: boolean;
+  provider: ModelProvider;
+  api?: string;
+}
+
 export interface ModelSettings extends Record<string, any> {
   prompt?: string;
   temperature: number;

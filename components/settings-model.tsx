@@ -2,11 +2,11 @@
 
 import { useForm } from 'react-hook-form';
 
-import { SupportedModels } from '@/lib/constant';
 import { useSettings } from '@/hooks/use-settings';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Form, FormControl, FormItem, FormLabel } from '@/components/ui/form';
+import { IconClaudeAI, IconGoogleAI, IconOpenAI } from '@/components/ui/icons';
 import {
   Select,
   SelectContent,
@@ -21,9 +21,7 @@ export const SettingsModel = () => {
   const form = useForm();
   const { availableModels, model, setModel, modelSettings, setModelSettings } =
     useSettings();
-  const allowedModels = availableModels
-    ? SupportedModels.filter(m => availableModels.includes(m.value))
-    : SupportedModels;
+  const selectedModel = availableModels.find(m => m.value === model);
 
   return (
     <Form {...form}>
@@ -34,16 +32,32 @@ export const SettingsModel = () => {
             <FormControl>
               <SelectTrigger>
                 <SelectValue placeholder="Select a model">
-                  {allowedModels.find(m => m.value === model)?.text}
+                  <div className="flex items-center">
+                    {selectedModel?.provider === 'openai' && <IconOpenAI />}
+                    {selectedModel?.provider === 'google' && <IconGoogleAI />}
+                    {selectedModel?.provider === 'anthropic' && (
+                      <IconClaudeAI />
+                    )}
+                    <span className="ml-2 font-medium">
+                      {selectedModel?.text}
+                    </span>
+                  </div>
                 </SelectValue>
               </SelectTrigger>
             </FormControl>
             <SelectContent>
-              {allowedModels.map(model => (
+              {availableModels.map(model => (
                 <SelectItem key={model.value} value={model.value}>
-                  <div>{model.text}</div>
-                  <div className="text-xs text-muted-foreground">
-                    {model.value}
+                  <div className="flex items-center">
+                    {model.provider === 'openai' && <IconOpenAI />}
+                    {model.provider === 'google' && <IconGoogleAI />}
+                    {model.provider === 'anthropic' && <IconClaudeAI />}
+                    <div className="ml-2">
+                      <div className="font-medium">{model.text}</div>
+                      <div className="text-xs text-muted-foreground">
+                        {model.value}
+                      </div>
+                    </div>
                   </div>
                 </SelectItem>
               ))}

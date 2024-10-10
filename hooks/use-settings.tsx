@@ -3,12 +3,17 @@
 import * as React from 'react';
 
 import { SystemPrompt } from '@/lib/constant';
-import { Model, ModelSettings, type AIToken } from '@/lib/types';
+import {
+  Model,
+  type AIToken,
+  type ModelProfile,
+  type ModelSettings
+} from '@/lib/types';
 import { useLocalStorage } from '@/hooks/use-local-storage';
 
 type SettingsContextProps = {
   allowCustomAPIKey: boolean;
-  availableModels?: Model[];
+  availableModels: ModelProfile[];
   model: Model;
   setModel: (value: Model) => void;
   token: AIToken;
@@ -39,7 +44,7 @@ export const SettingsProvider = ({
   children
 }: {
   defaultModel?: Model;
-  availableModels?: Model[];
+  availableModels: ModelProfile[];
   allowCustomAPIKey?: boolean;
   children: React.ReactNode;
 }) => {

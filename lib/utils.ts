@@ -52,23 +52,15 @@ export const isVisionModel = (value: Model): boolean => {
 };
 
 export const getSupportedModels = (
-  openaiModels?: Model,
-  googleModels?: Model,
-  anthropicModels?: Model
+  availableModels: Record<string, Model[]>
 ) => {
-  const providers = {
-    openai: openaiModels?.split(',') || [],
-    google: googleModels?.split(',') || [],
-    anthropic: anthropicModels?.split(',') || []
-  };
-
   const supportedModels = SupportedModels.filter(({ value, provider }) => {
-    return providers[provider]?.length
-      ? providers[provider].includes(value)
+    return availableModels[provider].length
+      ? availableModels[provider].includes(value)
       : true;
-  }).map(({ value }) => value);
+  });
 
-  return supportedModels.length > 0 ? supportedModels : undefined;
+  return supportedModels;
 };
 
 export function getMediaTypeFromDataURL(dataURL: string): string | null {

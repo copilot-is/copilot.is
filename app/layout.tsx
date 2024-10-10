@@ -67,11 +67,7 @@ export default function RootLayout({ children }: RootLayoutProps) {
           <Providers attribute="class" defaultTheme="system" enableSystem>
             <SettingsProvider
               defaultModel={appConfig.defaultModel}
-              availableModels={getSupportedModels(
-                appConfig.openai.models,
-                appConfig.google.models,
-                appConfig.anthropic.models
-              )}
+              availableModels={getSupportedModels(appConfig.availableModels)}
               allowCustomAPIKey={appConfig.allowCustomAPIKey}
             >
               {children}

@@ -42,9 +42,6 @@ export function ModelMenu() {
 
   const chat = chatDetails[chatId?.toString()];
   const chatModel = chat?.usage?.model;
-  const allowedModels = availableModels
-    ? SupportedModels.filter(m => availableModels.includes(m.value))
-    : SupportedModels;
   const selectedModel = SupportedModels.find(
     m => m.value === (chatModel || model)
   );
@@ -102,7 +99,7 @@ export function ModelMenu() {
           </SelectValue>
         </SelectTrigger>
         <SelectContent align={isMobile ? 'center' : 'start'}>
-          {allowedModels.map(model => (
+          {availableModels.map(model => (
             <SelectItem key={model.value} value={model.value}>
               <div className="flex items-center">
                 {model.provider === 'openai' && <IconOpenAI />}

@@ -1,12 +1,6 @@
-import { ChatCategory, Model, ModelProvider } from '@/lib/types';
+import { ChatCategory, type ModelProfile } from '@/lib/types';
 
-export const SupportedModels: {
-  text: string;
-  value: Model;
-  vision?: boolean;
-  provider: ModelProvider;
-  api?: string;
-}[] = [
+export const SupportedModels: ModelProfile[] = [
   {
     text: 'GPT-4o',
     value: 'gpt-4o',
