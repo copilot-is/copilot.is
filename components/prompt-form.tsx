@@ -262,7 +262,7 @@ export function PromptForm({
               type="submit"
               size="icon"
               className="size-8 rounded-full"
-              disabled={input?.trim() === ''}
+              disabled={input?.trim() === '' || isLoading}
             >
               {isLoading ? (
                 <CircleNotch className="size-4 animate-spin" />

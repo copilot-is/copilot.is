@@ -1,7 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import { useMemo, useState } from 'react';
+import { useState } from 'react';
 import { useParams } from 'next/navigation';
 import { CircleNotch } from '@phosphor-icons/react';
 import { toast } from 'sonner';
@@ -38,7 +38,7 @@ export function ModelMenu() {
   const { availableModels, model, setModel, modelSettings } = useSettings();
   const [isPending, startTransition] = React.useTransition();
   const [isAlertOpen, setIsAlertOpen] = useState(false);
-  const [pendingModel, setPendingModel] = useState<Model | null>(null);
+  const [newModel, setNewModel] = useState<Model | null>(null);
 
   const chat = chatDetails[chatId?.toString()];
   const chatModel = chat?.usage?.model;
@@ -46,26 +46,21 @@ export function ModelMenu() {
     m => m.value === (chatModel || model)
   );
 
-  const newModel = useMemo(
-    () => SupportedModels.find(m => m.value === pendingModel),
-    [pendingModel]
-  );
-
   const handleModelChange = (value: Model) => {
     if (chatModel && chatModel !== value) {
       setIsAlertOpen(true);
-      setPendingModel(value);
+      setNewModel(value);
     } else {
       setModel(value);
     }
   };
 
   const confirmModelChange = async () => {
-    if (pendingModel) {
+    if (newModel) {
       startTransition(async () => {
         const usage = {
           ...modelSettings,
-          model: pendingModel,
+          model: newModel,
           prompt: undefined
         };
         const result = await api.updateChat(chat.id, { usage });
@@ -76,7 +71,7 @@ export function ModelMenu() {
         updateChat(chat.id, { usage });
         updateChatDetail(chat.id, { usage });
         setIsAlertOpen(false);
-        setPendingModel(null);
+        setNewModel(null);
       });
     }
   };
@@ -122,8 +117,8 @@ export function ModelMenu() {
             <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
             <AlertDialogDescription>
               Are you sure you want to change the model from{' '}
-              <strong>{selectedModel?.text}</strong> to{' '}
-              <strong>{newModel?.text}</strong>?
+              <strong>{selectedModel?.value}</strong> to{' '}
+              <strong>{newModel}</strong>?
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

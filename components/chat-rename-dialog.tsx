@@ -49,7 +49,7 @@ export function ChatRenameDialog({
           onChange={e => setTitle(e.target.value)}
           required
         />
-        <DialogFooter className="items-center">
+        <DialogFooter>
           <Button
             disabled={isPending || !title || title === chat.title}
             onClick={() => {

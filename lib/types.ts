@@ -5,6 +5,7 @@ import { ChatModel } from 'openai/resources';
 export type { UserContent, TextPart, ImagePart };
 
 export type User = Session['user'];
+export type MessageContent = CoreMessage['content'];
 
 export interface Chat extends Record<string, any> {
   id: string;

@@ -3,7 +3,7 @@ import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 
 import { ServiceProvider, SupportedModels } from '@/lib/constant';
-import { Model, ModelProvider } from '@/lib/types';
+import { MessageContent, Model, ModelProvider } from '@/lib/types';
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -38,12 +38,12 @@ export function formatString(
 
 export const apiFromModel = (value: Model): string => {
   const model = SupportedModels.find(m => m.value === value);
-  return model?.api || `/api/chat/${model?.provider}`;
+  return model?.api || `/api/chat/${model?.provider || 'default'}`;
 };
 
-export const providerFromModel = (value: Model): ModelProvider => {
+export const providerFromModel = (value: Model) => {
   const model = SupportedModels.find(m => m.value === value);
-  return model ? model.provider : 'openai';
+  return model?.provider;
 };
 
 export const isVisionModel = (value: Model): boolean => {
@@ -89,8 +89,8 @@ export async function readFileAsBase64(file: File): Promise<string> {
 }
 
 export function formatSystemPrompt(model: Model, prompt?: string) {
-  if (prompt) {
-    const provider = providerFromModel(model);
+  const provider = providerFromModel(model);
+  if (provider && prompt) {
     const time = new Date().toLocaleString();
     const systemPrompt = formatString(prompt, {
       provider: ServiceProvider[provider],
@@ -99,4 +99,20 @@ export function formatSystemPrompt(model: Model, prompt?: string) {
     });
     return systemPrompt;
   }
+}
+
+export function getMessageContentText(content: MessageContent) {
+  const IMAGE_DATA_URL_REGEX = /!\[\]\(data:image\/png;base64,.*?\)/g;
+
+  if (Array.isArray(content)) {
+    return content
+      .map(c =>
+        c.type === 'text' ? c.text.replace(IMAGE_DATA_URL_REGEX, '') : ''
+      )
+      .filter(Boolean)
+      .join('\n\n');
+  }
+  return typeof content === 'string'
+    ? content.replace(IMAGE_DATA_URL_REGEX, '')
+    : '';
 }

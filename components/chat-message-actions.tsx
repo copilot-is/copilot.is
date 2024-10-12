@@ -7,14 +7,17 @@ import {
   CircleNotch,
   Copy,
   PencilSimple,
+  SpeakerHigh,
+  StopCircle,
   Trash
 } from '@phosphor-icons/react';
 import { toast } from 'sonner';
 
 import { api } from '@/lib/api';
 import { Message } from '@/lib/types';
-import { cn } from '@/lib/utils';
+import { cn, getMessageContentText } from '@/lib/utils';
 import { useCopyToClipboard } from '@/hooks/use-copy-to-clipboard';
+import { useSettings } from '@/hooks/use-settings';
 import { useStore } from '@/store/useStore';
 import {
   AlertDialog,
@@ -54,74 +57,136 @@ export function ChatMessageActions({
   isLastMessage,
   readonly
 }: ChatMessageActionsProps) {
+  const { audioModel } = useSettings();
   const { updateChatMessage, removeChatMessage } = useStore();
   const { isCopied, copyToClipboard } = useCopyToClipboard({ timeout: 3000 });
-  const [content, setContent] = React.useState(message.content);
+  const [content, setContent] = React.useState('');
   const [editDialogOpen, setEditDialogOpen] = React.useState(false);
   const [isEditPending, startEditTransition] = React.useTransition();
   const [deleteDialogOpen, setDeleteDialogOpen] = React.useState(false);
   const [isDeletePending, startDeleteTransition] = React.useTransition();
+  const [isPlaying, setIsPlaying] = React.useState(false);
+  const [isLoadingAudio, setIsLoadingAudio] = React.useState(false);
+  const audioRef = React.useRef<HTMLAudioElement | null>(null);
 
   React.useEffect(() => {
-    setContent(message.content);
+    if (!Array.isArray(message.content)) {
+      setContent(message.content);
+    }
   }, [message.content]);
 
   const onCopy = () => {
     if (isCopied) return;
-    copyToClipboard(
-      Array.isArray(content)
-        ? content
-            .map(c => {
-              if (c.type === 'text') {
-                return c.text;
-              }
-            })
-            .join('\n\n')
-        : content
-    );
+    copyToClipboard(getMessageContentText(message.content));
+  };
+
+  const onRead = async () => {
+    if (audioModel) {
+      const usage = { model: audioModel, previewToken: undefined };
+      const input = getMessageContentText(message.content);
+
+      setIsLoadingAudio(true);
+      const result = await api.createAudio('openai', 'alloy', input, usage);
+      setIsLoadingAudio(false);
+
+      if (result && 'error' in result) {
+        toast.error(result.error);
+        return;
+      }
+
+      const audio = new Audio(`data:audio/mp3;base64,${result.audio}`);
+      audioRef.current = audio;
+      audio.play();
+      setIsPlaying(true);
+
+      audio.onended = () => {
+        setIsPlaying(false);
+      };
+    }
+  };
+
+  const togglePlayPause = () => {
+    if (isPlaying) {
+      if (audioRef.current) {
+        audioRef.current.pause();
+      }
+      setIsPlaying(false);
+    } else {
+      if (audioRef.current) {
+        audioRef.current.play();
+      } else {
+        onRead();
+      }
+      setIsPlaying(true);
+    }
   };
 
   return (
     <div
       className={cn(
-        'absolute bottom-2 right-2 flex items-center justify-end space-x-1 rounded-lg border bg-background p-1 sm:bottom-4 lg:group-hover:flex',
-        isLastMessage ? 'lg:flex' : 'lg:hidden'
+        'ml-11 inline-flex space-x-1 lg:group-hover:visible',
+        message.role === 'assistant' ? 'mt-1' : '',
+        isLastMessage ? 'lg:visible' : 'lg:invisible'
       )}
     >
+      {audioModel && (
+        <Button
+          variant="ghost"
+          size="icon"
+          className="size-7 text-muted-foreground"
+          onClick={togglePlayPause}
+          disabled={isLoadingAudio}
+        >
+          {isLoadingAudio ? (
+            <CircleNotch className="size-4 animate-spin" />
+          ) : isPlaying ? (
+            <StopCircle className="size-4" />
+          ) : (
+            <SpeakerHigh className="size-4" />
+          )}
+          <span className="sr-only">
+            {isLoadingAudio ? 'Loading...' : isPlaying ? 'Stop' : 'Play'}
+          </span>
+        </Button>
+      )}
       <Button
         variant="ghost"
-        size="sm"
-        className="h-4 rounded-sm p-1 font-normal text-muted-foreground"
+        size="icon"
+        className="size-7 text-muted-foreground"
         onClick={onCopy}
         disabled={isCopied}
       >
-        {isCopied ? <CheckCircle /> : <Copy />}
-        <span className="ml-1 hidden sm:inline">Copy</span>
+        {isCopied ? (
+          <CheckCircle className="size-4" />
+        ) : (
+          <Copy className="size-4" />
+        )}
+        <span className="sr-only">Copy</span>
       </Button>
       {!readonly && (
         <>
           {isLastMessage && (
             <Button
               variant="ghost"
-              size="sm"
-              className="h-4 rounded-sm p-1 font-normal text-muted-foreground"
+              size="icon"
+              className="size-7 text-muted-foreground"
               onClick={reload}
               disabled={isLoading}
             >
-              <ArrowsClockwise />
-              <span className="ml-1 hidden sm:inline">Retry</span>
+              <ArrowsClockwise className="size-4" />
+              <span className="sr-only">Retry</span>
             </Button>
           )}
-          {message.role === 'user' && !Array.isArray(content) && (
+          {message.role === 'user' && !Array.isArray(message.content) && (
             <Button
               variant="ghost"
-              size="sm"
-              className="h-4 rounded-sm p-1 font-normal text-muted-foreground"
+              size="icon"
+              className="size-7 text-muted-foreground"
               disabled={isLoading || isEditPending}
               onClick={() => setEditDialogOpen(true)}
             >
-              <PencilSimple />
-              <span className="ml-1 hidden sm:inline">Edit</span>
+              <PencilSimple className="size-4" />
+              <span className="sr-only">Edit</span>
             </Button>
           )}
           <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
@@ -134,17 +199,17 @@ export function ChatMessageActions({
               </DialogHeader>
               <Textarea
                 className="min-h-32"
-                defaultValue={!Array.isArray(content) ? content : ''}
+                defaultValue={content}
                 onChange={e => setContent(e.target.value)}
                 required
               />
-              <DialogFooter className="items-center">
+              <DialogFooter>
                 <Button
                   disabled={isEditPending}
                   onClick={() => {
                     startEditTransition(async () => {
                       if (!content) {
-                        toast.error('Message is required');
+                        toast.error('Message content is required');
                         return;
                       }
 
@@ -178,13 +243,13 @@ export function ChatMessageActions({
           </Dialog>
           <Button
             variant="ghost"
-            size="sm"
-            className="h-4 rounded-sm p-1 font-normal text-muted-foreground"
+            size="icon"
+            className="size-7 text-muted-foreground"
             disabled={isLoading || isDeletePending}
             onClick={() => setDeleteDialogOpen(true)}
           >
-            <Trash />
-            <span className="ml-1 hidden sm:inline">Delete</span>
+            <Trash className="size-4" />
+            <span className="sr-only">Delete</span>
           </Button>
           <AlertDialog
             open={deleteDialogOpen}

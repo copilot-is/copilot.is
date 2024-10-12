@@ -61,7 +61,7 @@ export function ChatShareDialog({
         <div className="space-y-1 rounded-md border p-4 text-sm">
           <div className="font-medium">{chat.title}</div>
         </div>
-        <DialogFooter className="items-center">
+        <DialogFooter>
           {chat.shared && (
             <Button
               variant="link"

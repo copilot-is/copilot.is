@@ -12,6 +12,7 @@ import {
   apiFromModel,
   formatSystemPrompt,
   generateId,
+  getMessageContentText,
   isVisionModel,
   providerFromModel
 } from '@/lib/utils';
@@ -46,7 +47,8 @@ export function ChatUI({ id }: ChatUIProps) {
   const isVision = isVisionModel(model);
   const provider = providerFromModel(model);
   const prompt = formatSystemPrompt(model, modelSettings.prompt);
-  const previewToken = allowCustomAPIKey ? token?.[provider] : undefined;
+  const previewToken =
+    allowCustomAPIKey && provider ? token?.[provider] : undefined;
   const usage = {
     ...chat?.usage,
     stream: true,
@@ -129,7 +131,7 @@ export function ChatUI({ id }: ChatUIProps) {
   });
 
   const generateTitle = async (id: string, messages: Message[]) => {
-    if (id && messages && messages.length >= 2) {
+    if (provider && id && messages && messages.length >= 2) {
       const genModel = {
         openai: 'gpt-4o-mini',
         google: 'gemini-1.5-flash-latest',
@@ -141,20 +143,11 @@ export function ChatUI({ id }: ChatUIProps) {
         const genMessages = [
           {
             role: 'user',
-            content: Array.isArray(firstMessage.content)
-              ? firstMessage.content
-                  .map(c => (c.type === 'text' ? c.text : ''))
-                  .join(' ')
-              : firstMessage.content
+            content: getMessageContentText(firstMessage.content)
           },
           {
             role: 'assistant',
-            content: (Array.isArray(secondMessage.content)
-              ? secondMessage.content
-                  .map(c => (c.type === 'text' ? c.text : ''))
-                  .join(' ')
-              : secondMessage.content
-            ).replace(/!\[\]\(data:image\/png;base64,.*?\)/g, '')
+            content: getMessageContentText(secondMessage.content)
           },
           { role: 'user', content: GenerateTitlePrompt }
         ];

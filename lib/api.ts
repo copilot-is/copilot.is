@@ -29,6 +29,29 @@ const createAI = async (
   return json as { role: string; content: string };
 };
 
+const createAudio = async (
+  provider: ModelProvider,
+  voice: 'alloy' | 'echo' | 'fable' | 'onyx' | 'nova' | 'shimmer',
+  input: string,
+  usage: Usage
+) => {
+  const res = await fetch(`/api/audio/${provider}`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({ voice, input, usage })
+  });
+
+  const json = await res.json();
+
+  if (!res.ok) {
+    return { error: json.error } as Result;
+  }
+
+  return json as { audio: string };
+};
+
 const getCurrentUser = async () => {
   const res = await fetch('/api/users/me', {
     method: 'GET',
@@ -190,6 +213,7 @@ const removeMessage = async (chatId: string, messageId: string) => {
 
 export const api = {
   createAI,
+  createAudio,
   getCurrentUser,
   createChat,
   getChats,

@@ -67,6 +67,7 @@ export default function RootLayout({ children }: RootLayoutProps) {
           <Providers attribute="class" defaultTheme="system" enableSystem>
             <SettingsProvider
               defaultModel={appConfig.defaultModel}
+              audioModel={appConfig.audioModel}
               availableModels={getSupportedModels(appConfig.availableModels)}
               allowCustomAPIKey={appConfig.allowCustomAPIKey}
             >

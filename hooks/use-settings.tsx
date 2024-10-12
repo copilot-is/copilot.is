@@ -14,6 +14,7 @@ import { useLocalStorage } from '@/hooks/use-local-storage';
 type SettingsContextProps = {
   allowCustomAPIKey: boolean;
   availableModels: ModelProfile[];
+  audioModel?: string;
   model: Model;
   setModel: (value: Model) => void;
   token: AIToken;
@@ -40,10 +41,12 @@ export const useSettings = (): SettingsContextProps => {
 export const SettingsProvider = ({
   defaultModel = 'gpt-3.5-turbo',
   availableModels,
+  audioModel,
   allowCustomAPIKey = true,
   children
 }: {
   defaultModel?: Model;
+  audioModel?: string;
   availableModels: ModelProfile[];
   allowCustomAPIKey?: boolean;
   children: React.ReactNode;
@@ -78,6 +81,7 @@ export const SettingsProvider = ({
       value={{
         allowCustomAPIKey,
         availableModels,
+        audioModel,
         model,
         setModel,
         token,

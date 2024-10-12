@@ -31,34 +31,36 @@ export function ChatQuick({ id }: ChatUIProps) {
   return (
     <>
       <ChatHeader />
-      <EmptyScreen />
-      <PromptForm
-        className="flex max-w-2xl px-4"
-        containerClassName="rounded-xl border"
-        isWaiting={true}
-        isVision={isVision}
-        isLoading={isLoading}
-        input={input}
-        setInput={setInput}
-        onSubmit={async (content: UserContent) => {
-          setIsLoading(true);
-          const userMessage: Message = {
-            id: messageId,
-            role: 'user',
-            content
-          };
-          const result = await api.createChat(id, usage, [userMessage]);
-          if (result && 'error' in result) {
-            toast.error(result.error);
-            return;
-          }
-          addChat(result);
-          addChatDetail({ ...result, ungenerated: true });
-          setNewChatId(result.id);
-          router.push(`/chat/${result.id}`);
-          setIsLoading(false);
-        }}
-      />
+      <div className="mb-24 flex size-full flex-col items-center justify-center px-4">
+        <EmptyScreen />
+        <PromptForm
+          className="flex max-w-2xl px-0"
+          containerClassName="rounded-xl border"
+          isWaiting={true}
+          isVision={isVision}
+          isLoading={isLoading}
+          input={input}
+          setInput={setInput}
+          onSubmit={async (content: UserContent) => {
+            setIsLoading(true);
+            const userMessage: Message = {
+              id: messageId,
+              role: 'user',
+              content
+            };
+            const result = await api.createChat(id, usage, [userMessage]);
+            if (result && 'error' in result) {
+              toast.error(result.error);
+              return;
+            }
+            addChat(result);
+            addChatDetail({ ...result, ungenerated: true });
+            setNewChatId(result.id);
+            router.push(`/chat/${result.id}`);
+            setIsLoading(false);
+          }}
+        />
+      </div>
     </>
   );
 }

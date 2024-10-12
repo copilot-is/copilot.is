@@ -15,7 +15,7 @@ export interface ChatListProps extends React.ComponentProps<'div'> {
   reload?: () => void;
   messages: Message[];
   isLoading?: boolean;
-  provider: ModelProvider;
+  provider?: ModelProvider;
   readonly?: boolean;
 }
 
@@ -33,7 +33,7 @@ export function ChatList({
   }
 
   return (
-    <div className={cn('mx-auto w-full max-w-4xl flex-1 p-4 pb-6', className)}>
+    <div className={cn('mx-auto w-full max-w-4xl flex-1 p-4', className)}>
       {messages.map((message, index) => {
         const isLastMessage = index === messages.length - 1;
         return (
