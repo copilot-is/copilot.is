@@ -27,6 +27,7 @@ export interface PromptProps
   onSubmit: (value: UserContent) => Promise<void>;
   className?: string;
   containerClassName?: string;
+  textareaClassName?: string;
   isWaiting?: boolean;
 }
 
@@ -39,7 +40,8 @@ export function PromptForm({
   isWaiting,
   onSubmit,
   className,
-  containerClassName
+  containerClassName,
+  textareaClassName
 }: PromptProps) {
   const { formRef, onKeyDown } = useEnterSubmit();
   const [files, setFiles] = React.useState<FileList | undefined>(undefined);
@@ -179,7 +181,12 @@ export function PromptForm({
           containerClassName
         )}
       >
-        <div className="relative flex max-h-96 w-full items-start overflow-hidden">
+        <div
+          className={cn(
+            'relative flex max-h-96 min-h-12 w-full items-start overflow-hidden',
+            textareaClassName
+          )}
+        >
           {isVision && (
             <Tooltip>
               <TooltipTrigger asChild>
@@ -273,7 +280,7 @@ export function PromptForm({
             </Button>
           )}
         </div>
-        <div className="mt-3 text-right text-xs italic text-muted-foreground">
+        <div className="text-right text-xs italic text-muted-foreground">
           Use shift+enter for new line
         </div>
       </div>
