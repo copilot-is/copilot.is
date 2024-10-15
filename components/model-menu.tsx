@@ -8,7 +8,6 @@ import { toast } from 'sonner';
 
 import { api } from '@/lib/api';
 import { SupportedModels } from '@/lib/constant';
-import { Model } from '@/lib/types';
 import { useMediaQuery } from '@/hooks/use-media-query';
 import { useSettings } from '@/hooks/use-settings';
 import { useStore } from '@/store/useStore';
@@ -38,7 +37,7 @@ export function ModelMenu() {
   const { availableModels, model, setModel, modelSettings } = useSettings();
   const [isPending, startTransition] = React.useTransition();
   const [isAlertOpen, setIsAlertOpen] = useState(false);
-  const [newModel, setNewModel] = useState<Model | null>(null);
+  const [newModel, setNewModel] = useState('');
 
   const chat = chatDetails[chatId?.toString()];
   const chatModel = chat?.usage?.model;
@@ -46,7 +45,7 @@ export function ModelMenu() {
     m => m.value === (chatModel || model)
   );
 
-  const handleModelChange = (value: Model) => {
+  const handleModelChange = (value: string) => {
     if (chatModel && chatModel !== value) {
       setIsAlertOpen(true);
       setNewModel(value);
@@ -71,7 +70,7 @@ export function ModelMenu() {
         updateChat(chat.id, { usage });
         updateChatDetail(chat.id, { usage });
         setIsAlertOpen(false);
-        setNewModel(null);
+        setNewModel('');
       });
     }
   };

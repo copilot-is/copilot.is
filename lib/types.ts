@@ -28,7 +28,7 @@ export type Message = CoreMessage & {
 };
 
 export interface Usage extends Record<string, any> {
-  model: Model;
+  model: string;
   stream?: boolean;
   prompt?: string;
   previewToken?: string;
@@ -38,25 +38,11 @@ export interface Usage extends Record<string, any> {
   maxTokens?: number;
 }
 
-export type Model =
-  | string
-  | ChatModel
-  | 'dall-e-3'
-  | 'gemini-1.5-flash-latest'
-  | 'gemini-1.5-pro-latest'
-  | 'claude-3-5-sonnet-20240620'
-  | 'claude-3-opus-20240229'
-  | 'claude-3-sonnet-20240229'
-  | 'claude-3-haiku-20240307'
-  | 'claude-2.1'
-  | 'claude-2.0'
-  | 'claude-instant-1.2';
-
 export type ModelProvider = 'openai' | 'google' | 'anthropic';
 
 export interface ModelProfile extends Record<string, any> {
   text: string;
-  value: Model;
+  value: string;
   vision?: boolean;
   provider: ModelProvider;
   api?: string;

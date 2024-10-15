@@ -3,7 +3,7 @@ import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 
 import { ServiceProvider, SupportedModels } from '@/lib/constant';
-import { MessageContent, Model, ModelProvider } from '@/lib/types';
+import { MessageContent } from '@/lib/types';
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -36,23 +36,23 @@ export function formatString(
   return formattedString;
 }
 
-export const apiFromModel = (value: Model): string => {
+export const apiFromModel = (value: string): string => {
   const model = SupportedModels.find(m => m.value === value);
   return model?.api || `/api/chat/${model?.provider || 'default'}`;
 };
 
-export const providerFromModel = (value: Model) => {
+export const providerFromModel = (value: string) => {
   const model = SupportedModels.find(m => m.value === value);
   return model?.provider;
 };
 
-export const isVisionModel = (value: Model): boolean => {
+export const isVisionModel = (value: string): boolean => {
   const model = SupportedModels.find(m => m.value === value);
   return model?.vision ?? false;
 };
 
 export const getSupportedModels = (
-  availableModels: Record<string, Model[]>
+  availableModels: Record<string, string[]>
 ) => {
   const supportedModels = SupportedModels.filter(({ value, provider }) => {
     return availableModels[provider].length
@@ -88,7 +88,7 @@ export async function readFileAsBase64(file: File): Promise<string> {
   });
 }
 
-export function formatSystemPrompt(model: Model, prompt?: string) {
+export function formatSystemPrompt(model: string, prompt?: string) {
   const provider = providerFromModel(model);
   if (provider && prompt) {
     const time = new Date().toLocaleString();

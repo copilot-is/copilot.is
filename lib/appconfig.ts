@@ -66,7 +66,7 @@ export const appConfig: AppConfig = {
     project: process.env.GOOGLE_VERTEX_PROJECT,
     location: process.env.GOOGLE_VERTEX_LOCATION
   },
-  defaultModel: process.env.DEFAULT_CHAT_MODEL,
+  defaultModel: process.env.DEFAULT_MODEL,
   audioModel: process.env.AUDIO_MODEL,
   availableModels: {
     openai: process.env.OPENAI_MODELS?.split(',') || [],

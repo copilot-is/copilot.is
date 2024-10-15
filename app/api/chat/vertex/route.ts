@@ -3,6 +3,7 @@ import { createVertex } from '@ai-sdk/google-vertex';
 import { generateText, streamText } from 'ai';
 
 import { appConfig } from '@/lib/appconfig';
+import { VertexAIModel } from '@/lib/constant';
 import { Message, type Usage } from '@/lib/types';
 import { auth } from '@/server/auth';
 
@@ -35,17 +36,16 @@ export async function POST(req: Request) {
   } = usage;
 
   try {
-    const vertex = createVertex(
-      previewToken
-        ? {}
-        : {
-            project: appConfig.vertex.project,
-            location: appConfig.vertex.location
-          }
-    );
+    const vertex = createVertex({
+      project: appConfig.vertex.project,
+      location: appConfig.vertex.location,
+      googleAuthOptions: {
+        keyFilename: process.env.GOOGLE_APPLICATION_CREDENTIALS
+      }
+    });
 
     const parameters = {
-      model: vertex(model),
+      model: vertex(VertexAIModel[model] || model),
       system: prompt,
       messages,
       temperature,
@@ -67,6 +67,7 @@ export async function POST(req: Request) {
 
     return res.toDataStreamResponse();
   } catch (err: any) {
+    console.log(err);
     return NextResponse.json({ error: err.message }, { status: 500 });
   }
 }

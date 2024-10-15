@@ -4,7 +4,6 @@ import * as React from 'react';
 
 import { SystemPrompt } from '@/lib/constant';
 import {
-  Model,
   type AIToken,
   type ModelProfile,
   type ModelSettings
@@ -15,8 +14,8 @@ type SettingsContextProps = {
   allowCustomAPIKey: boolean;
   availableModels: ModelProfile[];
   audioModel?: string;
-  model: Model;
-  setModel: (value: Model) => void;
+  model: string;
+  setModel: (value: string) => void;
   token: AIToken;
   setToken: (key: keyof AIToken, value: AIToken[keyof AIToken]) => void;
   modelSettings: ModelSettings;
@@ -39,13 +38,13 @@ export const useSettings = (): SettingsContextProps => {
 };
 
 export const SettingsProvider = ({
-  defaultModel = 'gpt-3.5-turbo',
+  defaultModel = 'gpt-4o',
   availableModels,
   audioModel,
   allowCustomAPIKey = true,
   children
 }: {
-  defaultModel?: Model;
+  defaultModel?: string;
   audioModel?: string;
   availableModels: ModelProfile[];
   allowCustomAPIKey?: boolean;
