@@ -183,10 +183,39 @@ export function PromptForm({
       >
         <div
           className={cn(
-            'relative flex max-h-96 min-h-12 w-full items-start overflow-hidden',
+            'relative flex max-h-96 min-h-12 w-full items-start space-x-1 overflow-hidden',
             textareaClassName
           )}
         >
+          <Textarea
+            autoFocus
+            ref={textareaRef}
+            tabIndex={0}
+            disabled={isLoading || isUploadPending}
+            onKeyDown={e => {
+              if (e.key === 'Enter' && e.shiftKey) {
+                e.preventDefault();
+                const textarea = e.currentTarget;
+                const start = textarea.selectionStart;
+                const end = textarea.selectionEnd;
+                const value = textarea.value;
+                textarea.value =
+                  value.substring(0, start) + '\n' + value.substring(end);
+                textarea.selectionStart = textarea.selectionEnd = start + 1;
+                setInput(textarea.value);
+              } else {
+                onKeyDown(e);
+              }
+            }}
+            rows={1}
+            minRows={1}
+            maxRows={8}
+            value={input}
+            onChange={e => setInput(e.target.value)}
+            placeholder="Send a message."
+            spellCheck={false}
+            className="min-h-8 flex-1 resize-none bg-transparent p-1 focus-within:outline-none"
+          />
           {isVision && (
             <Tooltip>
               <TooltipTrigger asChild>
@@ -194,7 +223,7 @@ export function PromptForm({
                   type="button"
                   variant="ghost"
                   size="icon"
-                  className="size-8 rounded-full"
+                  className="size-8 rounded-full text-muted-foreground"
                   disabled={isUploadPending}
                   onClick={() => {
                     fileRef.current?.click();
@@ -225,35 +254,6 @@ export function PromptForm({
               <TooltipContent>Upload attachments (Max 5, 5mb)</TooltipContent>
             </Tooltip>
           )}
-          <Textarea
-            autoFocus
-            ref={textareaRef}
-            tabIndex={0}
-            disabled={isLoading || isUploadPending}
-            onKeyDown={e => {
-              if (e.key === 'Enter' && e.shiftKey) {
-                e.preventDefault();
-                const textarea = e.currentTarget;
-                const start = textarea.selectionStart;
-                const end = textarea.selectionEnd;
-                const value = textarea.value;
-                textarea.value =
-                  value.substring(0, start) + '\n' + value.substring(end);
-                textarea.selectionStart = textarea.selectionEnd = start + 1;
-                setInput(textarea.value);
-              } else {
-                onKeyDown(e);
-              }
-            }}
-            rows={1}
-            minRows={1}
-            maxRows={8}
-            value={input}
-            onChange={e => setInput(e.target.value)}
-            placeholder="Send a message."
-            spellCheck={false}
-            className="min-h-8 flex-1 resize-none bg-transparent px-2 py-1 focus-within:outline-none"
-          />
           {isLoading && stop ? (
             <Button
               type="button"
@@ -280,8 +280,10 @@ export function PromptForm({
             </Button>
           )}
         </div>
-        <div className="text-right text-xs italic text-muted-foreground">
-          Use shift+enter for new line
+        <div className="flex items-center justify-end px-1">
+          <div className="text-xs italic text-muted-foreground">
+            Use shift+enter for new line
+          </div>
         </div>
       </div>
     </form>

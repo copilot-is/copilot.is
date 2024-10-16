@@ -40,7 +40,7 @@ export async function POST(req: Request) {
       project: appConfig.vertex.project,
       location: appConfig.vertex.location,
       googleAuthOptions: {
-        keyFilename: process.env.GOOGLE_APPLICATION_CREDENTIALS
+        keyFilename: appConfig.vertex.credentials
       }
     });
 

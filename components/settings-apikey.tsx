@@ -20,7 +20,7 @@ export const SettingsAPIKey = () => {
 
   return (
     <Form {...form}>
-      <form className="space-y-6">
+      <form className="space-y-4">
         <FormItem>
           <FormLabel>OpenAI API key</FormLabel>
           <FormControl>

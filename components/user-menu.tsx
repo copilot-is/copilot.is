@@ -18,11 +18,13 @@ import { signOut } from 'next-auth/react';
 import { useTheme } from 'next-themes';
 
 import { api } from '@/lib/api';
+import { cn } from '@/lib/utils';
 import { useStore } from '@/store/useStore';
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
   DropdownMenuContent,
+  DropdownMenuGroup,
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger
@@ -64,7 +66,7 @@ export function UserMenu() {
       ) : (
         user && (
           <DropdownMenu>
-            <DropdownMenuTrigger asChild>
+            <DropdownMenuTrigger className="group" asChild>
               <div
                 tabIndex={0}
                 className="flex w-full cursor-pointer items-center rounded-md border bg-background p-2 text-sm font-medium shadow-sm transition-colors hover:bg-accent focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
@@ -82,7 +84,7 @@ export function UserMenu() {
                   <span className="font-medium">{user.name}</span>
                   <span className="text-muted-foreground">{user.email}</span>
                 </div>
-                <CaretDown className="opacity-50" />
+                <CaretDown className="size-4 opacity-50 transition-transform group-data-[state=open]:rotate-180" />
               </div>
             </DropdownMenuTrigger>
             <DropdownMenuContent className="w-[255px] lg:w-[225px] xl:w-[275px]">
@@ -114,38 +116,44 @@ export function UserMenu() {
                   Appearance
                 </div>
                 <CaretDown
-                  className={`size-4 transition-transform ${isAppearanceOpen ? 'rotate-180' : ''}`}
+                  className={cn(
+                    'size-4 transition-transform',
+                    isAppearanceOpen ? 'rotate-180' : ''
+                  )}
                 />
               </DropdownMenuItem>
-              {isAppearanceOpen && (
-                <>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuCheckboxItem
-                    className="flex items-center"
-                    checked={theme === 'system'}
-                    onCheckedChange={() => setTheme('system')}
-                  >
-                    <Monitor className="mr-2 size-4" />
-                    System
-                  </DropdownMenuCheckboxItem>
-                  <DropdownMenuCheckboxItem
-                    className="flex items-center"
-                    checked={theme === 'light'}
-                    onCheckedChange={() => setTheme('light')}
-                  >
-                    <Sun className="mr-2 size-4" />
-                    Light
-                  </DropdownMenuCheckboxItem>
-                  <DropdownMenuCheckboxItem
-                    className="flex items-center"
-                    checked={theme === 'dark'}
-                    onCheckedChange={() => setTheme('dark')}
-                  >
-                    <Moon className="mr-2 size-4" />
-                    Dark
-                  </DropdownMenuCheckboxItem>
-                </>
-              )}
+              <DropdownMenuGroup
+                className={cn(
+                  'transition-transform',
+                  !isAppearanceOpen ? 'hidden' : ''
+                )}
+              >
+                <DropdownMenuSeparator />
+                <DropdownMenuCheckboxItem
+                  className="flex items-center"
+                  checked={theme === 'system'}
+                  onCheckedChange={() => setTheme('system')}
+                >
+                  <Monitor className="mr-2 size-4" />
+                  System
+                </DropdownMenuCheckboxItem>
+                <DropdownMenuCheckboxItem
+                  className="flex items-center"
+                  checked={theme === 'light'}
+                  onCheckedChange={() => setTheme('light')}
+                >
+                  <Sun className="mr-2 size-4" />
+                  Light
+                </DropdownMenuCheckboxItem>
+                <DropdownMenuCheckboxItem
+                  className="flex items-center"
+                  checked={theme === 'dark'}
+                  onCheckedChange={() => setTheme('dark')}
+                >
+                  <Moon className="mr-2 size-4" />
+                  Dark
+                </DropdownMenuCheckboxItem>
+              </DropdownMenuGroup>
               <DropdownMenuSeparator />
               <DropdownMenuItem asChild>
                 <a

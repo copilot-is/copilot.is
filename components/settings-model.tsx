@@ -25,7 +25,7 @@ export const SettingsModel = () => {
 
   return (
     <Form {...form}>
-      <form className="space-y-6">
+      <form className="space-y-4">
         <FormItem>
           <FormLabel>Model</FormLabel>
           <Select onValueChange={setModel} value={model}>
@@ -68,7 +68,7 @@ export const SettingsModel = () => {
           <FormLabel>System Prompt</FormLabel>
           <FormControl>
             <Textarea
-              rows={5}
+              rows={3}
               placeholder="Enter a prompt..."
               value={modelSettings.prompt ?? ''}
               onChange={e => {
@@ -78,132 +78,190 @@ export const SettingsModel = () => {
           </FormControl>
         </FormItem>
         <FormItem>
-          <FormLabel>
-            Temperature: {modelSettings.temperature}
-            <Button
-              type="button"
-              variant="secondary"
-              size="sm"
-              className="ml-2 h-5 rounded-full px-2"
-              onClick={() => setModelSettings('temperature', null)}
-            >
-              Reset to default
-            </Button>
+          <FormLabel className="grid grid-cols-3 items-center">
+            <div>Temperature</div>
+            <div className="text-center">
+              <Badge className="rounded-full">
+                {modelSettings.temperature}
+              </Badge>
+            </div>
+            <div className="text-right">
+              <Button
+                type="button"
+                variant="secondary"
+                size="sm"
+                className="h-5 rounded-sm px-2"
+                onClick={() => setModelSettings('temperature', null)}
+              >
+                Reset to default
+              </Button>
+            </div>
           </FormLabel>
           <FormControl>
-            <div className="flex">
-              <Badge variant="secondary" className="mr-3 w-10 justify-center">
+            <div className="flex items-center gap-3">
+              <Badge
+                variant="secondary"
+                className="w-14 justify-center rounded-full"
+              >
                 0
               </Badge>
-              <Slider
-                min={0}
-                max={2}
-                step={0.1}
-                value={[modelSettings.temperature]}
-                onValueChange={value => {
-                  setModelSettings('temperature', value[0]);
-                }}
-              />
-              <Badge variant="secondary" className="ml-3 w-14 justify-center">
+              <div className="flex-1">
+                <Slider
+                  min={0}
+                  max={2}
+                  step={0.1}
+                  value={[modelSettings.temperature]}
+                  onValueChange={value => {
+                    setModelSettings('temperature', value[0]);
+                  }}
+                />
+              </div>
+              <Badge
+                variant="secondary"
+                className="w-14 justify-center rounded-full"
+              >
                 2
               </Badge>
             </div>
           </FormControl>
         </FormItem>
         <FormItem>
-          <FormLabel>
-            Max Tokens: {modelSettings.maxTokens}
-            <Button
-              type="button"
-              variant="secondary"
-              size="sm"
-              className="ml-2 h-5 rounded-full px-2"
-              onClick={() => setModelSettings('maxTokens', null)}
-            >
-              Reset to default
-            </Button>
+          <FormLabel className="grid grid-cols-3 items-center">
+            <div>Max Tokens</div>
+            <div className="text-center">
+              <Badge className="rounded-full">{modelSettings.maxTokens}</Badge>
+            </div>
+            <div className="text-right">
+              <Button
+                type="button"
+                variant="secondary"
+                size="sm"
+                className="h-5 rounded-sm px-2"
+                onClick={() => setModelSettings('maxTokens', null)}
+              >
+                Reset to default
+              </Button>
+            </div>
           </FormLabel>
           <FormControl>
-            <div className="flex">
-              <Badge variant="secondary" className="mr-3 w-10 justify-center">
+            <div className="flex items-center gap-3">
+              <Badge
+                variant="secondary"
+                className="w-14 justify-center rounded-full"
+              >
                 1
               </Badge>
-              <Slider
-                min={1}
-                max={8192}
-                step={1}
-                value={[modelSettings.maxTokens]}
-                onValueChange={value => {
-                  setModelSettings('maxTokens', value[0]);
-                }}
-              />
-              <Badge variant="secondary" className="ml-3 w-14 justify-center">
+              <div className="flex-1">
+                <Slider
+                  min={1}
+                  max={8192}
+                  step={1}
+                  value={[modelSettings.maxTokens]}
+                  onValueChange={value => {
+                    setModelSettings('maxTokens', value[0]);
+                  }}
+                />
+              </div>
+              <Badge
+                variant="secondary"
+                className="w-14 justify-center rounded-full"
+              >
                 8192
               </Badge>
             </div>
           </FormControl>
         </FormItem>
         <FormItem>
-          <FormLabel>
-            Presence Penalty: {modelSettings.presencePenalty}
-            <Button
-              type="button"
-              variant="secondary"
-              size="sm"
-              className="ml-2 h-5 rounded-full px-2"
-              onClick={() => setModelSettings('presencePenalty', null)}
-            >
-              Reset to default
-            </Button>
+          <FormLabel className="grid grid-cols-3 items-center">
+            <div>Presence Penalty</div>
+            <div className="text-center">
+              <Badge className="rounded-full">
+                {modelSettings.presencePenalty}
+              </Badge>
+            </div>
+            <div className="text-right">
+              <Button
+                type="button"
+                variant="secondary"
+                size="sm"
+                className="h-5 rounded-sm px-2"
+                onClick={() => setModelSettings('presencePenalty', null)}
+              >
+                Reset to default
+              </Button>
+            </div>
           </FormLabel>
           <FormControl>
-            <div className="flex">
-              <Badge variant="secondary" className="mr-3 w-10 justify-center">
+            <div className="flex items-center gap-3">
+              <Badge
+                variant="secondary"
+                className="w-14 justify-center rounded-full"
+              >
                 -2
               </Badge>
-              <Slider
-                min={-2}
-                max={2}
-                step={0.1}
-                value={[modelSettings.presencePenalty]}
-                onValueChange={value => {
-                  setModelSettings('presencePenalty', value[0]);
-                }}
-              />
-              <Badge variant="secondary" className="ml-3 w-14 justify-center">
+              <div className="flex-1">
+                <Slider
+                  min={-2}
+                  max={2}
+                  step={0.1}
+                  value={[modelSettings.presencePenalty]}
+                  onValueChange={value => {
+                    setModelSettings('presencePenalty', value[0]);
+                  }}
+                />
+              </div>
+              <Badge
+                variant="secondary"
+                className="w-14 justify-center rounded-full"
+              >
                 2
               </Badge>
             </div>
           </FormControl>
         </FormItem>
         <FormItem>
-          <FormLabel>
-            Frequency Penalty: {modelSettings.frequencyPenalty}
-            <Button
-              type="button"
-              variant="secondary"
-              size="sm"
-              className="ml-2 h-5 rounded-full px-2"
-              onClick={() => setModelSettings('frequencyPenalty', null)}
-            >
-              Reset to default
-            </Button>
+          <FormLabel className="grid grid-cols-3 items-center">
+            <div>Frequency Penalty</div>
+            <div className="text-center">
+              <Badge className="rounded-full">
+                {modelSettings.frequencyPenalty}
+              </Badge>
+            </div>
+            <div className="text-right">
+              <Button
+                type="button"
+                variant="secondary"
+                size="sm"
+                className="h-5 rounded-sm px-2"
+                onClick={() => setModelSettings('frequencyPenalty', null)}
+              >
+                Reset to default
+              </Button>
+            </div>
           </FormLabel>
           <FormControl>
-            <div className="flex">
-              <Badge variant="secondary" className="mr-3 w-10 justify-center">
+            <div className="flex items-center gap-3">
+              <Badge
+                variant="secondary"
+                className="w-14 justify-center rounded-full"
+              >
                 -2
               </Badge>
-              <Slider
-                min={-2}
-                max={2}
-                step={0.1}
-                value={[modelSettings.frequencyPenalty]}
-                onValueChange={value => {
-                  setModelSettings('frequencyPenalty', value[0]);
-                }}
-              />
-              <Badge variant="secondary" className="ml-3 w-14 justify-center">
+              <div className="flex-1">
+                <Slider
+                  min={-2}
+                  max={2}
+                  step={0.1}
+                  value={[modelSettings.frequencyPenalty]}
+                  onValueChange={value => {
+                    setModelSettings('frequencyPenalty', value[0]);
+                  }}
+                />
+              </div>
+              <Badge
+                variant="secondary"
+                className="w-14 justify-center rounded-full"
+              >
                 2
               </Badge>
             </div>
