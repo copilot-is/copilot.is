@@ -24,6 +24,7 @@ export interface AppConfig {
   readonly vertex: {
     project?: string;
     location?: string;
+    credentials?: string;
   };
   readonly defaultModel?: string;
   readonly audioModel?: string;
@@ -64,7 +65,8 @@ export const appConfig: AppConfig = {
   },
   vertex: {
     project: process.env.GOOGLE_VERTEX_PROJECT,
-    location: process.env.GOOGLE_VERTEX_LOCATION
+    location: process.env.GOOGLE_VERTEX_LOCATION,
+    credentials: process.env.GOOGLE_APPLICATION_CREDENTIALS
   },
   defaultModel: process.env.DEFAULT_MODEL,
   audioModel: process.env.AUDIO_MODEL,
