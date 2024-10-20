@@ -17,10 +17,10 @@ export function ChatHeader() {
         href="/"
         className={cn(
           buttonVariants({ variant: 'ghost', size: 'icon' }),
-          'size-9 lg:hidden'
+          'size-9 lg:hidden [&_svg]:size-6'
         )}
       >
-        <PlusCircle className="size-6" />
+        <PlusCircle />
         <span className="sr-only">New Chat</span>
       </Link>
     </div>
