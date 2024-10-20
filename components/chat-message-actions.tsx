@@ -124,7 +124,7 @@ export function ChatMessageActions({
   return (
     <div
       className={cn(
-        'ml-11 inline-flex space-x-1 lg:group-hover:visible',
+        'ml-11 inline-flex space-x-1 lg:group-focus-within:visible lg:group-hover:visible',
         message.role === 'assistant' ? 'mt-1' : '',
         isLastMessage ? 'lg:visible' : 'lg:invisible'
       )}
