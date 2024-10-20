@@ -1,7 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import { Sidebar } from '@phosphor-icons/react';
+import { Sidebar as SidebarIcon } from '@phosphor-icons/react';
 
 import { useSidebar } from '@/hooks/use-sidebar';
 import { Button } from '@/components/ui/button';
@@ -20,10 +20,10 @@ export function SidebarToggle() {
         <Button
           variant="ghost"
           size="icon"
-          className="size-9"
+          className="size-9 [&_svg]:size-6"
           onClick={toggleSidebar}
         >
-          <Sidebar className="size-6" />
+          <SidebarIcon />
           <span className="sr-only">Toggle Sidebar</span>
         </Button>
       </TooltipTrigger>
