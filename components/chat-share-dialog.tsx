@@ -1,7 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import { CircleNotch } from '@phosphor-icons/react';
+import { ChatsCircle, CircleNotch } from '@phosphor-icons/react';
 import { toast } from 'sonner';
 
 import { api } from '@/lib/api';
@@ -58,8 +58,9 @@ export function ChatShareDialog({
             Anyone with the link will be able to view this shared chat.
           </DialogDescription>
         </DialogHeader>
-        <div className="space-y-1 rounded-md border p-4 text-sm">
-          <div className="font-medium">{chat.title}</div>
+        <div className="flex items-center space-x-2 rounded-md border p-2 text-sm font-medium shadow-sm">
+          <ChatsCircle className="size-4" />
+          <div>{chat.title}</div>
         </div>
         <DialogFooter>
           {chat.shared && (

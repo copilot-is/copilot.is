@@ -4,7 +4,7 @@ import {
   CheckCircle,
   CircleNotch,
   Info,
-  WarningCircle,
+  Warning,
   XCircle
 } from '@phosphor-icons/react';
 import { useTheme } from 'next-themes';
@@ -35,9 +35,7 @@ const Toaster = ({ ...props }: ToasterProps) => {
           <CheckCircle weight="fill" className="size-5 fill-green-500" />
         ),
         info: <Info weight="fill" className="size-5 fill-blue-500" />,
-        warning: (
-          <WarningCircle weight="fill" className="size-5 fill-yellow-500" />
-        ),
+        warning: <Warning weight="fill" className="size-5 fill-yellow-500" />,
         error: <XCircle weight="fill" className="size-5 fill-red-500" />,
         loading: (
           <CircleNotch className="size-5 animate-spin text-muted-foreground" />
