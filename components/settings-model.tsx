@@ -65,7 +65,20 @@ export const SettingsModel = () => {
           </Select>
         </FormItem>
         <FormItem>
-          <FormLabel>System Prompt</FormLabel>
+          <FormLabel className="flex items-center justify-between">
+            <div>System Prompt</div>
+            <div className="text-right">
+              <Button
+                type="button"
+                variant="secondary"
+                size="sm"
+                className="h-5 rounded-sm px-2"
+                onClick={() => setModelSettings('prompt', null)}
+              >
+                Reset
+              </Button>
+            </div>
+          </FormLabel>
           <FormControl>
             <Textarea
               rows={3}
@@ -93,7 +106,7 @@ export const SettingsModel = () => {
                 className="h-5 rounded-sm px-2"
                 onClick={() => setModelSettings('temperature', null)}
               >
-                Reset to default
+                Reset
               </Button>
             </div>
           </FormLabel>
@@ -139,7 +152,7 @@ export const SettingsModel = () => {
                 className="h-5 rounded-sm px-2"
                 onClick={() => setModelSettings('maxTokens', null)}
               >
-                Reset to default
+                Reset
               </Button>
             </div>
           </FormLabel>
@@ -187,7 +200,7 @@ export const SettingsModel = () => {
                 className="h-5 rounded-sm px-2"
                 onClick={() => setModelSettings('presencePenalty', null)}
               >
-                Reset to default
+                Reset
               </Button>
             </div>
           </FormLabel>
@@ -235,7 +248,7 @@ export const SettingsModel = () => {
                 className="h-5 rounded-sm px-2"
                 onClick={() => setModelSettings('frequencyPenalty', null)}
               >
-                Reset to default
+                Reset
               </Button>
             </div>
           </FormLabel>

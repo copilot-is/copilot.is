@@ -6,9 +6,9 @@ import {
   CheckCircle,
   CircleNotch,
   Copy,
+  PauseCircle,
   PencilSimple,
   SpeakerHigh,
-  StopCircle,
   Trash
 } from '@phosphor-icons/react';
 import { toast } from 'sonner';
@@ -140,7 +140,7 @@ export function ChatMessageActions({
           {isLoadingAudio ? (
             <CircleNotch className="size-4 animate-spin" />
           ) : isPlaying ? (
-            <StopCircle className="size-4" />
+            <PauseCircle className="size-4" />
           ) : (
             <SpeakerHigh className="size-4" />
           )}

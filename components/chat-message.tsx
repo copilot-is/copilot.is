@@ -18,7 +18,7 @@ export function ChatMessage({ message, provider, children }: ChatMessageProps) {
   return (
     <div
       tabIndex={0}
-      className="group mb-1 pb-1 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+      className="group mb-1 rounded-md pb-1 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
     >
       <div className="flex items-start">
         <div

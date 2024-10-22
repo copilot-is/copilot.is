@@ -92,7 +92,7 @@ export const SettingsProvider = ({
           key: keyof ModelSettings,
           value: ModelSettings[keyof ModelSettings]
         ) => {
-          if (value === null) {
+          if (value === null || value === undefined) {
             if (modelSettings[key] !== defaultModelSettings[key]) {
               setModelSettings({
                 ...modelSettings,
@@ -102,7 +102,7 @@ export const SettingsProvider = ({
           } else {
             setModelSettings({
               ...modelSettings,
-              [key]: value || defaultModelSettings[key]
+              [key]: value
             });
           }
         }

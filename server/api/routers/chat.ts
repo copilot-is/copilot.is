@@ -135,6 +135,16 @@ export const chatRouter = createTRPCRouter({
           userId: ctx.session.user.id,
           usage: input.usage
         });
+      } else {
+        await ctx.db
+          .update(chats)
+          .set({ usage: input.usage })
+          .where(
+            and(
+              eq(chats.id, input.chatId),
+              eq(chats.userId, ctx.session.user.id)
+            )
+          );
       }
 
       if (

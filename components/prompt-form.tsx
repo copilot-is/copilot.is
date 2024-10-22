@@ -19,6 +19,7 @@ import {
   TooltipContent,
   TooltipTrigger
 } from '@/components/ui/tooltip';
+import { ModelPopover } from '@/components/model-popover';
 
 export interface PromptProps
   extends Pick<UseChatHelpers, 'input' | 'setInput' | 'isLoading'> {
@@ -183,7 +184,7 @@ export function PromptForm({
       >
         <div
           className={cn(
-            'relative flex max-h-96 min-h-12 w-full items-start space-x-1 overflow-hidden',
+            'relative flex max-h-96 min-h-12 w-full items-start space-x-2',
             textareaClassName
           )}
         >
@@ -223,14 +224,14 @@ export function PromptForm({
                   type="button"
                   variant="ghost"
                   size="icon"
-                  className="size-8 rounded-full text-muted-foreground"
+                  className="size-8 text-muted-foreground"
                   disabled={isUploadPending}
                   onClick={() => {
                     fileRef.current?.click();
                   }}
                 >
                   {isUploadPending ? (
-                    <CircleNotch className="animate-spin" />
+                    <CircleNotch className="size-4 animate-spin" />
                   ) : (
                     <>
                       <input
@@ -280,8 +281,9 @@ export function PromptForm({
             </Button>
           )}
         </div>
-        <div className="flex items-center justify-end px-1">
-          <div className="text-xs italic text-muted-foreground">
+        <div className="flex items-center justify-between space-x-2 px-1">
+          <ModelPopover />
+          <div className="truncate break-all text-xs italic text-muted-foreground">
             Use shift+enter for new line
           </div>
         </div>
