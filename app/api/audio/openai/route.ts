@@ -55,7 +55,7 @@ export async function POST(req: Request) {
 
     return NextResponse.json({
       type: 'audio',
-      audio: buffer.toString('base64')
+      audio: `data:audio/mp3;base64,${buffer.toString('base64')}`
     });
   } catch (err: any) {
     if (err instanceof OpenAI.APIError) {

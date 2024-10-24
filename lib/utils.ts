@@ -2,7 +2,7 @@ import { generateId as generateIdFunc } from 'ai';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 
-import { ServiceProvider, SupportedModels } from '@/lib/constant';
+import { AudioModels, ServiceProvider, SupportedModels } from '@/lib/constant';
 import { MessageContent } from '@/lib/types';
 
 export function cn(...inputs: ClassValue[]) {
@@ -37,18 +37,27 @@ export function formatString(
 }
 
 export const apiFromModel = (value: string): string => {
-  const model = SupportedModels.find(m => m.value === value);
-  return model?.api || `/api/chat/${model?.provider || 'default'}`;
+  const model = SupportedModels.concat(AudioModels).find(
+    m => m.value === value
+  );
+  return `/api/${model?.type || 'chat'}/${model?.provider || 'default'}`;
 };
 
 export const providerFromModel = (value: string) => {
-  const model = SupportedModels.find(m => m.value === value);
+  const model = SupportedModels.concat(AudioModels).find(
+    m => m.value === value
+  );
   return model?.provider;
 };
 
 export const isVisionModel = (value: string): boolean => {
   const model = SupportedModels.find(m => m.value === value);
   return model?.vision ?? false;
+};
+
+export const isImageModel = (value: string): boolean => {
+  const model = SupportedModels.find(m => m.value === value);
+  return model?.type === 'images';
 };
 
 export const getSupportedModels = (

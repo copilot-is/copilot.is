@@ -159,7 +159,11 @@ export function ChatUI({ id }: ChatUIProps) {
           previewToken
         };
 
-        const result = await api.createAI(provider, genMessages, genUsage);
+        const result = await api.createAI(
+          apiFromModel(genUsage.model),
+          genMessages,
+          genUsage
+        );
         if (result && !('error' in result)) {
           if (result.content) {
             await api.updateChat(id, { title: result.content });

@@ -1,3 +1,5 @@
+import { Voice } from '@/lib/types';
+
 export interface AppConfig {
   readonly product: {
     name: string;
@@ -26,13 +28,16 @@ export interface AppConfig {
     location?: string;
     credentials?: string;
   };
-  readonly defaultModel?: string;
-  readonly audioModel?: string;
+  readonly tts: {
+    model?: string;
+    voice?: Voice;
+  };
   readonly availableModels: {
     openai: string[];
     google: string[];
     anthropic: string[];
   };
+  readonly defaultModel?: string;
   readonly allowCustomAPIKey: boolean;
   readonly umami: {
     scriptURL?: string;
@@ -52,29 +57,32 @@ export const appConfig: AppConfig = {
     prefix: process.env.DATABASE_PREFIX || ''
   },
   openai: {
-    apiKey: process.env.OPENAI_API_KEY || '',
-    baseURL: process.env.OPENAI_BASE_URL
+    baseURL: process.env.OPENAI_BASE_URL,
+    apiKey: process.env.OPENAI_API_KEY || ''
   },
   google: {
-    apiKey: process.env.GOOGLE_GENERATIVE_AI_API_KEY || '',
-    baseURL: process.env.GOOGLE_GENERATIVE_AI_BASE_URL
+    baseURL: process.env.GOOGLE_GENERATIVE_AI_BASE_URL,
+    apiKey: process.env.GOOGLE_GENERATIVE_AI_API_KEY || ''
   },
   anthropic: {
-    apiKey: process.env.ANTHROPIC_API_KEY || '',
-    baseURL: process.env.ANTHROPIC_BASE_URL
+    baseURL: process.env.ANTHROPIC_BASE_URL,
+    apiKey: process.env.ANTHROPIC_API_KEY || ''
   },
   vertex: {
     project: process.env.GOOGLE_VERTEX_PROJECT,
     location: process.env.GOOGLE_VERTEX_LOCATION,
     credentials: process.env.GOOGLE_APPLICATION_CREDENTIALS
   },
-  defaultModel: process.env.DEFAULT_MODEL,
-  audioModel: process.env.AUDIO_MODEL,
+  tts: {
+    model: process.env.TTS_MODEL,
+    voice: process.env.TTS_VOICE as Voice
+  },
   availableModels: {
     openai: process.env.OPENAI_MODELS?.split(',') || [],
     google: process.env.GOOGLE_GENERATIVE_AI_MODELS?.split(',') || [],
     anthropic: process.env.ANTHROPIC_MODELS?.split(',') || []
   },
+  defaultModel: process.env.DEFAULT_MODEL,
   allowCustomAPIKey:
     process.env.ALLOW_CUSTOM_API_KEY === 'false' ? false : true,
   umami: {

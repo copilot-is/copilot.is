@@ -66,8 +66,8 @@ export default function RootLayout({ children }: RootLayoutProps) {
         <TRPCReactProvider>
           <Providers attribute="class" defaultTheme="system" enableSystem>
             <SettingsProvider
+              defaultTTS={appConfig.tts}
               defaultModel={appConfig.defaultModel}
-              audioModel={appConfig.audioModel}
               availableModels={getSupportedModels(appConfig.availableModels)}
               allowCustomAPIKey={appConfig.allowCustomAPIKey}
             >

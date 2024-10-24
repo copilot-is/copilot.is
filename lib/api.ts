@@ -1,18 +1,18 @@
 import {
   Message,
-  ModelProvider,
   Result,
   User,
+  Voice,
   type Chat,
   type Usage
 } from '@/lib/types';
 
 const createAI = async (
-  provider: ModelProvider,
+  api: string,
   messages: { role: string; content: string }[],
   usage: Usage
 ) => {
-  const res = await fetch(`/api/chat/${provider}`, {
+  const res = await fetch(api, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json'
@@ -30,12 +30,12 @@ const createAI = async (
 };
 
 const createAudio = async (
-  provider: ModelProvider,
-  voice: 'alloy' | 'echo' | 'fable' | 'onyx' | 'nova' | 'shimmer',
+  api: string,
+  voice: Voice,
   input: string,
   usage: Usage
 ) => {
-  const res = await fetch(`/api/audio/${provider}`, {
+  const res = await fetch(api, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json'

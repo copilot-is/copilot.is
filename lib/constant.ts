@@ -1,4 +1,4 @@
-import { ChatCategory, type ModelProfile } from '@/lib/types';
+import { ChatCategory, Voice, type ModelProfile } from '@/lib/types';
 
 export const SupportedModels: ModelProfile[] = [
   {
@@ -39,7 +39,7 @@ export const SupportedModels: ModelProfile[] = [
     text: 'DALL·E 3',
     value: 'dall-e-3',
     provider: 'openai',
-    api: '/api/images/openai'
+    type: 'images'
   },
   {
     text: 'Gemini 1.5 Pro',
@@ -95,6 +95,30 @@ export const SupportedModels: ModelProfile[] = [
     vision: true,
     provider: 'anthropic'
   }
+];
+
+export const AudioModels: ModelProfile[] = [
+  {
+    text: 'OpenAI TTS',
+    value: 'tts-1',
+    provider: 'openai',
+    type: 'audio'
+  },
+  {
+    text: 'OpenAI TTS HD',
+    value: 'tts-1-hd',
+    provider: 'openai',
+    type: 'audio'
+  }
+];
+
+export const Voices: Voice[] = [
+  'alloy',
+  'echo',
+  'fable',
+  'onyx',
+  'nova',
+  'shimmer'
 ];
 
 export enum ServiceProvider {

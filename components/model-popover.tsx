@@ -4,6 +4,7 @@ import { useParams } from 'next/navigation';
 import { CaretDown } from '@phosphor-icons/react';
 import { useForm } from 'react-hook-form';
 
+import { isImageModel } from '@/lib/utils';
 import { useSettings } from '@/hooks/use-settings';
 import { useStore } from '@/store/useStore';
 import { Badge } from '@/components/ui/badge';
@@ -25,6 +26,7 @@ export const ModelPopover = () => {
 
   const chat = chatDetails[chatId?.toString()];
   const chatUsage = { ...modelSettings, ...chat?.usage };
+  const isImage = isImageModel(chatUsage.model || model);
 
   const handleChange = (key: string, value?: number | null) => {
     if (chat) {
@@ -40,14 +42,20 @@ export const ModelPopover = () => {
   };
 
   const handleReset = (key: string, value?: number | null) => {
-    if (!chat) {
-      setModelSettings(key, null);
-    } else {
+    if (chat) {
       handleChange(key, value);
+    } else {
+      setModelSettings(key, null);
     }
   };
 
-  return (
+  return isImage ? (
+    <div className="group flex items-center text-xs font-normal text-muted-foreground">
+      <span className="whitespace-nowrap px-px">
+        {chatUsage.model || model}
+      </span>
+    </div>
+  ) : (
     <Popover>
       <PopoverTrigger className="group flex items-center text-xs font-normal text-muted-foreground hover:text-accent-foreground data-[state=open]:text-accent-foreground">
         <span className="whitespace-nowrap px-px">

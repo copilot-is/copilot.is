@@ -15,7 +15,12 @@ import { toast } from 'sonner';
 
 import { api } from '@/lib/api';
 import { Message } from '@/lib/types';
-import { cn, getMessageContentText } from '@/lib/utils';
+import {
+  apiFromModel,
+  cn,
+  getMessageContentText,
+  providerFromModel
+} from '@/lib/utils';
 import { useCopyToClipboard } from '@/hooks/use-copy-to-clipboard';
 import { useSettings } from '@/hooks/use-settings';
 import { useStore } from '@/store/useStore';
@@ -57,7 +62,7 @@ export function ChatMessageActions({
   isLastMessage,
   readonly
 }: ChatMessageActionsProps) {
-  const { audioModel } = useSettings();
+  const { allowCustomAPIKey, tts, token } = useSettings();
   const { updateChatMessage, removeChatMessage } = useStore();
   const { isCopied, copyToClipboard } = useCopyToClipboard({ timeout: 3000 });
   const [content, setContent] = React.useState('');
@@ -81,12 +86,16 @@ export function ChatMessageActions({
   };
 
   const onRead = async () => {
-    if (audioModel) {
-      const usage = { model: audioModel, previewToken: undefined };
+    if (tts.model && tts.voice) {
+      const apiRoute = apiFromModel(tts.model);
+      const provider = providerFromModel(tts.model);
+      const previewToken =
+        allowCustomAPIKey && provider ? token?.[provider] : undefined;
+      const usage = { model: tts.model, previewToken };
       const input = getMessageContentText(message.content);
 
       setIsLoadingAudio(true);
-      const result = await api.createAudio('openai', 'alloy', input, usage);
+      const result = await api.createAudio(apiRoute, tts.voice, input, usage);
       setIsLoadingAudio(false);
 
       if (result && 'error' in result) {
@@ -94,7 +103,7 @@ export function ChatMessageActions({
         return;
       }
 
-      const audio = new Audio(`data:audio/mp3;base64,${result.audio}`);
+      const audio = new Audio(result.audio);
       audioRef.current = audio;
       audio.play();
       setIsPlaying(true);
@@ -129,7 +138,7 @@ export function ChatMessageActions({
         isLastMessage ? 'lg:visible' : 'lg:invisible'
       )}
     >
-      {audioModel && (
+      {tts.model && tts.voice && (
         <Button
           variant="ghost"
           size="icon"

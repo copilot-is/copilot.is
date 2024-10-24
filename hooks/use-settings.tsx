@@ -4,6 +4,7 @@ import * as React from 'react';
 
 import { SystemPrompt } from '@/lib/constant';
 import {
+  Voice,
   type AIToken,
   type ModelProfile,
   type ModelSettings
@@ -13,7 +14,8 @@ import { useLocalStorage } from '@/hooks/use-local-storage';
 type SettingsContextProps = {
   allowCustomAPIKey: boolean;
   availableModels: ModelProfile[];
-  audioModel?: string;
+  tts: { model?: string; voice?: Voice };
+  setTextToSpeech: (key: 'model' | 'voice', value?: string | Voice) => void;
   model: string;
   setModel: (value: string) => void;
   token: AIToken;
@@ -38,14 +40,17 @@ export const useSettings = (): SettingsContextProps => {
 };
 
 export const SettingsProvider = ({
+  defaultTTS = {},
   defaultModel = 'gpt-4o',
   availableModels,
-  audioModel,
   allowCustomAPIKey = true,
   children
 }: {
+  defaultTTS?: {
+    model?: string;
+    voice?: Voice;
+  };
   defaultModel?: string;
-  audioModel?: string;
   availableModels: ModelProfile[];
   allowCustomAPIKey?: boolean;
   children: React.ReactNode;
@@ -55,6 +60,9 @@ export const SettingsProvider = ({
   const [model, setModel, modelLoading] = useLocalStorage<
     SettingsContextProps['model']
   >('ai-model', defaultModel);
+  const [tts, setTextToSpeech, ttsLoading] = useLocalStorage<
+    SettingsContextProps['tts']
+  >('ai-tts', defaultTTS);
 
   const defaultModelSettings: ModelSettings = {
     prompt: SystemPrompt,
@@ -69,7 +77,8 @@ export const SettingsProvider = ({
       defaultModelSettings
     );
 
-  const isLoading = tokenLoading && modelLoading && modelSettingsLoading;
+  const isLoading =
+    tokenLoading && ttsLoading && modelLoading && modelSettingsLoading;
 
   if (isLoading) {
     return null;
@@ -80,7 +89,10 @@ export const SettingsProvider = ({
       value={{
         allowCustomAPIKey,
         availableModels,
-        audioModel,
+        tts,
+        setTextToSpeech(key: 'model' | 'voice', value?: string | Voice) {
+          setTextToSpeech({ ...tts, [key]: value });
+        },
         model,
         setModel,
         token,

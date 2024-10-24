@@ -1,6 +1,5 @@
 import { CoreMessage, ImagePart, TextPart, UserContent } from 'ai';
 import { type Session } from 'next-auth';
-import { ChatModel } from 'openai/resources';
 
 export type { UserContent, TextPart, ImagePart };
 
@@ -43,9 +42,9 @@ export type ModelProvider = 'openai' | 'google' | 'anthropic';
 export interface ModelProfile extends Record<string, any> {
   text: string;
   value: string;
+  type?: 'chat' | 'images' | 'audio';
   vision?: boolean;
   provider: ModelProvider;
-  api?: string;
 }
 
 export interface ModelSettings extends Record<string, any> {
@@ -72,3 +71,5 @@ export type ChatCategory =
 export type Result = {
   error: string;
 };
+
+export type Voice = 'alloy' | 'echo' | 'fable' | 'onyx' | 'nova' | 'shimmer';
