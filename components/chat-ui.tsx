@@ -32,7 +32,7 @@ export function ChatUI({ id }: ChatUIProps) {
   const regenerateIdRef = useRef<string>();
   const userMessageRef = useRef<Message>();
   const [isFetching, setIsFetching] = useState(false);
-  const { allowCustomAPIKey, token, modelSettings } = useSettings();
+  const { allowCustomAPIKey, token, settings } = useSettings();
   const {
     chatDetails,
     addChatDetail,
@@ -46,7 +46,7 @@ export function ChatUI({ id }: ChatUIProps) {
   const ungenerated = chat?.ungenerated;
   const isVision = isVisionModel(model);
   const provider = providerFromModel(model);
-  const prompt = formatSystemPrompt(model, modelSettings.prompt);
+  const prompt = formatSystemPrompt(model, settings.prompt);
   const previewToken =
     allowCustomAPIKey && provider ? token?.[provider] : undefined;
   const usage = {

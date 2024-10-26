@@ -19,7 +19,7 @@ import { Textarea } from '@/components/ui/textarea';
 
 export const SettingsModel = () => {
   const form = useForm();
-  const { availableModels, model, setModel, modelSettings, setModelSettings } =
+  const { availableModels, model, setModel, settings, setSettings } =
     useSettings();
   const selectedModel = availableModels.find(m => m.value === model);
 
@@ -73,7 +73,7 @@ export const SettingsModel = () => {
                 variant="secondary"
                 size="sm"
                 className="h-5 rounded-sm px-2"
-                onClick={() => setModelSettings('prompt', null)}
+                onClick={() => setSettings('prompt', null)}
               >
                 Reset
               </Button>
@@ -83,9 +83,9 @@ export const SettingsModel = () => {
             <Textarea
               rows={3}
               placeholder="Enter a prompt..."
-              value={modelSettings.prompt ?? ''}
+              value={settings.prompt ?? ''}
               onChange={e => {
-                setModelSettings('prompt', e.target.value);
+                setSettings('prompt', e.target.value);
               }}
             />
           </FormControl>
@@ -94,9 +94,7 @@ export const SettingsModel = () => {
           <FormLabel className="grid grid-cols-3 items-center">
             <div>Temperature</div>
             <div className="text-center">
-              <Badge className="rounded-full">
-                {modelSettings.temperature}
-              </Badge>
+              <Badge className="rounded-full">{settings.temperature}</Badge>
             </div>
             <div className="text-right">
               <Button
@@ -104,7 +102,7 @@ export const SettingsModel = () => {
                 variant="secondary"
                 size="sm"
                 className="h-5 rounded-sm px-2"
-                onClick={() => setModelSettings('temperature', null)}
+                onClick={() => setSettings('temperature', null)}
               >
                 Reset
               </Button>
@@ -123,9 +121,9 @@ export const SettingsModel = () => {
                   min={0}
                   max={2}
                   step={0.1}
-                  value={[modelSettings.temperature]}
+                  value={[settings.temperature]}
                   onValueChange={value => {
-                    setModelSettings('temperature', value[0]);
+                    setSettings('temperature', value[0]);
                   }}
                 />
               </div>
@@ -142,7 +140,7 @@ export const SettingsModel = () => {
           <FormLabel className="grid grid-cols-3 items-center">
             <div>Max Tokens</div>
             <div className="text-center">
-              <Badge className="rounded-full">{modelSettings.maxTokens}</Badge>
+              <Badge className="rounded-full">{settings.maxTokens}</Badge>
             </div>
             <div className="text-right">
               <Button
@@ -150,7 +148,7 @@ export const SettingsModel = () => {
                 variant="secondary"
                 size="sm"
                 className="h-5 rounded-sm px-2"
-                onClick={() => setModelSettings('maxTokens', null)}
+                onClick={() => setSettings('maxTokens', null)}
               >
                 Reset
               </Button>
@@ -169,9 +167,9 @@ export const SettingsModel = () => {
                   min={1}
                   max={8192}
                   step={1}
-                  value={[modelSettings.maxTokens]}
+                  value={[settings.maxTokens]}
                   onValueChange={value => {
-                    setModelSettings('maxTokens', value[0]);
+                    setSettings('maxTokens', value[0]);
                   }}
                 />
               </div>
@@ -188,9 +186,7 @@ export const SettingsModel = () => {
           <FormLabel className="grid grid-cols-3 items-center">
             <div>Presence Penalty</div>
             <div className="text-center">
-              <Badge className="rounded-full">
-                {modelSettings.presencePenalty}
-              </Badge>
+              <Badge className="rounded-full">{settings.presencePenalty}</Badge>
             </div>
             <div className="text-right">
               <Button
@@ -198,7 +194,7 @@ export const SettingsModel = () => {
                 variant="secondary"
                 size="sm"
                 className="h-5 rounded-sm px-2"
-                onClick={() => setModelSettings('presencePenalty', null)}
+                onClick={() => setSettings('presencePenalty', null)}
               >
                 Reset
               </Button>
@@ -217,9 +213,9 @@ export const SettingsModel = () => {
                   min={-2}
                   max={2}
                   step={0.1}
-                  value={[modelSettings.presencePenalty]}
+                  value={[settings.presencePenalty]}
                   onValueChange={value => {
-                    setModelSettings('presencePenalty', value[0]);
+                    setSettings('presencePenalty', value[0]);
                   }}
                 />
               </div>
@@ -237,7 +233,7 @@ export const SettingsModel = () => {
             <div>Frequency Penalty</div>
             <div className="text-center">
               <Badge className="rounded-full">
-                {modelSettings.frequencyPenalty}
+                {settings.frequencyPenalty}
               </Badge>
             </div>
             <div className="text-right">
@@ -246,7 +242,7 @@ export const SettingsModel = () => {
                 variant="secondary"
                 size="sm"
                 className="h-5 rounded-sm px-2"
-                onClick={() => setModelSettings('frequencyPenalty', null)}
+                onClick={() => setSettings('frequencyPenalty', null)}
               >
                 Reset
               </Button>
@@ -265,9 +261,9 @@ export const SettingsModel = () => {
                   min={-2}
                   max={2}
                   step={0.1}
-                  value={[modelSettings.frequencyPenalty]}
+                  value={[settings.frequencyPenalty]}
                   onValueChange={value => {
-                    setModelSettings('frequencyPenalty', value[0]);
+                    setSettings('frequencyPenalty', value[0]);
                   }}
                 />
               </div>

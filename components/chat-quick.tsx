@@ -22,11 +22,11 @@ export function ChatQuick({ id }: ChatUIProps) {
   const messageId = generateId();
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const { model, modelSettings } = useSettings();
+  const { model, settings } = useSettings();
   const { addChat, addChatDetail, setNewChatId } = useStore();
 
   const isVision = isVisionModel(model);
-  const usage = { ...modelSettings, model, prompt: undefined };
+  const usage = { ...settings, model, prompt: undefined };
 
   return (
     <>

@@ -34,7 +34,7 @@ export function ModelMenu() {
   const isMobile = useMediaQuery('(max-width: 1023px)');
   const { chatId } = useParams();
   const { chatDetails, updateChatDetail, updateChat } = useStore();
-  const { availableModels, model, setModel, modelSettings } = useSettings();
+  const { availableModels, model, setModel, settings } = useSettings();
   const [isPending, startTransition] = React.useTransition();
   const [isAlertOpen, setIsAlertOpen] = useState(false);
   const [newModel, setNewModel] = useState('');
@@ -58,7 +58,7 @@ export function ModelMenu() {
     if (newModel) {
       startTransition(async () => {
         const usage = {
-          ...modelSettings,
+          ...settings,
           model: newModel,
           prompt: undefined
         };

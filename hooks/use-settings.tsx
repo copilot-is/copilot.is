@@ -3,28 +3,20 @@
 import * as React from 'react';
 
 import { SystemPrompt } from '@/lib/constant';
-import {
-  Voice,
-  type AIToken,
-  type ModelProfile,
-  type ModelSettings
-} from '@/lib/types';
+import { Voice, type AIToken, type Model, type Settings } from '@/lib/types';
 import { useLocalStorage } from '@/hooks/use-local-storage';
 
 type SettingsContextProps = {
   allowCustomAPIKey: boolean;
-  availableModels: ModelProfile[];
+  availableModels: Model[];
   tts: { model?: string; voice?: Voice };
   setTextToSpeech: (key: 'model' | 'voice', value?: string | Voice) => void;
   model: string;
   setModel: (value: string) => void;
   token: AIToken;
   setToken: (key: keyof AIToken, value: AIToken[keyof AIToken]) => void;
-  modelSettings: ModelSettings;
-  setModelSettings: (
-    key: keyof ModelSettings,
-    value: ModelSettings[keyof ModelSettings]
-  ) => void;
+  settings: Settings;
+  setSettings: (key: keyof Settings, value: Settings[keyof Settings]) => void;
 };
 
 const SettingsContext = React.createContext<SettingsContextProps | undefined>(
@@ -51,7 +43,7 @@ export const SettingsProvider = ({
     voice?: Voice;
   };
   defaultModel?: string;
-  availableModels: ModelProfile[];
+  availableModels: Model[];
   allowCustomAPIKey?: boolean;
   children: React.ReactNode;
 }) => {
@@ -59,23 +51,21 @@ export const SettingsProvider = ({
     useLocalStorage<SettingsContextProps['token']>('ai-token');
   const [model, setModel, modelLoading] = useLocalStorage<
     SettingsContextProps['model']
-  >('ai-model', defaultModel);
+  >('model', defaultModel);
   const [tts, setTextToSpeech, ttsLoading] = useLocalStorage<
     SettingsContextProps['tts']
-  >('ai-tts', defaultTTS);
+  >('tts', defaultTTS);
 
-  const defaultModelSettings: ModelSettings = {
+  const defaultSettings: Settings = {
     prompt: SystemPrompt,
     temperature: 1,
     frequencyPenalty: 0,
     presencePenalty: 0,
     maxTokens: 4096
   };
-  const [modelSettings, setModelSettings, modelSettingsLoading] =
-    useLocalStorage<SettingsContextProps['modelSettings']>(
-      'ai-model-settings',
-      defaultModelSettings
-    );
+  const [settings, setSettings, modelSettingsLoading] = useLocalStorage<
+    SettingsContextProps['settings']
+  >('settings', defaultSettings);
 
   const isLoading =
     tokenLoading && ttsLoading && modelLoading && modelSettingsLoading;
@@ -99,21 +89,18 @@ export const SettingsProvider = ({
         setToken: (key: keyof AIToken, value: AIToken[keyof AIToken]) => {
           setToken({ ...token, [key]: value });
         },
-        modelSettings,
-        setModelSettings: (
-          key: keyof ModelSettings,
-          value: ModelSettings[keyof ModelSettings]
-        ) => {
+        settings,
+        setSettings: (key: keyof Settings, value: Settings[keyof Settings]) => {
           if (value === null || value === undefined) {
-            if (modelSettings[key] !== defaultModelSettings[key]) {
-              setModelSettings({
-                ...modelSettings,
-                [key]: defaultModelSettings[key]
+            if (settings[key] !== defaultSettings[key]) {
+              setSettings({
+                ...settings,
+                [key]: defaultSettings[key]
               });
             }
           } else {
-            setModelSettings({
-              ...modelSettings,
+            setSettings({
+              ...settings,
               [key]: value
             });
           }

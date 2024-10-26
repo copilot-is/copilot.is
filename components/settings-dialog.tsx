@@ -11,6 +11,7 @@ import { Separator } from '@/components/ui/separator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { SettingsAPIKey } from '@/components/settings-apikey';
 import { SettingsModel } from '@/components/settings-model';
+import { SettingsSpeech } from '@/components/settings-speech';
 
 interface SettingsDialogProps {
   open: boolean;
@@ -31,14 +32,18 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
         </DialogHeader>
         <Separator className="my-1" />
         <Tabs defaultValue="models">
-          <TabsList className="grid w-full grid-cols-2">
+          <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="models">Models</TabsTrigger>
+            <TabsTrigger value="speech">Speech</TabsTrigger>
             {allowCustomAPIKey && (
               <TabsTrigger value="apikeys">API Keys</TabsTrigger>
             )}
           </TabsList>
           <TabsContent value="models" className="px-px">
             <SettingsModel />
+          </TabsContent>
+          <TabsContent value="speech" className="px-px">
+            <SettingsSpeech />
           </TabsContent>
           {allowCustomAPIKey && (
             <TabsContent value="apikeys" className="px-px">

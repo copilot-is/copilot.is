@@ -1,6 +1,6 @@
-import { ChatCategory, Voice, type ModelProfile } from '@/lib/types';
+import { ChatCategory, Voice, type Model } from '@/lib/types';
 
-export const SupportedModels: ModelProfile[] = [
+export const SupportedModels: Model[] = [
   {
     text: 'GPT-4o',
     value: 'gpt-4o',
@@ -97,7 +97,7 @@ export const SupportedModels: ModelProfile[] = [
   }
 ];
 
-export const AudioModels: ModelProfile[] = [
+export const TTSModels: Model[] = [
   {
     text: 'OpenAI TTS',
     value: 'tts-1',

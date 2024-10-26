@@ -39,7 +39,7 @@ export interface Usage extends Record<string, any> {
 
 export type ModelProvider = 'openai' | 'google' | 'anthropic';
 
-export interface ModelProfile extends Record<string, any> {
+export interface Model extends Record<string, any> {
   text: string;
   value: string;
   type?: 'chat' | 'images' | 'audio';
@@ -47,8 +47,8 @@ export interface ModelProfile extends Record<string, any> {
   provider: ModelProvider;
 }
 
-export interface ModelSettings extends Record<string, any> {
-  prompt?: string;
+export interface Settings extends Record<string, any> {
+  prompt: string;
   temperature: number;
   frequencyPenalty: number;
   presencePenalty: number;

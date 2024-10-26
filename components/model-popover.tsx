@@ -22,10 +22,10 @@ export const ModelPopover = () => {
   const form = useForm();
   const { chatId } = useParams();
   const { chatDetails, updateChatDetail, updateChat } = useStore();
-  const { model, modelSettings, setModelSettings } = useSettings();
+  const { model, settings, setSettings } = useSettings();
 
   const chat = chatDetails[chatId?.toString()];
-  const chatUsage = { ...modelSettings, ...chat?.usage };
+  const chatUsage = { ...{ ...settings, model }, ...chat?.usage };
   const isImage = isImageModel(chatUsage.model || model);
 
   const handleChange = (key: string, value?: number | null) => {
@@ -37,7 +37,7 @@ export const ModelPopover = () => {
       updateChat(chat.id, { usage });
       updateChatDetail(chat.id, { usage });
     } else {
-      setModelSettings(key, value);
+      setSettings(key, value);
     }
   };
 
@@ -45,22 +45,18 @@ export const ModelPopover = () => {
     if (chat) {
       handleChange(key, value);
     } else {
-      setModelSettings(key, null);
+      setSettings(key, null);
     }
   };
 
   return isImage ? (
     <div className="group flex items-center text-xs font-normal text-muted-foreground">
-      <span className="whitespace-nowrap px-px">
-        {chatUsage.model || model}
-      </span>
+      <span className="whitespace-nowrap px-px">{chatUsage.model}</span>
     </div>
   ) : (
     <Popover>
       <PopoverTrigger className="group flex items-center text-xs font-normal text-muted-foreground hover:text-accent-foreground data-[state=open]:text-accent-foreground">
-        <span className="whitespace-nowrap px-px">
-          {chatUsage.model || model}
-        </span>
+        <span className="whitespace-nowrap px-px">{chatUsage.model}</span>
         <CaretDown className="size-3 opacity-50 transition-transform group-data-[state=open]:rotate-180" />
       </PopoverTrigger>
       <PopoverContent className="relative w-80">
@@ -75,7 +71,7 @@ export const ModelPopover = () => {
                     variant="secondary"
                     size="sm"
                     className="h-5 rounded-sm px-2"
-                    onClick={() => setModelSettings('prompt', null)}
+                    onClick={() => setSettings('prompt', null)}
                   >
                     Reset
                   </Button>
@@ -87,7 +83,7 @@ export const ModelPopover = () => {
                   placeholder="Enter a prompt..."
                   value={chatUsage.prompt ?? ''}
                   onChange={e => {
-                    setModelSettings('prompt', e.target.value);
+                    setSettings('prompt', e.target.value);
                   }}
                 />
               </FormControl>

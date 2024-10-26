@@ -2,7 +2,7 @@ import { generateId as generateIdFunc } from 'ai';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 
-import { AudioModels, ServiceProvider, SupportedModels } from '@/lib/constant';
+import { TTSModels, ServiceProvider, SupportedModels } from '@/lib/constant';
 import { MessageContent } from '@/lib/types';
 
 export function cn(...inputs: ClassValue[]) {
@@ -37,14 +37,14 @@ export function formatString(
 }
 
 export const apiFromModel = (value: string): string => {
-  const model = SupportedModels.concat(AudioModels).find(
+  const model = SupportedModels.concat(TTSModels).find(
     m => m.value === value
   );
   return `/api/${model?.type || 'chat'}/${model?.provider || 'default'}`;
 };
 
 export const providerFromModel = (value: string) => {
-  const model = SupportedModels.concat(AudioModels).find(
+  const model = SupportedModels.concat(TTSModels).find(
     m => m.value === value
   );
   return model?.provider;
