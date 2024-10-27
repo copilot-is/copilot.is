@@ -86,7 +86,7 @@ export function ChatMessageActions({
   };
 
   const onRead = async () => {
-    if (tts.model && tts.voice) {
+    if (tts.enabled && tts.model && tts.voice) {
       const apiRoute = apiFromModel(tts.model);
       const provider = providerFromModel(tts.model);
       const previewToken =
@@ -138,7 +138,7 @@ export function ChatMessageActions({
         isLastMessage ? 'lg:visible' : 'lg:invisible'
       )}
     >
-      {tts.model && tts.voice && (
+      {tts.enabled && tts.model && tts.voice && (
         <Button
           variant="ghost"
           size="icon"

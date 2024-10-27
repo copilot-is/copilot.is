@@ -29,6 +29,7 @@ export interface AppConfig {
     credentials?: string;
   };
   readonly tts: {
+    enabled?: boolean;
     model?: string;
     voice?: Voice;
   };
@@ -74,6 +75,7 @@ export const appConfig: AppConfig = {
     credentials: process.env.GOOGLE_APPLICATION_CREDENTIALS
   },
   tts: {
+    enabled: process.env.TTS_ENABLED === 'true',
     model: process.env.TTS_MODEL,
     voice: process.env.TTS_VOICE as Voice
   },

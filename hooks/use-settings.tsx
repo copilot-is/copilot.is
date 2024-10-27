@@ -9,7 +9,7 @@ import { useLocalStorage } from '@/hooks/use-local-storage';
 type SettingsContextProps = {
   allowCustomAPIKey: boolean;
   availableModels: Model[];
-  tts: { model?: string; voice?: Voice };
+  tts: { enabled?: boolean; model?: string; voice?: Voice };
   setTextToSpeech: (key: 'model' | 'voice', value?: string | Voice) => void;
   model: string;
   setModel: (value: string) => void;
@@ -39,6 +39,7 @@ export const SettingsProvider = ({
   children
 }: {
   defaultTTS?: {
+    enabled?: boolean;
     model?: string;
     voice?: Voice;
   };
@@ -54,7 +55,7 @@ export const SettingsProvider = ({
   >('model', defaultModel);
   const [tts, setTextToSpeech, ttsLoading] = useLocalStorage<
     SettingsContextProps['tts']
-  >('tts', defaultTTS);
+  >('tts', { model: defaultTTS.model, voice: defaultTTS.voice });
 
   const defaultSettings: Settings = {
     prompt: SystemPrompt,
@@ -63,12 +64,12 @@ export const SettingsProvider = ({
     presencePenalty: 0,
     maxTokens: 4096
   };
-  const [settings, setSettings, modelSettingsLoading] = useLocalStorage<
+  const [settings, setSettings, settingsLoading] = useLocalStorage<
     SettingsContextProps['settings']
   >('settings', defaultSettings);
 
   const isLoading =
-    tokenLoading && ttsLoading && modelLoading && modelSettingsLoading;
+    tokenLoading && ttsLoading && modelLoading && settingsLoading;
 
   if (isLoading) {
     return null;
@@ -79,7 +80,7 @@ export const SettingsProvider = ({
       value={{
         allowCustomAPIKey,
         availableModels,
-        tts,
+        tts: { ...tts, enabled: defaultTTS.enabled },
         setTextToSpeech(key: 'model' | 'voice', value?: string | Voice) {
           setTextToSpeech({ ...tts, [key]: value });
         },
