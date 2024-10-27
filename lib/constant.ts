@@ -72,6 +72,12 @@ export const SupportedModels: Model[] = [
     provider: 'google'
   },
   {
+    text: 'Claude 3.5 Sonnet (New)',
+    value: 'claude-3-5-sonnet-20241022',
+    vision: true,
+    provider: 'anthropic'
+  },
+  {
     text: 'Claude 3.5 Sonnet',
     value: 'claude-3-5-sonnet-20240620',
     vision: true,
@@ -145,6 +151,7 @@ export const ChatCategories: ChatCategory[] = [
 ];
 
 export const VertexAIModel: Record<string, string> = {
+  'claude-3-5-sonnet-20241022': 'claude-3-5-sonnet-v2@20241022',
   'claude-3-5-sonnet-20240620': 'claude-3-5-sonnet@20240620',
   'claude-3-opus-20240229': 'claude-3-opus@20240229',
   'claude-3-sonnet-20240229': 'claude-3-sonnet@20240229',
