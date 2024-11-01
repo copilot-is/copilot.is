@@ -82,7 +82,7 @@ export function ModelMenu() {
         value={selectedModel?.value}
         onValueChange={handleModelChange}
       >
-        <SelectTrigger className="size-auto border-none shadow-none hover:bg-accent data-[state=open]:bg-accent">
+        <SelectTrigger className="size-auto border-none shadow-none hover:bg-accent data-[state=open]:bg-accent [&>svg]:size-3">
           <SelectValue placeholder="Select a model">
             <div className="flex items-center">
               {selectedModel?.provider === 'openai' && <IconOpenAI />}

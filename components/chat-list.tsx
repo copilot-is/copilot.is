@@ -2,7 +2,7 @@
 
 import * as React from 'react';
 
-import { Message, ModelProvider } from '@/lib/types';
+import { Message, Provider } from '@/lib/types';
 import { cn } from '@/lib/utils';
 import { Badge } from '@/components/ui/badge';
 import { IconTyping } from '@/components/ui/icons';
@@ -15,7 +15,7 @@ export interface ChatListProps extends React.ComponentProps<'div'> {
   reload?: () => void;
   messages: Message[];
   isLoading?: boolean;
-  provider?: ModelProvider;
+  provider?: Provider;
   readonly?: boolean;
 }
 

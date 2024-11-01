@@ -1,10 +1,12 @@
 import { NextResponse } from 'next/server';
 import { createVertex } from '@ai-sdk/google-vertex';
 import { generateText, streamText } from 'ai';
+import { createAnthropicVertex } from 'anthropic-vertex';
 
 import { appConfig } from '@/lib/appconfig';
-import { VertexAIModel } from '@/lib/constant';
+import { VertexAIModels } from '@/lib/constant';
 import { Message, type Usage } from '@/lib/types';
+import { providerFromModel } from '@/lib/utils';
 import { auth } from '@/server/auth';
 
 export const dynamic = 'force-dynamic';
@@ -36,16 +38,21 @@ export async function POST(req: Request) {
   } = usage;
 
   try {
-    const vertex = createVertex({
+    const provider = providerFromModel(model);
+    const options = {
       project: appConfig.vertex.project,
       location: appConfig.vertex.location,
       googleAuthOptions: {
-        keyFilename: appConfig.vertex.credentials
+        keyFile: appConfig.vertex.credentials
       }
-    });
+    };
+    const vertex =
+      provider === 'anthropic'
+        ? createAnthropicVertex(options)
+        : createVertex(options);
 
     const parameters = {
-      model: vertex(VertexAIModel[model] || model),
+      model: vertex(VertexAIModels[model] || model),
       system: prompt,
       messages,
       temperature,

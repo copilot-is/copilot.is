@@ -1,7 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import { CaretDown, CaretUp, Check } from '@phosphor-icons/react';
+import { CaretDown, CaretUp, CaretUpDown, Check } from '@phosphor-icons/react';
 import * as SelectPrimitive from '@radix-ui/react-select';
 
 import { cn } from '@/lib/utils';
@@ -26,7 +26,7 @@ const SelectTrigger = React.forwardRef<
   >
     {children}
     <SelectPrimitive.Icon asChild>
-      <CaretDown className="ml-1 opacity-50" />
+      <CaretUpDown className="ml-1 opacity-50" />
     </SelectPrimitive.Icon>
   </SelectPrimitive.Trigger>
 ));

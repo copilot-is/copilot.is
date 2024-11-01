@@ -37,14 +37,14 @@ export interface Usage extends Record<string, any> {
   maxTokens?: number;
 }
 
-export type ModelProvider = 'openai' | 'google' | 'anthropic';
+export type Provider = 'openai' | 'google' | 'anthropic';
 
 export interface Model extends Record<string, any> {
   text: string;
   value: string;
   type?: 'chat' | 'images' | 'audio';
   vision?: boolean;
-  provider: ModelProvider;
+  provider: Provider;
 }
 
 export interface Settings extends Record<string, any> {
@@ -55,10 +55,10 @@ export interface Settings extends Record<string, any> {
   maxTokens: number;
 }
 
-export interface AIToken extends Record<string, any> {
-  openai?: string;
-  google?: string;
-  anthropic?: string;
+export interface TTS extends Record<string, any> {
+  enabled?: boolean;
+  model?: string;
+  voice?: Voice;
 }
 
 export type ChatCategory =

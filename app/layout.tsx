@@ -69,7 +69,8 @@ export default function RootLayout({ children }: RootLayoutProps) {
               defaultTTS={appConfig.tts}
               defaultModel={appConfig.defaultModel}
               availableModels={getSupportedModels(appConfig.availableModels)}
-              allowCustomAPIKey={appConfig.allowCustomAPIKey}
+              apiCustomEnabled={appConfig.apiCustomEnabled}
+              apiProvider={appConfig.apiProvider}
             >
               {children}
             </SettingsProvider>

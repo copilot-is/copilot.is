@@ -19,7 +19,7 @@ interface SettingsDialogProps {
 }
 
 export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
-  const { allowCustomAPIKey, tts } = useSettings();
+  const { apiCustomEnabled, tts } = useSettings();
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -35,8 +35,8 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
           <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="models">Models</TabsTrigger>
             {tts.enabled && <TabsTrigger value="speech">Speech</TabsTrigger>}
-            {allowCustomAPIKey && (
-              <TabsTrigger value="apikeys">API Keys</TabsTrigger>
+            {apiCustomEnabled && (
+              <TabsTrigger value="apikeys">API Keys & Providers</TabsTrigger>
             )}
           </TabsList>
           <TabsContent value="models" className="px-px">
@@ -47,7 +47,7 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
               <SettingsSpeech />
             </TabsContent>
           )}
-          {allowCustomAPIKey && (
+          {apiCustomEnabled && (
             <TabsContent value="apikeys" className="px-px">
               <SettingsAPIKey />
             </TabsContent>

@@ -40,7 +40,7 @@ export async function POST(req: Request) {
     );
   }
 
-  if (appConfig.allowCustomAPIKey && previewToken) {
+  if (appConfig.apiCustomEnabled && previewToken) {
     openai.apiKey = previewToken;
   }
 

@@ -1,4 +1,4 @@
-import { Voice } from '@/lib/types';
+import { Provider, Voice } from '@/lib/types';
 
 export interface AppConfig {
   readonly product: {
@@ -33,13 +33,10 @@ export interface AppConfig {
     model?: string;
     voice?: Voice;
   };
-  readonly availableModels: {
-    openai: string[];
-    google: string[];
-    anthropic: string[];
-  };
   readonly defaultModel?: string;
-  readonly allowCustomAPIKey: boolean;
+  readonly availableModels: Record<Provider, string[]>;
+  readonly apiCustomEnabled: boolean;
+  readonly apiProvider: Record<Provider, string | undefined>;
   readonly umami: {
     scriptURL?: string;
     websiteId?: string;
@@ -79,14 +76,18 @@ export const appConfig: AppConfig = {
     model: process.env.TTS_MODEL,
     voice: process.env.TTS_VOICE as Voice
   },
+  defaultModel: process.env.DEFAULT_MODEL,
   availableModels: {
     openai: process.env.OPENAI_MODELS?.split(',') || [],
     google: process.env.GOOGLE_GENERATIVE_AI_MODELS?.split(',') || [],
     anthropic: process.env.ANTHROPIC_MODELS?.split(',') || []
   },
-  defaultModel: process.env.DEFAULT_MODEL,
-  allowCustomAPIKey:
-    process.env.ALLOW_CUSTOM_API_KEY === 'false' ? false : true,
+  apiCustomEnabled: process.env.API_CUSTOM_ENABLED === 'false' ? false : true,
+  apiProvider: {
+    openai: process.env.OPENAI_API_PROVIDER,
+    google: process.env.GOOGLE_API_PROVIDER,
+    anthropic: process.env.ANTHROPIC_API_PROVIDER
+  },
   umami: {
     scriptURL: process.env.UMAMI_SCRIPT_URL,
     websiteId: process.env.UMAMI_WEBSITE_ID

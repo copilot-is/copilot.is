@@ -1,4 +1,4 @@
-import { ChatCategory, Voice, type Model } from '@/lib/types';
+import { ChatCategory, Provider, Voice, type Model } from '@/lib/types';
 
 export const SupportedModels: Model[] = [
   {
@@ -150,10 +150,21 @@ export const ChatCategories: ChatCategory[] = [
   'Older'
 ];
 
-export const VertexAIModel: Record<string, string> = {
+export const VertexAIModels: Record<string, string> = {
   'claude-3-5-sonnet-20241022': 'claude-3-5-sonnet-v2@20241022',
   'claude-3-5-sonnet-20240620': 'claude-3-5-sonnet@20240620',
   'claude-3-opus-20240229': 'claude-3-opus@20240229',
   'claude-3-sonnet-20240229': 'claude-3-sonnet@20240229',
   'claude-3-haiku-20240307': 'claude-3-haiku@20240307'
+};
+
+export const APIProviders: { text: string; value: string }[] = [
+  { text: 'Default', value: 'null' },
+  { text: 'Google Vertex AI', value: 'vertex' }
+];
+
+export const GenerateTitleModels: Record<Provider, string> = {
+  openai: 'gpt-4o-mini',
+  google: 'gemini-1.5-flash',
+  anthropic: 'claude-3-haiku-20240307'
 };

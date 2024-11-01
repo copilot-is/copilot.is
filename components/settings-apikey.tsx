@@ -3,6 +3,7 @@
 import * as React from 'react';
 import { useForm } from 'react-hook-form';
 
+import { APIProviders } from '@/lib/constant';
 import { useSettings } from '@/hooks/use-settings';
 import {
   Form,
@@ -12,22 +13,29 @@ import {
   FormLabel
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue
+} from '@/components/ui/select';
 import { ExternalLink } from '@/components/external-link';
 
 export const SettingsAPIKey = () => {
   const form = useForm();
-  const { token, setToken } = useSettings();
+  const { apiToken, setAPIToken, apiProvider, setAPIProvider } = useSettings();
 
   return (
     <Form {...form}>
       <form className="space-y-4">
         <FormItem>
-          <FormLabel>OpenAI API key</FormLabel>
+          <FormLabel>OpenAI API Key</FormLabel>
           <FormControl>
             <Input
-              value={token?.openai || ''}
+              value={apiToken?.openai || ''}
               onChange={e => {
-                setToken('openai', e.target.value);
+                setAPIToken('openai', e.target.value);
               }}
             />
           </FormControl>
@@ -44,12 +52,12 @@ export const SettingsAPIKey = () => {
           </FormDescription>
         </FormItem>
         <FormItem>
-          <FormLabel>Google API key</FormLabel>
+          <FormLabel>Google API Key</FormLabel>
           <FormControl>
             <Input
-              value={token?.google || ''}
+              value={apiToken?.google || ''}
               onChange={e => {
-                setToken('google', e.target.value);
+                setAPIToken('google', e.target.value);
               }}
             />
           </FormControl>
@@ -64,12 +72,43 @@ export const SettingsAPIKey = () => {
           </FormDescription>
         </FormItem>
         <FormItem>
-          <FormLabel>Anthropic API key</FormLabel>
+          <FormLabel>Google API Provider</FormLabel>
+          <Select
+            onValueChange={(value: string) =>
+              setAPIProvider('google', value === 'null' ? undefined : value)
+            }
+            value={apiProvider?.google || 'null'}
+          >
+            <FormControl>
+              <SelectTrigger>
+                <SelectValue placeholder="Select a provider">
+                  {
+                    APIProviders.find(
+                      p => p.value === (apiProvider?.google || 'null')
+                    )?.text
+                  }
+                </SelectValue>
+              </SelectTrigger>
+            </FormControl>
+            <SelectContent>
+              {APIProviders.map(item => (
+                <SelectItem key={item.value} value={item.value}>
+                  {item.text}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <FormDescription>
+            Please select the appropriate provider for your Google API.
+          </FormDescription>
+        </FormItem>
+        <FormItem>
+          <FormLabel>Anthropic API Key</FormLabel>
           <FormControl>
             <Input
-              value={token?.anthropic || ''}
+              value={apiToken?.anthropic || ''}
               onChange={e => {
-                setToken('anthropic', e.target.value);
+                setAPIToken('anthropic', e.target.value);
               }}
             />
           </FormControl>
@@ -80,6 +119,37 @@ export const SettingsAPIKey = () => {
             </ExternalLink>
             . The token will be saved to your browser&apos;s local storage under
             the name <code className="font-mono">ai-token</code>.
+          </FormDescription>
+        </FormItem>
+        <FormItem>
+          <FormLabel>Anthropic API Provider</FormLabel>
+          <Select
+            onValueChange={(value: string) =>
+              setAPIProvider('anthropic', value === 'null' ? undefined : value)
+            }
+            value={apiProvider?.anthropic || 'null'}
+          >
+            <FormControl>
+              <SelectTrigger>
+                <SelectValue placeholder="Select a provider">
+                  {
+                    APIProviders.find(
+                      p => p.value === (apiProvider?.anthropic || 'null')
+                    )?.text
+                  }
+                </SelectValue>
+              </SelectTrigger>
+            </FormControl>
+            <SelectContent>
+              {APIProviders.map(item => (
+                <SelectItem key={item.value} value={item.value}>
+                  {item.text}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <FormDescription>
+            Please select the appropriate provider for your Anthropic API.
           </FormDescription>
         </FormItem>
       </form>

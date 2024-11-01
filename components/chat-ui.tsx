@@ -6,7 +6,7 @@ import ScrollToBottom from 'react-scroll-to-bottom';
 import { toast } from 'sonner';
 
 import { api } from '@/lib/api';
-import { GenerateTitlePrompt } from '@/lib/constant';
+import { GenerateTitleModels, GenerateTitlePrompt } from '@/lib/constant';
 import { UserContent, type Message } from '@/lib/types';
 import {
   apiFromModel,
@@ -32,7 +32,7 @@ export function ChatUI({ id }: ChatUIProps) {
   const regenerateIdRef = useRef<string>();
   const userMessageRef = useRef<Message>();
   const [isFetching, setIsFetching] = useState(false);
-  const { allowCustomAPIKey, token, settings } = useSettings();
+  const { apiCustomEnabled, apiToken, apiProvider, settings } = useSettings();
   const {
     chatDetails,
     addChatDetail,
@@ -47,8 +47,10 @@ export function ChatUI({ id }: ChatUIProps) {
   const isVision = isVisionModel(model);
   const provider = providerFromModel(model);
   const prompt = formatSystemPrompt(model, settings.prompt);
+  const customProvider =
+    apiCustomEnabled && provider ? apiProvider?.[provider] : undefined;
   const previewToken =
-    allowCustomAPIKey && provider ? token?.[provider] : undefined;
+    apiCustomEnabled && provider ? apiToken?.[provider] : undefined;
   const usage = {
     ...chat?.usage,
     stream: true,
@@ -67,7 +69,7 @@ export function ChatUI({ id }: ChatUIProps) {
     setInput
   } = useChat({
     id,
-    api: apiFromModel(model),
+    api: apiFromModel(model, customProvider),
     sendExtraMessageFields: true,
     generateId: () => generateId(),
     body: { usage },
@@ -132,12 +134,6 @@ export function ChatUI({ id }: ChatUIProps) {
 
   const generateTitle = async (id: string, messages: Message[]) => {
     if (provider && id && messages && messages.length >= 2) {
-      const genModel = {
-        openai: 'gpt-4o-mini',
-        google: 'gemini-1.5-flash-latest',
-        anthropic: 'claude-3-haiku-20240307'
-      };
-
       const [firstMessage, secondMessage] = messages.slice(0, 2);
       if (firstMessage.role === 'user' && secondMessage.role === 'assistant') {
         const genMessages = [
@@ -154,13 +150,13 @@ export function ChatUI({ id }: ChatUIProps) {
 
         const genUsage = {
           ...chat?.usage,
-          model: genModel[provider],
+          model: GenerateTitleModels[provider],
           prompt: undefined,
           previewToken
         };
 
         const result = await api.createAI(
-          apiFromModel(genUsage.model),
+          apiFromModel(genUsage.model, customProvider),
           genMessages,
           genUsage
         );

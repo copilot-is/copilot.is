@@ -37,7 +37,7 @@ export async function POST(req: Request) {
   try {
     const openai = createOpenAI({
       apiKey:
-        appConfig.allowCustomAPIKey && previewToken
+        appConfig.apiCustomEnabled && previewToken
           ? previewToken
           : appConfig.openai.apiKey,
       baseURL: appConfig.openai.baseURL

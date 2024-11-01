@@ -3,20 +3,28 @@
 import * as React from 'react';
 
 import { SystemPrompt } from '@/lib/constant';
-import { Voice, type AIToken, type Model, type Settings } from '@/lib/types';
+import {
+  Voice,
+  type Model,
+  type Provider,
+  type Settings,
+  type TTS
+} from '@/lib/types';
 import { useLocalStorage } from '@/hooks/use-local-storage';
 
 type SettingsContextProps = {
-  allowCustomAPIKey: boolean;
+  apiCustomEnabled: boolean;
   availableModels: Model[];
-  tts: { enabled?: boolean; model?: string; voice?: Voice };
+  tts: TTS;
   setTextToSpeech: (key: 'model' | 'voice', value?: string | Voice) => void;
   model: string;
   setModel: (value: string) => void;
-  token: AIToken;
-  setToken: (key: keyof AIToken, value: AIToken[keyof AIToken]) => void;
   settings: Settings;
   setSettings: (key: keyof Settings, value: Settings[keyof Settings]) => void;
+  apiToken: Record<Provider, string | undefined>;
+  setAPIToken: (key: Provider, value?: string) => void;
+  apiProvider: Record<Provider, string | undefined>;
+  setAPIProvider: (key: Provider, value?: string) => void;
 };
 
 const SettingsContext = React.createContext<SettingsContextProps | undefined>(
@@ -35,27 +43,26 @@ export const SettingsProvider = ({
   defaultTTS = {},
   defaultModel = 'gpt-4o',
   availableModels,
-  allowCustomAPIKey = true,
+  apiCustomEnabled = true,
   children
 }: {
-  defaultTTS?: {
-    enabled?: boolean;
-    model?: string;
-    voice?: Voice;
-  };
+  defaultTTS?: TTS;
   defaultModel?: string;
   availableModels: Model[];
-  allowCustomAPIKey?: boolean;
+  apiCustomEnabled?: boolean;
+  apiProvider: Record<Provider, string | undefined>;
   children: React.ReactNode;
 }) => {
-  const [token, setToken, tokenLoading] =
-    useLocalStorage<SettingsContextProps['token']>('ai-token');
   const [model, setModel, modelLoading] = useLocalStorage<
     SettingsContextProps['model']
   >('model', defaultModel);
+  const [apiToken, setAPIToken, tokenLoading] =
+    useLocalStorage<SettingsContextProps['apiToken']>('ai-token');
   const [tts, setTextToSpeech, ttsLoading] = useLocalStorage<
     SettingsContextProps['tts']
   >('tts', { model: defaultTTS.model, voice: defaultTTS.voice });
+  const [apiProvider, setAPIProvider, providerLoading] =
+    useLocalStorage<SettingsContextProps['apiProvider']>('ai-provider');
 
   const defaultSettings: Settings = {
     prompt: SystemPrompt,
@@ -69,7 +76,11 @@ export const SettingsProvider = ({
   >('settings', defaultSettings);
 
   const isLoading =
-    tokenLoading && ttsLoading && modelLoading && settingsLoading;
+    tokenLoading &&
+    providerLoading &&
+    ttsLoading &&
+    modelLoading &&
+    settingsLoading;
 
   if (isLoading) {
     return null;
@@ -78,7 +89,7 @@ export const SettingsProvider = ({
   return (
     <SettingsContext.Provider
       value={{
-        allowCustomAPIKey,
+        apiCustomEnabled,
         availableModels,
         tts: { ...tts, enabled: defaultTTS.enabled },
         setTextToSpeech(key: 'model' | 'voice', value?: string | Voice) {
@@ -86,10 +97,6 @@ export const SettingsProvider = ({
         },
         model,
         setModel,
-        token,
-        setToken: (key: keyof AIToken, value: AIToken[keyof AIToken]) => {
-          setToken({ ...token, [key]: value });
-        },
         settings,
         setSettings: (key: keyof Settings, value: Settings[keyof Settings]) => {
           if (value === null || value === undefined) {
@@ -105,6 +112,14 @@ export const SettingsProvider = ({
               [key]: value
             });
           }
+        },
+        apiToken,
+        setAPIToken: (key: Provider, value?: string) => {
+          setAPIToken({ ...apiToken, [key]: value });
+        },
+        apiProvider,
+        setAPIProvider: (key: Provider, value?: string) => {
+          setAPIProvider({ ...apiProvider, [key]: value });
         }
       }}
     >

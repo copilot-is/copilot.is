@@ -37,7 +37,7 @@ export async function POST(req: Request) {
   try {
     const anthropic = createAnthropic({
       apiKey:
-        appConfig.allowCustomAPIKey && previewToken
+        appConfig.apiCustomEnabled && previewToken
           ? previewToken
           : appConfig.anthropic.apiKey,
       baseURL: appConfig.anthropic.baseURL

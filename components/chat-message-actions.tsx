@@ -62,7 +62,7 @@ export function ChatMessageActions({
   isLastMessage,
   readonly
 }: ChatMessageActionsProps) {
-  const { allowCustomAPIKey, tts, token } = useSettings();
+  const { apiCustomEnabled, tts, apiToken } = useSettings();
   const { updateChatMessage, removeChatMessage } = useStore();
   const { isCopied, copyToClipboard } = useCopyToClipboard({ timeout: 3000 });
   const [content, setContent] = React.useState('');
@@ -90,7 +90,7 @@ export function ChatMessageActions({
       const apiRoute = apiFromModel(tts.model);
       const provider = providerFromModel(tts.model);
       const previewToken =
-        allowCustomAPIKey && provider ? token?.[provider] : undefined;
+        apiCustomEnabled && provider ? apiToken?.[provider] : undefined;
       const usage = { model: tts.model, previewToken };
       const input = getMessageContentText(message.content);
 
