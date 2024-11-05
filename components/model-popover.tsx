@@ -61,7 +61,7 @@ export const ModelPopover = () => {
       </PopoverTrigger>
       <PopoverContent className="relative w-80">
         <Form {...form}>
-          <form className="space-y-2">
+          <div className="space-y-2">
             <FormItem>
               <FormLabel className="flex items-center justify-between">
                 <div>System Prompt</div>
@@ -280,7 +280,7 @@ export const ModelPopover = () => {
                 </div>
               </FormControl>
             </FormItem>
-          </form>
+          </div>
         </Form>
       </PopoverContent>
     </Popover>

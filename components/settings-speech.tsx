@@ -21,7 +21,7 @@ export const SettingsSpeech = () => {
 
   return (
     <Form {...form}>
-      <form className="space-y-4">
+      <div className="space-y-4">
         <FormItem>
           <FormLabel>Model</FormLabel>
           <Select
@@ -85,7 +85,7 @@ export const SettingsSpeech = () => {
             </SelectContent>
           </Select>
         </FormItem>
-      </form>
+      </div>
     </Form>
   );
 };

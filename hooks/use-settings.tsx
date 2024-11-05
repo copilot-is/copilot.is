@@ -4,9 +4,12 @@ import * as React from 'react';
 
 import { SystemPrompt } from '@/lib/constant';
 import {
+  APIConfigs,
+  APIParameter,
+  APIProvider,
+  Provider,
   Voice,
   type Model,
-  type Provider,
   type Settings,
   type TTS
 } from '@/lib/types';
@@ -21,10 +24,12 @@ type SettingsContextProps = {
   setModel: (value: string) => void;
   settings: Settings;
   setSettings: (key: keyof Settings, value: Settings[keyof Settings]) => void;
-  apiToken: Record<Provider, string | undefined>;
-  setAPIToken: (key: Provider, value?: string) => void;
-  apiProvider: Record<Provider, string | undefined>;
-  setAPIProvider: (key: Provider, value?: string) => void;
+  apiConfigs: APIConfigs;
+  setAPIConfigs: (
+    provider: Provider | APIProvider,
+    key: APIParameter,
+    value?: string
+  ) => void;
 };
 
 const SettingsContext = React.createContext<SettingsContextProps | undefined>(
@@ -44,25 +49,25 @@ export const SettingsProvider = ({
   defaultModel = 'gpt-4o',
   availableModels,
   apiCustomEnabled = true,
+  apiProvider,
   children
 }: {
   defaultTTS?: TTS;
   defaultModel?: string;
   availableModels: Model[];
   apiCustomEnabled?: boolean;
-  apiProvider: Record<Provider, string | undefined>;
+  apiProvider: Partial<Record<Provider, { provider?: APIProvider }>>;
   children: React.ReactNode;
 }) => {
   const [model, setModel, modelLoading] = useLocalStorage<
     SettingsContextProps['model']
   >('model', defaultModel);
-  const [apiToken, setAPIToken, tokenLoading] =
-    useLocalStorage<SettingsContextProps['apiToken']>('ai-token');
   const [tts, setTextToSpeech, ttsLoading] = useLocalStorage<
     SettingsContextProps['tts']
   >('tts', { model: defaultTTS.model, voice: defaultTTS.voice });
-  const [apiProvider, setAPIProvider, providerLoading] =
-    useLocalStorage<SettingsContextProps['apiProvider']>('ai-provider');
+  const [apiConfigs, setAPIConfigs, configsLoading] = useLocalStorage<
+    SettingsContextProps['apiConfigs']
+  >('configs', apiProvider);
 
   const defaultSettings: Settings = {
     prompt: SystemPrompt,
@@ -76,11 +81,7 @@ export const SettingsProvider = ({
   >('settings', defaultSettings);
 
   const isLoading =
-    tokenLoading &&
-    providerLoading &&
-    ttsLoading &&
-    modelLoading &&
-    settingsLoading;
+    ttsLoading && modelLoading && configsLoading && settingsLoading;
 
   if (isLoading) {
     return null;
@@ -113,13 +114,19 @@ export const SettingsProvider = ({
             });
           }
         },
-        apiToken,
-        setAPIToken: (key: Provider, value?: string) => {
-          setAPIToken({ ...apiToken, [key]: value });
-        },
-        apiProvider,
-        setAPIProvider: (key: Provider, value?: string) => {
-          setAPIProvider({ ...apiProvider, [key]: value });
+        apiConfigs,
+        setAPIConfigs: (
+          provider: Provider | APIProvider,
+          key: APIParameter,
+          value?: string
+        ) => {
+          setAPIConfigs({
+            ...apiConfigs,
+            [provider]: {
+              ...apiConfigs[provider],
+              [key]: value === '' ? undefined : value
+            }
+          });
         }
       }}
     >

@@ -1,4 +1,10 @@
-import { ChatCategory, Provider, Voice, type Model } from '@/lib/types';
+import {
+  APIProvider,
+  ChatCategory,
+  Provider,
+  Voice,
+  type Model
+} from '@/lib/types';
 
 export const SupportedModels: Model[] = [
   {
@@ -158,8 +164,8 @@ export const VertexAIModels: Record<string, string> = {
   'claude-3-haiku-20240307': 'claude-3-haiku@20240307'
 };
 
-export const APIProviders: { text: string; value: string }[] = [
-  { text: 'Default', value: 'null' },
+export const APIProviders: { text: string; value: 'null' | APIProvider }[] = [
+  { text: 'Select a provider', value: 'null' },
   { text: 'Google Vertex AI', value: 'vertex' }
 ];
 

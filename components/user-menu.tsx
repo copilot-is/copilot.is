@@ -8,6 +8,7 @@ import {
   ClockCounterClockwise,
   Gear,
   GithubLogo,
+  Key,
   Monitor,
   Moon,
   PaintBrush,
@@ -19,6 +20,7 @@ import { useTheme } from 'next-themes';
 
 import { api } from '@/lib/api';
 import { cn } from '@/lib/utils';
+import { useSettings } from '@/hooks/use-settings';
 import { useStore } from '@/store/useStore';
 import {
   DropdownMenu,
@@ -31,15 +33,18 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Skeleton } from '@/components/ui/skeleton';
 import { ClearHistoryDialog } from '@/components/clear-history-dialog';
+import { SettingsAPIDialog } from '@/components/settings-api-dialog';
 import { SettingsDialog } from '@/components/settings-dialog';
 
 export function UserMenu() {
   const { user, setUser } = useStore();
   const { theme, setTheme } = useTheme();
+  const { apiCustomEnabled } = useSettings();
   const [isLoading, setLoading] = useState(true);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isHistoryOpen, setIsHistoryOpen] = useState(false);
   const [isAppearanceOpen, setIsAppearanceOpen] = useState(false);
+  const [isAPIDialogOpen, setIsAPIDialogOpen] = useState(false);
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -95,6 +100,15 @@ export function UserMenu() {
                 <Gear className="mr-2 size-4" />
                 Settings
               </DropdownMenuItem>
+              {apiCustomEnabled && (
+                <DropdownMenuItem
+                  className="flex items-center"
+                  onClick={() => setIsAPIDialogOpen(true)}
+                >
+                  <Key className="mr-2 size-4" />
+                  API Customization
+                </DropdownMenuItem>
+              )}
               <DropdownMenuItem
                 className="flex items-center"
                 onClick={() => setIsHistoryOpen(true)}
@@ -186,6 +200,10 @@ export function UserMenu() {
         )
       )}
       <SettingsDialog open={isSettingsOpen} onOpenChange={setIsSettingsOpen} />
+      <SettingsAPIDialog
+        open={isAPIDialogOpen}
+        onOpenChange={setIsAPIDialogOpen}
+      />
       <ClearHistoryDialog
         open={isHistoryOpen}
         onOpenChange={setIsHistoryOpen}

@@ -1,4 +1,4 @@
-import { Provider, Voice } from '@/lib/types';
+import { APIProvider, Provider, Voice } from '@/lib/types';
 
 export interface AppConfig {
   readonly product: {
@@ -36,7 +36,7 @@ export interface AppConfig {
   readonly defaultModel?: string;
   readonly availableModels: Record<Provider, string[]>;
   readonly apiCustomEnabled: boolean;
-  readonly apiProvider: Record<Provider, string | undefined>;
+  readonly apiProvider: Partial<Record<Provider, { provider?: APIProvider }>>;
   readonly umami: {
     scriptURL?: string;
     websiteId?: string;
@@ -84,9 +84,21 @@ export const appConfig: AppConfig = {
   },
   apiCustomEnabled: process.env.API_CUSTOM_ENABLED === 'false' ? false : true,
   apiProvider: {
-    openai: process.env.OPENAI_API_PROVIDER,
-    google: process.env.GOOGLE_API_PROVIDER,
+    openai: process.env.OPENAI_API_PROVIDER
+      ? {
+          provider: process.env.OPENAI_API_PROVIDER as APIProvider
+        }
+      : undefined,
+    google: process.env.GOOGLE_API_PROVIDER
+      ? {
+          provider: process.env.GOOGLE_API_PROVIDER as APIProvider
+        }
+      : undefined,
     anthropic: process.env.ANTHROPIC_API_PROVIDER
+      ? {
+          provider: process.env.ANTHROPIC_API_PROVIDER as APIProvider
+        }
+      : undefined
   },
   umami: {
     scriptURL: process.env.UMAMI_SCRIPT_URL,

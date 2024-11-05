@@ -3,7 +3,7 @@ import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 
 import { ServiceProvider, SupportedModels, TTSModels } from '@/lib/constant';
-import { MessageContent } from '@/lib/types';
+import { APIConfigs, APIProvider, MessageContent, Provider } from '@/lib/types';
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -36,9 +36,12 @@ export function formatString(
   return formattedString;
 }
 
-export const apiFromModel = (value: string, provider?: string): string => {
+export const apiFromModel = (
+  value: string,
+  customProvider?: string
+): string => {
   const model = SupportedModels.concat(TTSModels).find(m => m.value === value);
-  return `/api/${model?.type || 'chat'}/${provider || model?.provider || 'default'}`;
+  return `/api/${model?.type || 'chat'}/${customProvider || model?.provider || 'default'}`;
 };
 
 export const providerFromModel = (value: string) => {
@@ -57,7 +60,7 @@ export const isImageModel = (value: string): boolean => {
 };
 
 export const getSupportedModels = (
-  availableModels: Record<string, string[]>
+  availableModels: Record<Provider, string[]>
 ) => {
   const supportedModels = SupportedModels.filter(({ value, provider }) => {
     return availableModels[provider].length
@@ -120,4 +123,35 @@ export function getMessageContentText(content: MessageContent) {
   return typeof content === 'string'
     ? content.replace(IMAGE_DATA_URL_REGEX, '')
     : '';
+}
+
+export function getProviderConfig(
+  enabled: boolean,
+  provider?: Provider,
+  customProvider?: APIProvider,
+  apiConfigs?: APIConfigs
+) {
+  const customConfig =
+    customProvider && apiConfigs?.[customProvider]
+      ? apiConfigs[customProvider]
+      : provider && apiConfigs?.[provider]
+        ? apiConfigs[provider]
+        : undefined;
+
+  const config =
+    enabled &&
+    customConfig &&
+    (customConfig.token ||
+      customConfig.baseURL ||
+      customConfig.project ||
+      customConfig.location)
+      ? {
+          token: customConfig.token,
+          baseURL: customConfig.baseURL,
+          project: customConfig.project,
+          location: customConfig.location
+        }
+      : undefined;
+
+  return config;
 }

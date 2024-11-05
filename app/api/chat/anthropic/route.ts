@@ -3,7 +3,7 @@ import { createAnthropic } from '@ai-sdk/anthropic';
 import { generateText, streamText } from 'ai';
 
 import { appConfig } from '@/lib/appconfig';
-import { Message, type Usage } from '@/lib/types';
+import { APIConfig, Message, type Usage } from '@/lib/types';
 import { auth } from '@/server/auth';
 
 export const dynamic = 'force-dynamic';
@@ -12,6 +12,7 @@ export const maxDuration = 60;
 type PostData = {
   messages: Message[];
   usage: Usage;
+  config?: APIConfig;
 };
 
 export async function POST(req: Request) {
@@ -22,12 +23,11 @@ export async function POST(req: Request) {
   }
 
   const json: PostData = await req.json();
-  const { messages, usage } = json;
+  const { messages, usage, config } = json;
   const {
     model,
     stream,
     prompt,
-    previewToken,
     temperature,
     frequencyPenalty,
     presencePenalty,
@@ -35,12 +35,14 @@ export async function POST(req: Request) {
   } = usage;
 
   try {
+    const customEnabled = appConfig.apiCustomEnabled && config && config.token;
+
     const anthropic = createAnthropic({
-      apiKey:
-        appConfig.apiCustomEnabled && previewToken
-          ? previewToken
-          : appConfig.anthropic.apiKey,
-      baseURL: appConfig.anthropic.baseURL
+      apiKey: customEnabled ? config.token : appConfig.anthropic.apiKey,
+      baseURL:
+        customEnabled && config.baseURL
+          ? config.baseURL
+          : appConfig.anthropic.baseURL
     });
 
     const parameters = {

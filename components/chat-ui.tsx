@@ -13,6 +13,7 @@ import {
   formatSystemPrompt,
   generateId,
   getMessageContentText,
+  getProviderConfig,
   isVisionModel,
   providerFromModel
 } from '@/lib/utils';
@@ -32,7 +33,7 @@ export function ChatUI({ id }: ChatUIProps) {
   const regenerateIdRef = useRef<string>();
   const userMessageRef = useRef<Message>();
   const [isFetching, setIsFetching] = useState(false);
-  const { apiCustomEnabled, apiToken, apiProvider, settings } = useSettings();
+  const { apiCustomEnabled, apiConfigs, settings } = useSettings();
   const {
     chatDetails,
     addChatDetail,
@@ -45,17 +46,21 @@ export function ChatUI({ id }: ChatUIProps) {
   const model = chat?.usage?.model;
   const ungenerated = chat?.ungenerated;
   const isVision = isVisionModel(model);
-  const provider = providerFromModel(model);
   const prompt = formatSystemPrompt(model, settings.prompt);
+  const provider = providerFromModel(model);
   const customProvider =
-    apiCustomEnabled && provider ? apiProvider?.[provider] : undefined;
-  const previewToken =
-    apiCustomEnabled && provider ? apiToken?.[provider] : undefined;
+    apiCustomEnabled && provider ? apiConfigs?.[provider]?.provider : undefined;
+  const config = getProviderConfig(
+    apiCustomEnabled,
+    provider,
+    customProvider,
+    apiConfigs
+  );
+
   const usage = {
     ...chat?.usage,
     stream: true,
-    prompt,
-    previewToken
+    prompt
   };
 
   const {
@@ -72,7 +77,7 @@ export function ChatUI({ id }: ChatUIProps) {
     api: apiFromModel(model, customProvider),
     sendExtraMessageFields: true,
     generateId: () => generateId(),
-    body: { usage },
+    body: { usage, config },
     async onResponse(res) {
       if (res.status !== 200) {
         setInput(input);
@@ -106,7 +111,7 @@ export function ChatUI({ id }: ChatUIProps) {
     if (chat && chat.messages) {
       setMessages(chat.messages as AIMessage[]);
     }
-  }, [chat, setMessages]);
+  }, [apiConfigs, chat, setMessages]);
 
   useEffect(() => {
     if (!hasExecutedRef.current) {
@@ -151,14 +156,14 @@ export function ChatUI({ id }: ChatUIProps) {
         const genUsage = {
           ...chat?.usage,
           model: GenerateTitleModels[provider],
-          prompt: undefined,
-          previewToken
+          prompt: undefined
         };
 
         const result = await api.createAI(
           apiFromModel(genUsage.model, customProvider),
           genMessages,
-          genUsage
+          genUsage,
+          config
         );
         if (result && !('error' in result)) {
           if (result.content) {

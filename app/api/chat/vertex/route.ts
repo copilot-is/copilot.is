@@ -5,7 +5,7 @@ import { createAnthropicVertex } from 'anthropic-vertex';
 
 import { appConfig } from '@/lib/appconfig';
 import { VertexAIModels } from '@/lib/constant';
-import { Message, type Usage } from '@/lib/types';
+import { APIConfig, Message, type Usage } from '@/lib/types';
 import { providerFromModel } from '@/lib/utils';
 import { auth } from '@/server/auth';
 
@@ -15,6 +15,7 @@ export const maxDuration = 60;
 type PostData = {
   messages: Message[];
   usage: Usage;
+  config?: APIConfig;
 };
 
 export async function POST(req: Request) {
@@ -25,12 +26,11 @@ export async function POST(req: Request) {
   }
 
   const json: PostData = await req.json();
-  const { messages, usage } = json;
+  const { messages, usage, config } = json;
   const {
     model,
     stream,
     prompt,
-    previewToken,
     temperature,
     frequencyPenalty,
     presencePenalty,
@@ -39,13 +39,28 @@ export async function POST(req: Request) {
 
   try {
     const provider = providerFromModel(model);
-    const options = {
-      project: appConfig.vertex.project,
-      location: appConfig.vertex.location,
-      googleAuthOptions: {
-        keyFile: appConfig.vertex.credentials
-      }
-    };
+    const customEnabled =
+      appConfig.apiCustomEnabled &&
+      config &&
+      config.project &&
+      config.location &&
+      config.token;
+    const options = customEnabled
+      ? {
+          project: config.project,
+          location: config.location,
+          googleAuthOptions: {
+            credentials: JSON.parse(config.token || '{}')
+          }
+        }
+      : {
+          project: appConfig.vertex.project,
+          location: appConfig.vertex.location,
+          googleAuthOptions: {
+            credentials: JSON.parse(appConfig.vertex.credentials || '{}')
+          }
+        };
+
     const vertex =
       provider === 'anthropic'
         ? createAnthropicVertex(options)

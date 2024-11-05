@@ -25,7 +25,7 @@ export const SettingsModel = () => {
 
   return (
     <Form {...form}>
-      <form className="space-y-4">
+      <div className="space-y-4">
         <FormItem>
           <FormLabel>Model</FormLabel>
           <Select onValueChange={setModel} value={model}>
@@ -276,7 +276,7 @@ export const SettingsModel = () => {
             </div>
           </FormControl>
         </FormItem>
-      </form>
+      </div>
     </Form>
   );
 };
