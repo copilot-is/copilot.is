@@ -6,7 +6,7 @@ import ScrollToBottom from 'react-scroll-to-bottom';
 import { toast } from 'sonner';
 
 import { api } from '@/lib/api';
-import { GenerateTitleModels, GenerateTitlePrompt } from '@/lib/constant';
+import { GenerateTitlePrompt } from '@/lib/constant';
 import { UserContent, type Message } from '@/lib/types';
 import {
   apiFromModel,
@@ -33,7 +33,8 @@ export function ChatUI({ id }: ChatUIProps) {
   const regenerateIdRef = useRef<string>();
   const userMessageRef = useRef<Message>();
   const [isFetching, setIsFetching] = useState(false);
-  const { apiCustomEnabled, apiConfigs, settings } = useSettings();
+  const { apiCustomEnabled, apiConfigs, settings, generateTitleModels } =
+    useSettings();
   const {
     chatDetails,
     addChatDetail,
@@ -155,7 +156,7 @@ export function ChatUI({ id }: ChatUIProps) {
 
         const genUsage = {
           ...chat?.usage,
-          model: GenerateTitleModels[provider],
+          model: generateTitleModels[provider],
           prompt: undefined
         };
 

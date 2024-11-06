@@ -2,6 +2,7 @@ import {
   APIProvider,
   ChatCategory,
   Provider,
+  Settings,
   Voice,
   type Model
 } from '@/lib/types';
@@ -148,6 +149,14 @@ Latex block: $$e=mc^2$$`;
 export const GenerateTitlePrompt =
   'Please generate a four to five word title summarizing our conversation without any lead-in, punctuation, quotation marks, periods, symbols, bold text, or additional text. Remove enclosing quotation marks.';
 
+export const DefaultSettings: Settings = {
+  prompt: SystemPrompt,
+  temperature: 1,
+  frequencyPenalty: 0,
+  presencePenalty: 0,
+  maxTokens: 4096
+};
+
 export const ChatCategories: ChatCategory[] = [
   'Today',
   'Yesterday',
@@ -168,9 +177,3 @@ export const APIProviders: { text: string; value: 'null' | APIProvider }[] = [
   { text: 'Select a provider', value: 'null' },
   { text: 'Google Vertex AI', value: 'vertex' }
 ];
-
-export const GenerateTitleModels: Record<Provider, string> = {
-  openai: 'gpt-4o-mini',
-  google: 'gemini-1.5-flash',
-  anthropic: 'claude-3-haiku-20240307'
-};

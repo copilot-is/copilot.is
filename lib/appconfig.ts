@@ -29,12 +29,13 @@ export interface AppConfig {
     credentials?: string;
   };
   readonly tts: {
-    enabled?: boolean;
-    model?: string;
-    voice?: Voice;
+    enabled: boolean;
+    model: string;
+    voice: Voice;
   };
-  readonly defaultModel?: string;
+  readonly defaultModel: string;
   readonly availableModels: Record<Provider, string[]>;
+  readonly generateTitleModels: Record<Provider, string>;
   readonly apiCustomEnabled: boolean;
   readonly apiProvider: Partial<Record<Provider, { provider?: APIProvider }>>;
   readonly umami: {
@@ -73,16 +74,27 @@ export const appConfig: AppConfig = {
   },
   tts: {
     enabled: process.env.TTS_ENABLED === 'true',
-    model: process.env.TTS_MODEL,
-    voice: process.env.TTS_VOICE as Voice
+    model: process.env.TTS_MODEL || 'tts-1',
+    voice: (process.env.TTS_VOICE || 'alloy') as Voice
   },
-  defaultModel: process.env.DEFAULT_MODEL,
+  defaultModel: process.env.DEFAULT_MODEL || 'gpt-4o',
   availableModels: {
     openai: process.env.OPENAI_MODELS?.split(',') || [],
     google: process.env.GOOGLE_GENERATIVE_AI_MODELS?.split(',') || [],
     anthropic: process.env.ANTHROPIC_MODELS?.split(',') || []
   },
-  apiCustomEnabled: process.env.API_CUSTOM_ENABLED === 'false' ? false : true,
+  generateTitleModels: {
+    openai: process.env.OPENAI_GENERATE_TITLE_MODEL || 'gpt-4o-mini',
+    google: process.env.GOOGLE_GENERATE_TITLE_MODEL || 'gemini-1.5-flash',
+    anthropic:
+      process.env.ANTHROPIC_GENERATE_TITLE_MODEL || 'claude-3-haiku-20240307'
+  },
+  apiCustomEnabled:
+    process.env.API_CUSTOM_ENABLED === 'false'
+      ? false
+      : process.env.API_CUSTOM_ENABLED === undefined
+        ? true
+        : true,
   apiProvider: {
     openai: process.env.OPENAI_API_PROVIDER
       ? {

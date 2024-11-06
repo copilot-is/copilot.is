@@ -2,7 +2,7 @@
 
 import * as React from 'react';
 
-import { SystemPrompt } from '@/lib/constant';
+import { DefaultSettings } from '@/lib/constant';
 import {
   APIConfigs,
   APIParameter,
@@ -18,6 +18,7 @@ import { useLocalStorage } from '@/hooks/use-local-storage';
 type SettingsContextProps = {
   apiCustomEnabled: boolean;
   availableModels: Model[];
+  generateTitleModels: Record<Provider, string>;
   tts: TTS;
   setTextToSpeech: (key: 'model' | 'voice', value?: string | Voice) => void;
   model: string;
@@ -45,17 +46,19 @@ export const useSettings = (): SettingsContextProps => {
 };
 
 export const SettingsProvider = ({
-  defaultTTS = {},
-  defaultModel = 'gpt-4o',
+  defaultTTS,
+  defaultModel,
   availableModels,
-  apiCustomEnabled = true,
+  generateTitleModels,
+  apiCustomEnabled,
   apiProvider,
   children
 }: {
-  defaultTTS?: TTS;
-  defaultModel?: string;
+  defaultTTS: TTS;
+  defaultModel: string;
   availableModels: Model[];
-  apiCustomEnabled?: boolean;
+  generateTitleModels: Record<Provider, string>;
+  apiCustomEnabled: boolean;
   apiProvider: Partial<Record<Provider, { provider?: APIProvider }>>;
   children: React.ReactNode;
 }) => {
@@ -69,16 +72,9 @@ export const SettingsProvider = ({
     SettingsContextProps['apiConfigs']
   >('configs', apiProvider);
 
-  const defaultSettings: Settings = {
-    prompt: SystemPrompt,
-    temperature: 1,
-    frequencyPenalty: 0,
-    presencePenalty: 0,
-    maxTokens: 4096
-  };
   const [settings, setSettings, settingsLoading] = useLocalStorage<
     SettingsContextProps['settings']
-  >('settings', defaultSettings);
+  >('settings', DefaultSettings);
 
   const isLoading =
     ttsLoading && modelLoading && configsLoading && settingsLoading;
@@ -98,13 +94,14 @@ export const SettingsProvider = ({
         },
         model,
         setModel,
+        generateTitleModels,
         settings,
         setSettings: (key: keyof Settings, value: Settings[keyof Settings]) => {
           if (value === null || value === undefined) {
-            if (settings[key] !== defaultSettings[key]) {
+            if (settings[key] !== DefaultSettings[key]) {
               setSettings({
                 ...settings,
-                [key]: defaultSettings[key]
+                [key]: DefaultSettings[key]
               });
             }
           } else {

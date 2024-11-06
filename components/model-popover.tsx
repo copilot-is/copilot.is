@@ -4,6 +4,7 @@ import { useParams } from 'next/navigation';
 import { CaretDown } from '@phosphor-icons/react';
 import { useForm } from 'react-hook-form';
 
+import { DefaultSettings } from '@/lib/constant';
 import { isImageModel } from '@/lib/utils';
 import { useSettings } from '@/hooks/use-settings';
 import { useStore } from '@/store/useStore';
@@ -41,9 +42,9 @@ export const ModelPopover = () => {
     }
   };
 
-  const handleReset = (key: string, value?: number | null) => {
+  const handleReset = (key: string) => {
     if (chat) {
-      handleChange(key, value);
+      handleChange(key, DefaultSettings[key]);
     } else {
       setSettings(key, null);
     }
@@ -102,7 +103,7 @@ export const ModelPopover = () => {
                     variant="secondary"
                     size="sm"
                     className="h-5 rounded-sm px-2"
-                    onClick={() => handleReset('temperature', 1)}
+                    onClick={() => handleReset('temperature')}
                   >
                     Reset
                   </Button>
@@ -148,7 +149,7 @@ export const ModelPopover = () => {
                     variant="secondary"
                     size="sm"
                     className="h-5 rounded-sm px-2"
-                    onClick={() => handleReset('maxTokens', 4096)}
+                    onClick={() => handleReset('maxTokens')}
                   >
                     Reset
                   </Button>
@@ -197,7 +198,7 @@ export const ModelPopover = () => {
                     variant="secondary"
                     size="sm"
                     className="h-5 rounded-sm px-2"
-                    onClick={() => handleReset('presencePenalty', 0)}
+                    onClick={() => handleReset('presencePenalty')}
                   >
                     Reset
                   </Button>
@@ -246,7 +247,7 @@ export const ModelPopover = () => {
                     variant="secondary"
                     size="sm"
                     className="h-5 rounded-sm px-2"
-                    onClick={() => handleReset('frequencyPenalty', 0)}
+                    onClick={() => handleReset('frequencyPenalty')}
                   >
                     Reset
                   </Button>
