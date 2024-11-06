@@ -58,8 +58,8 @@ export const SettingsAPIDialog = ({
             <code className="font-mono font-medium">&apos;configs&apos;</code>.
           </DialogDescription>
         </DialogHeader>
-        <Tabs defaultValue="models">
-          <TabsList className="flex w-full">
+        <Tabs defaultValue="openai">
+          <TabsList className="flex h-auto w-full flex-wrap">
             <TabsTrigger className="grow" value="openai">
               OpenAI
             </TabsTrigger>
