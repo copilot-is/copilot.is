@@ -18,7 +18,7 @@ import { useLocalStorage } from '@/hooks/use-local-storage';
 type SettingsContextProps = {
   apiCustomEnabled: boolean;
   availableModels: Model[];
-  generateTitleModels: Record<Provider, string>;
+  generateTitleModels: Partial<Record<Provider, string>>;
   tts: TTS;
   setTextToSpeech: (key: 'model' | 'voice', value?: string | Voice) => void;
   model: string;
@@ -57,7 +57,7 @@ export const SettingsProvider = ({
   defaultTTS: TTS;
   defaultModel: string;
   availableModels: Model[];
-  generateTitleModels: Record<Provider, string>;
+  generateTitleModels: Partial<Record<Provider, string>>;
   apiCustomEnabled: boolean;
   apiProvider: Partial<Record<Provider, { provider?: APIProvider }>>;
   children: React.ReactNode;

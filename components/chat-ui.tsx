@@ -156,7 +156,7 @@ export function ChatUI({ id }: ChatUIProps) {
 
         const genUsage = {
           ...chat?.usage,
-          model: generateTitleModels[provider],
+          model: generateTitleModels[provider] || model,
           prompt: undefined
         };
 
