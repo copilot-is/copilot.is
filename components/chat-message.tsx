@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { User } from '@phosphor-icons/react';
+import { Robot, User } from '@phosphor-icons/react';
 
 import { Message, Provider } from '@/lib/types';
 import { cn } from '@/lib/utils';
@@ -33,6 +33,7 @@ export function ChatMessage({ message, provider, children }: ChatMessageProps) {
               {provider === 'openai' && <IconOpenAI />}
               {provider === 'google' && <IconGoogleAI />}
               {provider === 'anthropic' && <IconClaudeAI />}
+              {!provider && <Robot />}
             </>
           )}
         </div>

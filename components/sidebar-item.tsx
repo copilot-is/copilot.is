@@ -3,6 +3,7 @@
 import * as React from 'react';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
+import { Robot } from '@phosphor-icons/react';
 import { motion } from 'framer-motion';
 
 import { type Chat } from '@/lib/types';
@@ -48,6 +49,7 @@ export function SidebarItem({ index, chat, children }: SidebarItemProps) {
         {provider === 'openai' && <IconOpenAI />}
         {provider === 'google' && <IconGoogleAI />}
         {provider === 'anthropic' && <IconClaudeAI />}
+        {!provider && <Robot />}
       </div>
       <Link
         href={`/chat/${chat.id}`}

@@ -4,7 +4,13 @@ import { ImagesResponse } from 'openai/resources';
 
 import { appConfig } from '@/lib/appconfig';
 import { streamImage } from '@/lib/streams/stream-image';
-import { ImagePart, Message, TextPart, type Usage } from '@/lib/types';
+import {
+  APIConfig,
+  ImagePart,
+  Message,
+  TextPart,
+  type Usage
+} from '@/lib/types';
 import { auth } from '@/server/auth';
 
 export const dynamic = 'force-dynamic';
@@ -49,6 +55,7 @@ const openai = new OpenAI({
 type PostData = {
   messages: Message[];
   usage: Usage;
+  config?: APIConfig;
 };
 
 export async function POST(req: Request) {
@@ -59,11 +66,16 @@ export async function POST(req: Request) {
   }
 
   const json: PostData = await req.json();
-  const { messages, usage } = json;
-  const { model, stream, previewToken } = usage;
+  const { messages, usage, config } = json;
+  const { model, stream } = usage;
 
-  if (appConfig.apiCustomEnabled && previewToken) {
-    openai.apiKey = previewToken;
+  if (appConfig.apiCustomEnabled && config) {
+    if (config.token) {
+      openai.apiKey = config.token;
+    }
+    if (config.token && config.baseURL) {
+      openai.baseURL = config.baseURL;
+    }
   }
 
   try {

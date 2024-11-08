@@ -19,6 +19,7 @@ import {
   apiFromModel,
   cn,
   getMessageContentText,
+  getProviderConfig,
   providerFromModel
 } from '@/lib/utils';
 import { useCopyToClipboard } from '@/hooks/use-copy-to-clipboard';
@@ -89,15 +90,27 @@ export function ChatMessageActions({
     if (tts.enabled && tts.model && tts.voice) {
       const apiRoute = apiFromModel(tts.model);
       const provider = providerFromModel(tts.model);
-      const previewToken =
+      const customProvider =
         apiCustomEnabled && provider
-          ? apiConfigs?.[provider]?.token
+          ? apiConfigs?.[provider]?.provider
           : undefined;
-      const usage = { model: tts.model, previewToken };
+      const config = getProviderConfig(
+        apiCustomEnabled,
+        provider,
+        customProvider,
+        apiConfigs
+      );
+      const usage = { model: tts.model };
       const input = getMessageContentText(message.content);
 
       setIsLoadingAudio(true);
-      const result = await api.createAudio(apiRoute, tts.voice, input, usage);
+      const result = await api.createAudio(
+        apiRoute,
+        tts.voice,
+        input,
+        usage,
+        config
+      );
       setIsLoadingAudio(false);
 
       if (result && 'error' in result) {

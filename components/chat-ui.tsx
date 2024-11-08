@@ -14,6 +14,7 @@ import {
   generateId,
   getMessageContentText,
   getProviderConfig,
+  isImageModel,
   isVisionModel,
   providerFromModel
 } from '@/lib/utils';
@@ -139,7 +140,7 @@ export function ChatUI({ id }: ChatUIProps) {
   });
 
   const generateTitle = async (id: string, messages: Message[]) => {
-    if (provider && id && messages && messages.length >= 2) {
+    if (id && messages && messages.length >= 2) {
       const [firstMessage, secondMessage] = messages.slice(0, 2);
       if (firstMessage.role === 'user' && secondMessage.role === 'assistant') {
         const genMessages = [
@@ -154,20 +155,22 @@ export function ChatUI({ id }: ChatUIProps) {
           { role: 'user', content: GenerateTitlePrompt }
         ];
 
-        const genUsage = {
-          ...chat?.usage,
-          model: generateTitleModels[provider] || model,
-          prompt: undefined
-        };
+        const genModel = (provider && generateTitleModels[provider]) || model;
 
-        const result = await api.createAI(
-          apiFromModel(genUsage.model, customProvider),
-          genMessages,
-          genUsage,
-          config
-        );
-        if (result && !('error' in result)) {
-          if (result.content) {
+        if (!isImageModel(genModel)) {
+          const genUsage = {
+            ...chat?.usage,
+            model: genModel,
+            prompt: undefined
+          };
+
+          const result = await api.createAI(
+            apiFromModel(genModel, customProvider),
+            genMessages,
+            genUsage,
+            config
+          );
+          if (result && !('error' in result) && result.content) {
             await api.updateChat(id, { title: result.content });
             updateChat(id, { title: result.content });
             updateChatDetail(id, { title: result.content });

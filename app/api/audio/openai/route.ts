@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import OpenAI from 'openai';
 
 import { appConfig } from '@/lib/appconfig';
-import { type Usage } from '@/lib/types';
+import { APIConfig, type Usage } from '@/lib/types';
 import { auth } from '@/server/auth';
 
 export const dynamic = 'force-dynamic';
@@ -20,6 +20,7 @@ type PostData = {
   input: string;
   voice: Voice;
   usage: Usage;
+  config?: APIConfig;
 };
 
 export async function POST(req: Request) {
@@ -30,8 +31,8 @@ export async function POST(req: Request) {
   }
 
   const json: PostData = await req.json();
-  const { input, voice, usage } = json;
-  const { model, previewToken } = usage;
+  const { input, voice, usage, config } = json;
+  const { model } = usage;
 
   if (!model || !input || !voice || !voices.includes(voice)) {
     return NextResponse.json(
@@ -40,8 +41,13 @@ export async function POST(req: Request) {
     );
   }
 
-  if (appConfig.apiCustomEnabled && previewToken) {
-    openai.apiKey = previewToken;
+  if (appConfig.apiCustomEnabled && config) {
+    if (config.token) {
+      openai.apiKey = config.token;
+    }
+    if (config.token && config.baseURL) {
+      openai.baseURL = config.baseURL;
+    }
   }
 
   try {
