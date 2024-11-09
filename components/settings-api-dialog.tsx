@@ -64,10 +64,13 @@ export const SettingsAPIDialog = ({
               OpenAI
             </TabsTrigger>
             <TabsTrigger className="grow" value="google">
-              Google Generative AI
+              Google AI
             </TabsTrigger>
             <TabsTrigger className="grow" value="anthropic">
               Anthropic
+            </TabsTrigger>
+            <TabsTrigger className="grow" value="azure">
+              Azure OpenAI
             </TabsTrigger>
             <TabsTrigger className="grow" value="vertex">
               Google Vertex AI
@@ -76,6 +79,45 @@ export const SettingsAPIDialog = ({
           <Form {...form}>
             <TabsContent value="openai" className="px-px">
               <div className="space-y-4">
+                <FormItem>
+                  <FormLabel>API Provider</FormLabel>
+                  <Select
+                    onValueChange={(value: string) =>
+                      setAPIConfigs(
+                        'openai',
+                        'provider',
+                        value === 'null' ? undefined : value
+                      )
+                    }
+                    value={apiConfigs?.['openai']?.provider || 'null'}
+                  >
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select a provider">
+                          {
+                            APIProviders.find(
+                              p =>
+                                p.value ===
+                                (apiConfigs?.['openai']?.provider || 'null')
+                            )?.text
+                          }
+                        </SelectValue>
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {APIProviders.filter(p =>
+                        ['azure', 'null'].includes(p.value)
+                      ).map(item => (
+                        <SelectItem key={item.value} value={item.value}>
+                          {item.text}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FormDescription>
+                    Please select the appropriate provider for your OpenAI API.
+                  </FormDescription>
+                </FormItem>
                 <FormItem>
                   <FormLabel>API Key</FormLabel>
                   <FormControl>
@@ -141,7 +183,9 @@ export const SettingsAPIDialog = ({
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      {APIProviders.map(item => (
+                      {APIProviders.filter(p =>
+                        ['vertex', 'null'].includes(p.value)
+                      ).map(item => (
                         <SelectItem key={item.value} value={item.value}>
                           {item.text}
                         </SelectItem>
@@ -214,7 +258,9 @@ export const SettingsAPIDialog = ({
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      {APIProviders.map(item => (
+                      {APIProviders.filter(p =>
+                        ['vertex', 'null'].includes(p.value)
+                      ).map(item => (
                         <SelectItem key={item.value} value={item.value}>
                           {item.text}
                         </SelectItem>
@@ -257,6 +303,75 @@ export const SettingsAPIDialog = ({
                       }}
                     />
                   </FormControl>
+                </FormItem>
+              </div>
+            </TabsContent>
+            <TabsContent value="azure" className="px-px">
+              <div className="space-y-4">
+                <FormItem>
+                  <FormLabel>Resource Name</FormLabel>
+                  <FormControl>
+                    <Input
+                      value={apiConfigs?.['azure']?.resourceName || ''}
+                      onChange={e => {
+                        setAPIConfigs('azure', 'resourceName', e.target.value);
+                      }}
+                    />
+                  </FormControl>
+                  <FormDescription>
+                    <p>The Azure resource name.</p>
+                    <p>
+                      The resource name is used in the assembled URL:{' '}
+                      <code>
+                        https://
+                        &#123;resourceName&#125;.openai.azure.com/openai/deployments/
+                        &#123;modelId&#125; &#123;path&#125;
+                      </code>
+                      .
+                    </p>
+                    <p>
+                      You can use baseURL instead to specify the URL prefix.
+                    </p>
+                  </FormDescription>
+                </FormItem>
+                <FormItem>
+                  <FormLabel>API Key</FormLabel>
+                  <FormControl>
+                    <Input
+                      type="password"
+                      value={apiConfigs?.['azure']?.token || ''}
+                      onChange={e => {
+                        setAPIConfigs('azure', 'token', e.target.value);
+                      }}
+                    />
+                  </FormControl>
+                  <FormDescription>The Azure API key.</FormDescription>
+                </FormItem>
+                <FormItem>
+                  <FormLabel>Base URL</FormLabel>
+                  <FormControl>
+                    <Textarea
+                      rows={3}
+                      value={apiConfigs?.['azure']?.baseURL || ''}
+                      onChange={e => {
+                        setAPIConfigs('azure', 'baseURL', e.target.value);
+                      }}
+                    />
+                  </FormControl>
+                  <FormDescription>
+                    <p>Use a different URL prefix for API calls, e.g.</p>
+                    <p>
+                      Either this or resourceName can be used. When a baseURL is
+                      provided, the resourceName is ignored.
+                    </p>
+                    <p>
+                      With a baseURL, the resolved URL is{' '}
+                      <code>
+                        &#123;baseURL&#125;/&#123;modelId&#125;&#123;path&#125;
+                      </code>
+                      .
+                    </p>
+                  </FormDescription>
                 </FormItem>
               </div>
             </TabsContent>

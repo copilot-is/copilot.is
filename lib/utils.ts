@@ -144,12 +144,14 @@ export function getProviderConfig(
     (customConfig.token ||
       customConfig.baseURL ||
       customConfig.project ||
-      customConfig.location)
+      customConfig.location ||
+      customConfig.resourceName)
       ? {
           token: customConfig.token,
           baseURL: customConfig.baseURL,
           project: customConfig.project,
-          location: customConfig.location
+          location: customConfig.location,
+          resourceName: customConfig.resourceName
         }
       : undefined;
 

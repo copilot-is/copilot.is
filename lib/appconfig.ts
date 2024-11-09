@@ -28,6 +28,11 @@ export interface AppConfig {
     location?: string;
     credentials?: string;
   };
+  readonly azure: {
+    apiKey: string;
+    baseURL?: string;
+    resourceName?: string;
+  };
   readonly tts: {
     enabled: boolean;
     model: string;
@@ -71,6 +76,11 @@ export const appConfig: AppConfig = {
     project: process.env.GOOGLE_VERTEX_PROJECT,
     location: process.env.GOOGLE_VERTEX_LOCATION,
     credentials: process.env.GOOGLE_APPLICATION_CREDENTIALS
+  },
+  azure: {
+    baseURL: process.env.AZURE_BASE_URL,
+    apiKey: process.env.AZURE_API_KEY || '',
+    resourceName: process.env.AZURE_RESOURCE_NAME
   },
   tts: {
     enabled: process.env.TTS_ENABLED === 'true',

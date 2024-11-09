@@ -175,5 +175,6 @@ export const VertexAIModels: Record<string, string> = {
 
 export const APIProviders: { text: string; value: 'null' | APIProvider }[] = [
   { text: 'Select a provider', value: 'null' },
+  { text: 'Azure OpenAI', value: 'azure' },
   { text: 'Google Vertex AI', value: 'vertex' }
 ];

@@ -11,6 +11,9 @@ importers:
       '@ai-sdk/anthropic':
         specifier: ^0.0.51
         version: 0.0.51(zod@3.23.8)
+      '@ai-sdk/azure':
+        specifier: ^0.0.51
+        version: 0.0.51(zod@3.23.8)
       '@ai-sdk/google':
         specifier: ^0.0.51
         version: 0.0.51(zod@3.23.8)
@@ -240,6 +243,12 @@ packages:
     peerDependencies:
       zod: ^3.0.0
 
+  '@ai-sdk/azure@0.0.51':
+    resolution: {integrity: sha512-DMPuWURdgoweDlSLTj6o3Yx6+hnfr9idvHaTBwgPY+mayvEwlLZp3l08juMn/d/gKgHheQpUEgCQNhCzk6ZJ5w==}
+    engines: {node: '>=18'}
+    peerDependencies:
+      zod: ^3.0.0
+
   '@ai-sdk/google-vertex@0.0.40':
     resolution: {integrity: sha512-pN40Qz1FbUroHCBzyWTYWi9fhZsRcQ0J1mu7ld4qNCv5dnjxFJyrwnwf1jVM8xPpgCtqKtOlMvP2JtKQFo+9Tg==}
     engines: {node: '>=18'}
@@ -254,6 +263,12 @@ packages:
 
   '@ai-sdk/openai@0.0.66':
     resolution: {integrity: sha512-V4XeDnlNl5/AY3GB3ozJUjqnBLU5pK3DacKTbCNH3zH8/MggJoH6B8wRGdLUPVFMcsMz60mtvh4DC9JsIVFrKw==}
+    engines: {node: '>=18'}
+    peerDependencies:
+      zod: ^3.0.0
+
+  '@ai-sdk/openai@0.0.71':
+    resolution: {integrity: sha512-ds7u3sWEnKyHxM3lAL9xTs72228HEKcPZCAEFaxmgrexKPJe2tyLBtvS/Kg39SPKPtY9EeaKqi/nbx1AmnXK6A==}
     engines: {node: '>=18'}
     peerDependencies:
       zod: ^3.0.0
@@ -4315,6 +4330,13 @@ snapshots:
       '@ai-sdk/provider-utils': 1.0.20(zod@3.23.8)
       zod: 3.23.8
 
+  '@ai-sdk/azure@0.0.51(zod@3.23.8)':
+    dependencies:
+      '@ai-sdk/openai': 0.0.71(zod@3.23.8)
+      '@ai-sdk/provider': 0.0.26
+      '@ai-sdk/provider-utils': 1.0.22(zod@3.23.8)
+      zod: 3.23.8
+
   '@ai-sdk/google-vertex@0.0.40(@google-cloud/vertexai@1.8.1)(zod@3.23.8)':
     dependencies:
       '@ai-sdk/provider': 0.0.24
@@ -4335,6 +4357,12 @@ snapshots:
     dependencies:
       '@ai-sdk/provider': 0.0.24
       '@ai-sdk/provider-utils': 1.0.20(zod@3.23.8)
+      zod: 3.23.8
+
+  '@ai-sdk/openai@0.0.71(zod@3.23.8)':
+    dependencies:
+      '@ai-sdk/provider': 0.0.26
+      '@ai-sdk/provider-utils': 1.0.22(zod@3.23.8)
       zod: 3.23.8
 
   '@ai-sdk/provider-utils@1.0.20(zod@3.23.8)':
