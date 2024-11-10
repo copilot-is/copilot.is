@@ -88,7 +88,6 @@ export function ChatMessageActions({
 
   const onRead = async () => {
     if (tts.enabled && tts.model && tts.voice) {
-      const apiRoute = apiFromModel(tts.model);
       const provider = providerFromModel(tts.model);
       const customProvider =
         apiCustomEnabled && provider
@@ -105,7 +104,7 @@ export function ChatMessageActions({
 
       setIsLoadingAudio(true);
       const result = await api.createAudio(
-        apiRoute,
+        apiFromModel(tts.model, customProvider),
         tts.voice,
         input,
         usage,

@@ -80,8 +80,7 @@ export type APIParameter =
   | 'baseURL'
   | 'provider'
   | 'project'
-  | 'location'
-  | 'resourceName';
+  | 'location';
 
 export type APIConfig = Partial<Omit<Record<APIParameter, string>, 'provider'>>;
 

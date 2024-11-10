@@ -36,16 +36,14 @@ export async function POST(req: Request) {
 
   try {
     const customEnabled = appConfig.apiCustomEnabled && config && config.token;
+    const baseURL =
+      customEnabled && config.baseURL
+        ? config.baseURL
+        : appConfig.azure.baseURL;
 
     const azure = createAzure({
-      resourceName: customEnabled
-        ? config.resourceName
-        : appConfig.azure.resourceName,
       apiKey: customEnabled ? config.token : appConfig.azure.apiKey,
-      baseURL:
-        customEnabled && config.baseURL
-          ? config.baseURL
-          : appConfig.azure.baseURL
+      baseURL: baseURL ? baseURL + 'openai/deployments/' : undefined
     });
 
     const parameters = {

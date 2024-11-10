@@ -309,32 +309,6 @@ export const SettingsAPIDialog = ({
             <TabsContent value="azure" className="px-px">
               <div className="space-y-4">
                 <FormItem>
-                  <FormLabel>Resource Name</FormLabel>
-                  <FormControl>
-                    <Input
-                      value={apiConfigs?.['azure']?.resourceName || ''}
-                      onChange={e => {
-                        setAPIConfigs('azure', 'resourceName', e.target.value);
-                      }}
-                    />
-                  </FormControl>
-                  <FormDescription>
-                    <p>The Azure resource name.</p>
-                    <p>
-                      The resource name is used in the assembled URL:{' '}
-                      <code>
-                        https://
-                        &#123;resourceName&#125;.openai.azure.com/openai/deployments/
-                        &#123;modelId&#125; &#123;path&#125;
-                      </code>
-                      .
-                    </p>
-                    <p>
-                      You can use baseURL instead to specify the URL prefix.
-                    </p>
-                  </FormDescription>
-                </FormItem>
-                <FormItem>
                   <FormLabel>API Key</FormLabel>
                   <FormControl>
                     <Input
@@ -348,30 +322,16 @@ export const SettingsAPIDialog = ({
                   <FormDescription>The Azure API key.</FormDescription>
                 </FormItem>
                 <FormItem>
-                  <FormLabel>Base URL</FormLabel>
+                  <FormLabel>Endpoint</FormLabel>
                   <FormControl>
-                    <Textarea
-                      rows={3}
+                    <Input
                       value={apiConfigs?.['azure']?.baseURL || ''}
                       onChange={e => {
                         setAPIConfigs('azure', 'baseURL', e.target.value);
                       }}
                     />
                   </FormControl>
-                  <FormDescription>
-                    <p>Use a different URL prefix for API calls, e.g.</p>
-                    <p>
-                      Either this or resourceName can be used. When a baseURL is
-                      provided, the resourceName is ignored.
-                    </p>
-                    <p>
-                      With a baseURL, the resolved URL is{' '}
-                      <code>
-                        &#123;baseURL&#125;/&#123;modelId&#125;&#123;path&#125;
-                      </code>
-                      .
-                    </p>
-                  </FormDescription>
+                  <FormDescription>The Azure endpoint.</FormDescription>
                 </FormItem>
               </div>
             </TabsContent>

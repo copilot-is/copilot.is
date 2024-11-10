@@ -31,7 +31,6 @@ export interface AppConfig {
   readonly azure: {
     apiKey: string;
     baseURL?: string;
-    resourceName?: string;
   };
   readonly tts: {
     enabled: boolean;
@@ -80,7 +79,6 @@ export const appConfig: AppConfig = {
   azure: {
     baseURL: process.env.AZURE_BASE_URL,
     apiKey: process.env.AZURE_API_KEY || '',
-    resourceName: process.env.AZURE_RESOURCE_NAME
   },
   tts: {
     enabled: process.env.TTS_ENABLED === 'true',
