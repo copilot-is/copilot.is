@@ -89,7 +89,6 @@ export async function POST(req: Request) {
 
     return res.toDataStreamResponse();
   } catch (err: any) {
-    console.log(err);
     return NextResponse.json({ error: err.message }, { status: 500 });
   }
 }
