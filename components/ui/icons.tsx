@@ -122,6 +122,20 @@ function IconGoogle({ className, ...props }: React.ComponentProps<'svg'>) {
   );
 }
 
+function IconGork({ className, ...props }: React.ComponentProps<'svg'>) {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      viewBox="0 0 24 24"
+      fill="currentColor"
+      className={cn('size-4', className)}
+      {...props}
+    >
+      <path d="m3.005 8.858 8.783 12.544h3.904L6.908 8.858zM6.905 15.825 3 21.402h3.907l1.951-2.788zM16.585 2l-6.75 9.64 1.953 2.79L20.492 2zM17.292 7.965v13.437h3.2V3.395z"></path>
+    </svg>
+  );
+}
+
 function IconTyping({ className, ...props }: React.ComponentProps<'svg'>) {
   return (
     <svg
@@ -174,5 +188,6 @@ export {
   IconClaudeAI,
   IconGitHub,
   IconGoogle,
+  IconGork,
   IconTyping
 };

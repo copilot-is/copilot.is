@@ -36,7 +36,7 @@ export interface Usage extends Record<string, any> {
   maxTokens?: number;
 }
 
-export type Provider = 'openai' | 'google' | 'anthropic';
+export type Provider = 'openai' | 'google' | 'anthropic' | 'xai';
 
 export interface Model extends Record<string, any> {
   text: string;

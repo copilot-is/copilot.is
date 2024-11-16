@@ -32,6 +32,10 @@ export interface AppConfig {
     apiKey: string;
     baseURL?: string;
   };
+  readonly xai: {
+    apiKey: string;
+    baseURL: string;
+  };
   readonly tts: {
     enabled: boolean;
     model: string;
@@ -78,7 +82,11 @@ export const appConfig: AppConfig = {
   },
   azure: {
     baseURL: process.env.AZURE_BASE_URL,
-    apiKey: process.env.AZURE_API_KEY || '',
+    apiKey: process.env.AZURE_API_KEY || ''
+  },
+  xai: {
+    baseURL: process.env.XAI_BASE_URL || 'https://api.x.ai/v1',
+    apiKey: process.env.XAI_API_KEY || ''
   },
   tts: {
     enabled: process.env.TTS_ENABLED === 'true',
@@ -89,7 +97,8 @@ export const appConfig: AppConfig = {
   availableModels: {
     openai: process.env.OPENAI_MODELS?.split(',') || [],
     google: process.env.GOOGLE_MODELS?.split(',') || [],
-    anthropic: process.env.ANTHROPIC_MODELS?.split(',') || []
+    anthropic: process.env.ANTHROPIC_MODELS?.split(',') || [],
+    xai: process.env.XAI_MODELS?.split(',') || []
   },
   generateTitleModels: {
     openai: process.env.OPENAI_GENERATE_TITLE_MODEL,

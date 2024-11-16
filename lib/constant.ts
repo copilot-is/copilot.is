@@ -1,7 +1,6 @@
 import {
   APIProvider,
   ChatCategory,
-  Provider,
   Settings,
   Voice,
   type Model
@@ -107,6 +106,12 @@ export const SupportedModels: Model[] = [
     value: 'claude-3-haiku-20240307',
     vision: true,
     provider: 'anthropic'
+  },
+  {
+    text: 'Grok beta',
+    value: 'grok-beta',
+    vision: true,
+    provider: 'xai'
   }
 ];
 
@@ -137,7 +142,8 @@ export const Voices: Voice[] = [
 export enum ServiceProvider {
   openai = 'OpenAI',
   google = 'Google',
-  anthropic = 'Anthropic'
+  anthropic = 'Anthropic',
+  xai = 'xAI'
 }
 
 export const SystemPrompt = `A large language model trained by {provider}.

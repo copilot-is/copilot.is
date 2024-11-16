@@ -5,7 +5,12 @@ import { Robot, User } from '@phosphor-icons/react';
 
 import { Message, Provider } from '@/lib/types';
 import { cn } from '@/lib/utils';
-import { IconClaudeAI, IconGoogleAI, IconOpenAI } from '@/components/ui/icons';
+import {
+  IconClaudeAI,
+  IconGoogleAI,
+  IconGork,
+  IconOpenAI
+} from '@/components/ui/icons';
 import { ChatMessageMarkdown } from '@/components/chat-message-markdown';
 
 export interface ChatMessageProps {
@@ -33,6 +38,7 @@ export function ChatMessage({ message, provider, children }: ChatMessageProps) {
               {provider === 'openai' && <IconOpenAI />}
               {provider === 'google' && <IconGoogleAI />}
               {provider === 'anthropic' && <IconClaudeAI />}
+              {provider === 'xai' && <IconGork />}
               {!provider && <Robot />}
             </>
           )}

@@ -10,7 +10,12 @@ import { type Chat } from '@/lib/types';
 import { cn, providerFromModel } from '@/lib/utils';
 import { useStore } from '@/store/useStore';
 import { buttonVariants } from '@/components/ui/button';
-import { IconClaudeAI, IconGoogleAI, IconOpenAI } from '@/components/ui/icons';
+import {
+  IconClaudeAI,
+  IconGoogleAI,
+  IconGork,
+  IconOpenAI
+} from '@/components/ui/icons';
 
 interface SidebarItemProps {
   index: number;
@@ -49,6 +54,7 @@ export function SidebarItem({ index, chat, children }: SidebarItemProps) {
         {provider === 'openai' && <IconOpenAI />}
         {provider === 'google' && <IconGoogleAI />}
         {provider === 'anthropic' && <IconClaudeAI />}
+        {provider === 'xai' && <IconGork />}
         {!provider && <Robot />}
       </div>
       <Link

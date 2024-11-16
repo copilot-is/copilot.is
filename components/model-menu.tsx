@@ -21,7 +21,12 @@ import {
   AlertDialogHeader,
   AlertDialogTitle
 } from '@/components/ui/alert-dialog';
-import { IconClaudeAI, IconGoogleAI, IconOpenAI } from '@/components/ui/icons';
+import {
+  IconClaudeAI,
+  IconGoogleAI,
+  IconGork,
+  IconOpenAI
+} from '@/components/ui/icons';
 import {
   Select,
   SelectContent,
@@ -88,6 +93,7 @@ export function ModelMenu() {
               {selectedModel?.provider === 'openai' && <IconOpenAI />}
               {selectedModel?.provider === 'google' && <IconGoogleAI />}
               {selectedModel?.provider === 'anthropic' && <IconClaudeAI />}
+              {selectedModel?.provider === 'xai' && <IconGork />}
               <span className="ml-2 font-medium">{selectedModel?.text}</span>
             </div>
           </SelectValue>
@@ -99,6 +105,7 @@ export function ModelMenu() {
                 {model.provider === 'openai' && <IconOpenAI />}
                 {model.provider === 'google' && <IconGoogleAI />}
                 {model.provider === 'anthropic' && <IconClaudeAI />}
+                {model.provider === 'xai' && <IconGork />}
                 <div className="ml-2">
                   <div className="font-medium">{model.text}</div>
                   <div className="text-xs text-muted-foreground">

@@ -6,7 +6,12 @@ import { useSettings } from '@/hooks/use-settings';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Form, FormControl, FormItem, FormLabel } from '@/components/ui/form';
-import { IconClaudeAI, IconGoogleAI, IconOpenAI } from '@/components/ui/icons';
+import {
+  IconClaudeAI,
+  IconGoogleAI,
+  IconGork,
+  IconOpenAI
+} from '@/components/ui/icons';
 import {
   Select,
   SelectContent,
@@ -38,6 +43,7 @@ export const SettingsModel = () => {
                     {selectedModel?.provider === 'anthropic' && (
                       <IconClaudeAI />
                     )}
+                    {selectedModel?.provider === 'xai' && <IconGork />}
                     <span className="ml-2 font-medium">
                       {selectedModel?.text}
                     </span>
@@ -52,6 +58,7 @@ export const SettingsModel = () => {
                     {model.provider === 'openai' && <IconOpenAI />}
                     {model.provider === 'google' && <IconGoogleAI />}
                     {model.provider === 'anthropic' && <IconClaudeAI />}
+                    {model.provider === 'xai' && <IconGork />}
                     <div className="ml-2">
                       <div className="font-medium">{model.text}</div>
                       <div className="text-xs text-muted-foreground">
