@@ -6,8 +6,9 @@ import { api } from '@/trpc/server';
 
 export async function GET(
   req: NextRequest,
-  { params }: { params: { chatId: string } }
+  props: { params: Promise<{ chatId: string }> }
 ) {
+  const params = await props.params;
   const session = await auth();
 
   if (!session?.user) {
@@ -35,8 +36,9 @@ type PutData = Pick<Chat, 'title' | 'shared' | 'usage'>;
 
 export async function PUT(
   req: NextRequest,
-  { params }: { params: { chatId: string } }
+  props: { params: Promise<{ chatId: string }> }
 ) {
+  const params = await props.params;
   const session = await auth();
 
   if (!session?.user) {
@@ -66,8 +68,9 @@ export async function PUT(
 
 export async function DELETE(
   req: NextRequest,
-  { params }: { params: { chatId: string } }
+  props: { params: Promise<{ chatId: string }> }
 ) {
+  const params = await props.params;
   const session = await auth();
 
   if (!session?.user) {

@@ -10,8 +10,9 @@ type PutData = {
 
 export async function PUT(
   req: NextRequest,
-  { params }: { params: { chatId: string; messageId: string } }
+  props: { params: Promise<{ chatId: string; messageId: string }> }
 ) {
+  const params = await props.params;
   const session = await auth();
 
   if (!session?.user) {
@@ -48,8 +49,9 @@ export async function PUT(
 
 export async function DELETE(
   req: NextRequest,
-  { params }: { params: { chatId: string; messageId: string } }
+  props: { params: Promise<{ chatId: string; messageId: string }> }
 ) {
+  const params = await props.params;
   const session = await auth();
 
   if (!session?.user) {

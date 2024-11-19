@@ -1,32 +1,33 @@
-import 'server-only'
+import 'server-only';
 
+import { cache } from 'react';
+import { headers } from 'next/headers';
 import {
   createTRPCProxyClient,
   loggerLink,
   TRPCClientError
-} from '@trpc/client'
-import { callProcedure } from '@trpc/server'
-import { observable } from '@trpc/server/observable'
-import { type TRPCErrorResponse } from '@trpc/server/rpc'
-import { headers } from 'next/headers'
-import { cache } from 'react'
+} from '@trpc/client';
+import { callProcedure } from '@trpc/server';
+import { observable } from '@trpc/server/observable';
+import { type TRPCErrorResponse } from '@trpc/server/rpc';
 
-import { appRouter, type AppRouter } from '@/server/api/root'
-import { createTRPCContext } from '@/server/api/trpc'
-import { transformer } from './shared'
+import { appRouter, type AppRouter } from '@/server/api/root';
+import { createTRPCContext } from '@/server/api/trpc';
+
+import { transformer } from './shared';
 
 /**
  * This wraps the `createTRPCContext` helper and provides the required context for the tRPC API when
  * handling a tRPC call from a React Server Component.
  */
-const createContext = cache(() => {
-  const heads = new Headers(headers())
-  heads.set('x-trpc-source', 'rsc')
+const createContext = cache(async () => {
+  const heads = new Headers(await headers());
+  heads.set('x-trpc-source', 'rsc');
 
   return createTRPCContext({
     headers: heads
-  })
-})
+  });
+});
 
 export const api = createTRPCProxyClient<AppRouter>({
   transformer,
@@ -51,15 +52,15 @@ export const api = createTRPCProxyClient<AppRouter>({
                 rawInput: op.input,
                 ctx,
                 type: op.type
-              })
+              });
             })
             .then(data => {
-              observer.next({ result: { data } })
-              observer.complete()
+              observer.next({ result: { data } });
+              observer.complete();
             })
             .catch((cause: TRPCErrorResponse) => {
-              observer.error(TRPCClientError.from(cause))
-            })
+              observer.error(TRPCClientError.from(cause));
+            });
         })
   ]
-})
+});

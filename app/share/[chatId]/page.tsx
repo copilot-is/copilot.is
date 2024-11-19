@@ -6,15 +6,14 @@ import { formatDate, providerFromModel } from '@/lib/utils';
 import { api } from '@/trpc/server';
 import { ChatList } from '@/components/chat-list';
 
-interface SharePageProps {
-  params: {
+interface PageProps {
+  params: Promise<{
     chatId: string;
-  };
+  }>;
 }
 
-export async function generateMetadata({
-  params
-}: SharePageProps): Promise<Metadata> {
+export async function generateMetadata(props: PageProps): Promise<Metadata> {
+  const params = await props.params;
   const chatId = params.chatId;
   const chat = await api.chat.getShared.query({ chatId });
 
@@ -23,7 +22,8 @@ export async function generateMetadata({
   };
 }
 
-export default async function SharePage({ params }: SharePageProps) {
+export default async function Page(props: PageProps) {
+  const params = await props.params;
   const chatId = params.chatId;
   const chat = await api.chat.getShared.query({ chatId });
 

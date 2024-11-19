@@ -1,5 +1,5 @@
 import { formatStreamPart } from 'ai';
-import { ImagesResponse } from 'openai/resources';
+import { type ImagesResponse } from 'openai/resources/images';
 
 export function streamImage(images: ImagesResponse): {
   toDataStreamResponse: () => Response;

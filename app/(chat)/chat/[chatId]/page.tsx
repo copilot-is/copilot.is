@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { use, useEffect, useState } from 'react';
 
 import { api } from '@/lib/api';
 import { useStore } from '@/store/useStore';
@@ -11,15 +11,16 @@ import { ChatUI } from '@/components/chat-ui';
 export const dynamic = 'force-dynamic';
 export const maxDuration = 60;
 
-export interface ChatPageProps {
-  params: {
+export interface PageProps {
+  params: Promise<{
     chatId: string;
-  };
+  }>;
 }
 
 const PRODUCT_NAME = process.env.NEXT_PUBLIC_PRODUCT_NAME;
 
-export default function ChatPage({ params }: ChatPageProps) {
+export default function Page(props: PageProps) {
+  const params = use(props.params);
   const chatId = params.chatId;
   const [isLoading, setIsLoading] = useState(false);
   const { chatDetails, addChatDetail } = useStore();

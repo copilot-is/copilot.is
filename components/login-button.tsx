@@ -46,7 +46,7 @@ export function LoginButton({
           ) : (
             <IconGitHub className="size-4" />
           )}
-          <span className="ml-2">Login with GitHub</span>
+          <span className="ml-2">Continue with GitHub</span>
         </Button>
       )}
 
@@ -64,7 +64,7 @@ export function LoginButton({
           ) : (
             <IconGoogle className="size-4" />
           )}
-          <span className="ml-2">Login with Google</span>
+          <span className="ml-2">Continue with Google</span>
         </Button>
       )}
     </div>

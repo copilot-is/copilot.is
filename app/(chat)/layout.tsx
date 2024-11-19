@@ -3,11 +3,11 @@
 import { SidebarProvider } from '@/hooks/use-sidebar';
 import { Sidebar } from '@/components/sidebar';
 
-interface ChatLayoutProps {
+interface LayoutProps {
   children: React.ReactNode;
 }
 
-export default function ChatLayout({ children }: ChatLayoutProps) {
+export default function Layout({ children }: LayoutProps) {
   return (
     <SidebarProvider>
       <div className="flex size-full">

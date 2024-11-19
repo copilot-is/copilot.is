@@ -1,5 +1,5 @@
-import { chatRouter } from '@/server/api/routers/chat'
-import { createTRPCRouter } from '@/server/api/trpc'
+import { chatRouter } from '@/server/api/routers/chat';
+import { createTRPCRouter } from '@/server/api/trpc';
 
 /**
  * This is the primary router for your server.
@@ -8,7 +8,7 @@ import { createTRPCRouter } from '@/server/api/trpc'
  */
 export const appRouter = createTRPCRouter({
   chat: chatRouter
-})
+});
 
 // export type definition of API
-export type AppRouter = typeof appRouter
+export type AppRouter = typeof appRouter;

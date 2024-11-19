@@ -37,7 +37,8 @@ import {
 
 export function ModelMenu() {
   const isMobile = useMediaQuery('(max-width: 1023px)');
-  const { chatId } = useParams();
+  const { chatId } = useParams<{ chatId: string }>();
+
   const { chatDetails, updateChatDetail, updateChat } = useStore();
   const { availableModels, model, setModel, settings } = useSettings();
   const [isPending, startTransition] = React.useTransition();

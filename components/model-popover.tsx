@@ -21,7 +21,7 @@ import { Textarea } from '@/components/ui/textarea';
 
 export const ModelPopover = () => {
   const form = useForm();
-  const { chatId } = useParams();
+  const { chatId } = useParams<{ chatId: string }>();
   const { chatDetails, updateChatDetail, updateChat } = useStore();
   const { model, settings, setSettings } = useSettings();
 

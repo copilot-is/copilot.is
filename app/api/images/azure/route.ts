@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { AzureOpenAI } from 'openai';
-import { ImagesResponse } from 'openai/resources';
+import { type ImagesResponse } from 'openai/resources/images';
 
 import { appConfig } from '@/lib/appconfig';
 import { streamImage } from '@/lib/streams/stream-image';
