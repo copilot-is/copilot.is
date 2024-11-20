@@ -1,10 +1,11 @@
 <a href="https://copilot.is/">
-  <img alt="Next.js 14 and App Router-ready AI chatbot." src="https://copilot.is/opengraph-image.png">
+  <img alt="Next.js and App Router-ready AI chatbot." src="https://copilot.is/opengraph-image.png">
   <h1 align="center">Next.js AI Chatbot</h1>
 </a>
 
 <p align="center">
-  An open-source AI chatbot built with Next.js, the Vercel AI SDK, OpenAI, Google Gemini Pro, Claude and Vercel Postgres.
+  An open-source AI chatbot built with Next.js and Vercel AI SDK, supporting multiple AI models:
+  OpenAI, Google Gemini Pro, Google Vertex AI, Claude AI, and Grok.
 </p>
 
 <p align="center">
@@ -31,9 +32,10 @@
 
 ## Model Providers
 
-- [ChatGPT](https://platform.openai.com/account/api-keys) for OpenAI
-- [Gemini Pro](https://makersuite.google.com/app/apikey) for Google
-- [Claude](https://console.anthropic.com/settings/keys) for Anthropic
+- [ChatGPT](https://platform.openai.com/account/api-keys) for OpenAI and Azure OpenAI
+- [Gemini Pro](https://makersuite.google.com/app/apikey) for Google and Google Vertex AI
+- [Claude AI](https://console.anthropic.com/settings/keys) for Anthropic and Google Vertex AI
+- [Grok](https://console.x.ai/) for xAI
 
 ## Deploy Your Own
 
