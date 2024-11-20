@@ -66,18 +66,6 @@ export const SupportedModels: Model[] = [
     provider: 'google'
   },
   {
-    text: 'Gemini 1.5 Flash',
-    value: 'gemini-1.5-flash-latest',
-    vision: true,
-    provider: 'google'
-  },
-  {
-    text: 'Gemini 1.5 Pro',
-    value: 'gemini-1.5-pro-latest',
-    vision: true,
-    provider: 'google'
-  },
-  {
     text: 'Claude 3.5 Sonnet (New)',
     value: 'claude-3-5-sonnet-20241022',
     vision: true,
