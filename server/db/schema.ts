@@ -4,14 +4,13 @@ import {
   index,
   integer,
   jsonb,
-  pgEnum,
   pgTableCreator,
   primaryKey,
   text,
   timestamp,
   varchar
 } from 'drizzle-orm/pg-core';
-import { type Account } from 'next-auth';
+import { type AdapterAccount } from 'next-auth/adapters';
 
 import { appConfig } from '@/lib/appconfig';
 import { type Usage } from '@/lib/types';
@@ -37,10 +36,10 @@ export const chats = createTable(
     createdAt: timestamp('created_at').notNull().defaultNow(),
     updatedAt: timestamp('updated_at').notNull().defaultNow()
   },
-  chat => ({
-    userIdIdx: index('chat_userId_idx').on(chat.userId),
-    createdAtIdx: index('chat_createdAt_idx').on(chat.createdAt)
-  })
+  chat => [
+    index('chat_userId_idx').on(chat.userId),
+    index('chat_createdAt_idx').on(chat.createdAt)
+  ]
 );
 
 export const chatsRelations = relations(chats, ({ one, many }) => ({
@@ -48,13 +47,11 @@ export const chatsRelations = relations(chats, ({ one, many }) => ({
   messages: many(messages)
 }));
 
-export const role = pgEnum('role', ['system', 'user', 'assistant', 'tool']);
-
 export const messages = createTable(
   'message',
   {
     id: varchar('id', { length: 255 }).notNull().primaryKey(),
-    role: role('role').notNull(),
+    role: varchar('role', { length: 32 }).notNull(),
     content: jsonb('content').notNull(),
     userId: varchar('user_id', { length: 255 }).notNull(),
     chatId: varchar('chat_id', { length: 255 })
@@ -63,11 +60,11 @@ export const messages = createTable(
     createdAt: timestamp('created_at').notNull().defaultNow(),
     updatedAt: timestamp('updated_at').notNull().defaultNow()
   },
-  message => ({
-    userIdIdx: index('message_userId_idx').on(message.userId),
-    chatIdIdx: index('message_chatId_idx').on(message.chatId),
-    createdAtIdx: index('message_createdAt_idx').on(message.createdAt)
-  })
+  message => [
+    index('message_userId_idx').on(message.userId),
+    index('message_chatId_idx').on(message.chatId),
+    index('message_createdAt_idx').on(message.createdAt)
+  ]
 );
 
 export const messagesRelations = relations(messages, ({ one }) => ({
@@ -95,7 +92,9 @@ export const accounts = createTable(
     userId: varchar('userId', { length: 255 })
       .notNull()
       .references(() => users.id, { onDelete: 'cascade' }),
-    type: varchar('type', { length: 255 }).$type<Account['type']>().notNull(),
+    type: varchar('type', { length: 255 })
+      .$type<AdapterAccount['type']>()
+      .notNull(),
     provider: varchar('provider', { length: 255 }).notNull(),
     providerAccountId: varchar('providerAccountId', { length: 255 }).notNull(),
     refresh_token: text('refresh_token'),
@@ -106,12 +105,12 @@ export const accounts = createTable(
     id_token: text('id_token'),
     session_state: varchar('session_state', { length: 255 })
   },
-  account => ({
-    compoundKey: primaryKey({
+  account => [
+    primaryKey({
       columns: [account.provider, account.providerAccountId]
     }),
-    userIdIdx: index('account_userId_idx').on(account.userId)
-  })
+    index('account_userId_idx').on(account.userId)
+  ]
 );
 
 export const accountsRelations = relations(accounts, ({ one }) => ({
@@ -129,9 +128,7 @@ export const sessions = createTable(
       .references(() => users.id, { onDelete: 'cascade' }),
     expires: timestamp('expires', { mode: 'date' }).notNull()
   },
-  session => ({
-    userIdIdx: index('session_userId_idx').on(session.userId)
-  })
+  session => [index('session_userId_idx').on(session.userId)]
 );
 
 export const sessionsRelations = relations(sessions, ({ one }) => ({
@@ -145,7 +142,5 @@ export const verificationTokens = createTable(
     token: varchar('token', { length: 255 }).notNull(),
     expires: timestamp('expires', { mode: 'date' }).notNull()
   },
-  vt => ({
-    compoundKey: primaryKey({ columns: [vt.identifier, vt.token] })
-  })
+  vt => [primaryKey({ columns: [vt.identifier, vt.token] })]
 );

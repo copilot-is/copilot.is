@@ -9,7 +9,7 @@ import GitHub from 'next-auth/providers/github';
 import Google from 'next-auth/providers/google';
 
 import { db } from './db';
-import { createTable } from './db/schema';
+import { accounts, sessions, users, verificationTokens } from './db/schema';
 
 declare module 'next-auth' {
   interface Session extends DefaultSession {
@@ -36,7 +36,12 @@ export const {
       clientSecret: process.env.AUTH_GITHUB_SECRET
     })
   ],
-  adapter: DrizzleAdapter(db, createTable),
+  adapter: DrizzleAdapter(db, {
+    usersTable: users,
+    accountsTable: accounts,
+    sessionsTable: sessions,
+    verificationTokensTable: verificationTokens
+  }),
   callbacks: {
     jwt({ token, profile }) {
       if (profile) {

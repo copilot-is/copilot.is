@@ -1,13 +1,13 @@
-import { type Config } from 'drizzle-kit';
+import { defineConfig } from 'drizzle-kit';
 
 import { appConfig } from '@/lib/appconfig';
 
-export default {
+export default defineConfig({
   schema: './server/db/schema.ts',
-  out: './migrations',
-  driver: 'pg',
+  out: './server/db/migrations',
+  dialect: 'postgresql',
   dbCredentials: {
-    connectionString: appConfig.db.url
+    url: appConfig.db.url
   },
   tablesFilter: [appConfig.db.prefix + '*']
-} satisfies Config;
+});
