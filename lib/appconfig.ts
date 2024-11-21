@@ -9,7 +9,6 @@ export interface AppConfig {
   };
   readonly db: {
     url: string;
-    prefix: string;
   };
   readonly openai: {
     apiKey: string;
@@ -60,8 +59,7 @@ export const appConfig: AppConfig = {
     url: process.env.NEXT_PUBLIC_PRODUCT_URL
   },
   db: {
-    url: process.env.POSTGRES_URL || '',
-    prefix: process.env.DATABASE_PREFIX || ''
+    url: process.env.POSTGRES_URL || ''
   },
   openai: {
     baseURL: process.env.OPENAI_BASE_URL,

@@ -12,7 +12,6 @@ import {
 } from 'drizzle-orm/pg-core';
 import { type AdapterAccount } from 'next-auth/adapters';
 
-import { appConfig } from '@/lib/appconfig';
 import { type Usage } from '@/lib/types';
 
 /**
@@ -21,7 +20,7 @@ import { type Usage } from '@/lib/types';
  *
  * @see https://orm.drizzle.team/docs/goodies#multi-project-schema
  */
-export const createTable = pgTableCreator(name => appConfig.db.prefix + name);
+export const createTable = pgTableCreator(name => name);
 
 export const chats = createTable(
   'chat',

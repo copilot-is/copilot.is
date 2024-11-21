@@ -1,11 +1,11 @@
 {
-  "id": "f3e2ad4c-c6f8-443a-86a5-b3f1c2d65546",
+  "id": "164539f5-5a94-46ba-b57b-e2515264a99a",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
   "tables": {
-    "public.dev_account": {
-      "name": "dev_account",
+    "public.account": {
+      "name": "account",
       "schema": "",
       "columns": {
         "userId": {
@@ -93,10 +93,10 @@
         }
       },
       "foreignKeys": {
-        "dev_account_userId_dev_user_id_fk": {
-          "name": "dev_account_userId_dev_user_id_fk",
-          "tableFrom": "dev_account",
-          "tableTo": "dev_user",
+        "account_userId_user_id_fk": {
+          "name": "account_userId_user_id_fk",
+          "tableFrom": "account",
+          "tableTo": "user",
           "columnsFrom": [
             "userId"
           ],
@@ -108,8 +108,8 @@
         }
       },
       "compositePrimaryKeys": {
-        "dev_account_provider_providerAccountId_pk": {
-          "name": "dev_account_provider_providerAccountId_pk",
+        "account_provider_providerAccountId_pk": {
+          "name": "account_provider_providerAccountId_pk",
           "columns": [
             "provider",
             "providerAccountId"
@@ -121,8 +121,8 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
-    "public.dev_chat": {
-      "name": "dev_chat",
+    "public.chat": {
+      "name": "chat",
       "schema": "",
       "columns": {
         "id": {
@@ -204,10 +204,10 @@
         }
       },
       "foreignKeys": {
-        "dev_chat_user_id_dev_user_id_fk": {
-          "name": "dev_chat_user_id_dev_user_id_fk",
-          "tableFrom": "dev_chat",
-          "tableTo": "dev_user",
+        "chat_user_id_user_id_fk": {
+          "name": "chat_user_id_user_id_fk",
+          "tableFrom": "chat",
+          "tableTo": "user",
           "columnsFrom": [
             "user_id"
           ],
@@ -224,8 +224,8 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
-    "public.dev_message": {
-      "name": "dev_message",
+    "public.message": {
+      "name": "message",
       "schema": "",
       "columns": {
         "id": {
@@ -321,10 +321,10 @@
         }
       },
       "foreignKeys": {
-        "dev_message_chat_id_dev_chat_id_fk": {
-          "name": "dev_message_chat_id_dev_chat_id_fk",
-          "tableFrom": "dev_message",
-          "tableTo": "dev_chat",
+        "message_chat_id_chat_id_fk": {
+          "name": "message_chat_id_chat_id_fk",
+          "tableFrom": "message",
+          "tableTo": "chat",
           "columnsFrom": [
             "chat_id"
           ],
@@ -341,8 +341,8 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
-    "public.dev_session": {
-      "name": "dev_session",
+    "public.session": {
+      "name": "session",
       "schema": "",
       "columns": {
         "sessionToken": {
@@ -359,7 +359,7 @@
         },
         "expires": {
           "name": "expires",
-          "type": "timestamp",
+          "type": "timestamp with time zone",
           "primaryKey": false,
           "notNull": true
         }
@@ -382,10 +382,10 @@
         }
       },
       "foreignKeys": {
-        "dev_session_userId_dev_user_id_fk": {
-          "name": "dev_session_userId_dev_user_id_fk",
-          "tableFrom": "dev_session",
-          "tableTo": "dev_user",
+        "session_userId_user_id_fk": {
+          "name": "session_userId_user_id_fk",
+          "tableFrom": "session",
+          "tableTo": "user",
           "columnsFrom": [
             "userId"
           ],
@@ -402,8 +402,8 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
-    "public.dev_user": {
-      "name": "dev_user",
+    "public.user": {
+      "name": "user",
       "schema": "",
       "columns": {
         "id": {
@@ -424,9 +424,9 @@
           "primaryKey": false,
           "notNull": true
         },
-        "emailVerified": {
-          "name": "emailVerified",
-          "type": "timestamp",
+        "email_verified": {
+          "name": "email_verified",
+          "type": "timestamp with time zone",
           "primaryKey": false,
           "notNull": false,
           "default": "CURRENT_TIMESTAMP"
@@ -446,8 +446,8 @@
       "checkConstraints": {},
       "isRLSEnabled": false
     },
-    "public.dev_verificationToken": {
-      "name": "dev_verificationToken",
+    "public.verificationToken": {
+      "name": "verificationToken",
       "schema": "",
       "columns": {
         "identifier": {
@@ -464,7 +464,7 @@
         },
         "expires": {
           "name": "expires",
-          "type": "timestamp",
+          "type": "timestamp with time zone",
           "primaryKey": false,
           "notNull": true
         }
@@ -472,8 +472,8 @@
       "indexes": {},
       "foreignKeys": {},
       "compositePrimaryKeys": {
-        "dev_verificationToken_identifier_token_pk": {
-          "name": "dev_verificationToken_identifier_token_pk",
+        "verificationToken_identifier_token_pk": {
+          "name": "verificationToken_identifier_token_pk",
           "columns": [
             "identifier",
             "token"

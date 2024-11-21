@@ -5,15 +5,8 @@
     {
       "idx": 0,
       "version": "7",
-      "when": 1732107047977,
-      "tag": "0000_spotty_puppet_master",
-      "breakpoints": true
-    },
-    {
-      "idx": 1,
-      "version": "7",
-      "when": 1732157059368,
-      "tag": "0001_cold_revanche",
+      "when": 1732161094802,
+      "tag": "0000_first_the_stranger",
       "breakpoints": true
     }
   ]
