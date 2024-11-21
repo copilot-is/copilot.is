@@ -41,7 +41,7 @@
 
 You can deploy your own version of the Next.js AI Chatbot to Vercel with one click:
 
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?demo-title=Next.js+AI+Chatbot&demo-description=A+full-featured%2C+hackable+Next.js+AI+chatbot&demo-url=https%3A%2F%2Fcopilot.is%2F&demo-image=%2F%2Fcopilot.is%2Fopengraph-image.png&project-name=Next.js+AI+Chatbot&repository-name=ai-chatbot&repository-url=https%3A%2F%2Fgithub.com%2Fcopilot-is%2Fcopilot.is&skippable-integrations=1&env=AUTH_GITHUB_ID%2CAUTH_GITHUB_SECRET%2CAUTH_SECRET&envDescription=How+to+get+these+env+vars&envLink=https%3A%2F%2Fgithub.com%2Fcopilot-is%2Fcopilot.is%2Fblob%2Fmain%2F.env.example&teamCreateStatus=hidden&stores=[{"type":"postgres"}]&buildCommand=pnpm+vercel-build)
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?demo-title=Next.js+AI+Chatbot&demo-description=A+full-featured%2C+hackable+Next.js+AI+chatbot&demo-url=https%3A%2F%2Fcopilot.is%2F&project-name=Next.js+AI+Chatbot&repository-name=ai-chatbot&repository-url=https%3A%2F%2Fgithub.com%2Fcopilot-is%2Fcopilot.is&skippable-integrations=1&env=AUTH_GITHUB_ID%2CAUTH_GITHUB_SECRET%2CAUTH_SECRET&envDescription=How+to+get+these+env+vars&envLink=https%3A%2F%2Fgithub.com%2Fcopilot-is%2Fcopilot.is%2Fblob%2Fmain%2F.env.example&teamCreateStatus=hidden&stores=[{"type":"postgres"}]&buildCommand=pnpm+vercel-build)
 
 ## Creating a Vercel Postgres Instance
 
