@@ -8,6 +8,13 @@
       "when": 1732161094802,
       "tag": "0000_first_the_stranger",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1732164594890,
+      "tag": "0001_lying_wong",
+      "breakpoints": true
     }
   ]
 }

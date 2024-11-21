@@ -89,14 +89,16 @@ export const usersRelations = relations(users, ({ many }) => ({
 export const accounts = createTable(
   'account',
   {
-    userId: varchar('userId', { length: 255 })
+    userId: varchar('user_id', { length: 255 })
       .notNull()
       .references(() => users.id, { onDelete: 'cascade' }),
     type: varchar('type', { length: 255 })
       .$type<AdapterAccount['type']>()
       .notNull(),
     provider: varchar('provider', { length: 255 }).notNull(),
-    providerAccountId: varchar('providerAccountId', { length: 255 }).notNull(),
+    providerAccountId: varchar('provider_account_id', {
+      length: 255
+    }).notNull(),
     refresh_token: text('refresh_token'),
     access_token: text('access_token'),
     expires_at: integer('expires_at'),
@@ -109,7 +111,7 @@ export const accounts = createTable(
     primaryKey({
       columns: [account.provider, account.providerAccountId]
     }),
-    index('account_userId_idx').on(account.userId)
+    index('account_user_id_idx').on(account.userId)
   ]
 );
 
@@ -120,10 +122,10 @@ export const accountsRelations = relations(accounts, ({ one }) => ({
 export const sessions = createTable(
   'session',
   {
-    sessionToken: varchar('sessionToken', { length: 255 })
+    sessionToken: varchar('session_token', { length: 255 })
       .notNull()
       .primaryKey(),
-    userId: varchar('userId', { length: 255 })
+    userId: varchar('user_id', { length: 255 })
       .notNull()
       .references(() => users.id, { onDelete: 'cascade' }),
     expires: timestamp('expires', {
@@ -131,7 +133,7 @@ export const sessions = createTable(
       withTimezone: true
     }).notNull()
   },
-  session => [index('session_userId_idx').on(session.userId)]
+  session => [index('session_user_id_idx').on(session.userId)]
 );
 
 export const sessionsRelations = relations(sessions, ({ one }) => ({
@@ -139,7 +141,7 @@ export const sessionsRelations = relations(sessions, ({ one }) => ({
 }));
 
 export const verificationTokens = createTable(
-  'verificationToken',
+  'verification_token',
   {
     identifier: varchar('identifier', { length: 255 }).notNull(),
     token: varchar('token', { length: 255 }).notNull(),
