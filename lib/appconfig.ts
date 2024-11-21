@@ -8,6 +8,7 @@ export interface AppConfig {
     url?: string;
   };
   readonly db: {
+    provider?: string;
     url: string;
   };
   readonly openai: {
@@ -59,6 +60,7 @@ export const appConfig: AppConfig = {
     url: process.env.NEXT_PUBLIC_PRODUCT_URL
   },
   db: {
+    provider: process.env.DATABASE_PROVIDER,
     url: process.env.POSTGRES_URL || ''
   },
   openai: {

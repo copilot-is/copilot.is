@@ -1,6 +1,6 @@
 {
   "name": "copilot.is",
-  "version": "1.0.0-beta.1",
+  "version": "1.0.0-beta.2",
   "private": true,
   "scripts": {
     "dev": "next dev",
@@ -26,6 +26,7 @@
     "@ai-sdk/openai": "^0.0.66",
     "@auth/drizzle-adapter": "^1.7.4",
     "@hookform/resolvers": "^3.9.1",
+    "@neondatabase/serverless": "^0.10.3",
     "@phosphor-icons/react": "^2.1.7",
     "@radix-ui/react-alert-dialog": "^1.1.2",
     "@radix-ui/react-checkbox": "^1.1.2",

@@ -5,7 +5,7 @@
 
 <p align="center">
   An open-source AI chatbot built with Next.js and Vercel AI SDK, supporting multiple AI models:
-  OpenAI, Google Gemini Pro, Google Vertex AI, Claude AI, and Grok.
+  OpenAI, Google Gemini, Google Vertex AI, Claude AI, Grok.
 </p>
 
 <p align="center">
@@ -21,13 +21,13 @@
 - [Next.js](https://nextjs.org) App Router
 - React Server Components (RSCs), Suspense, and Server Actions
 - [Vercel AI SDK](https://sdk.vercel.ai/docs) for streaming chat UI
-- Support for OpenAI (default), Google Gemini Pro
+- Support for OpenAI, Google Gemini, Claude AI, Grok
 - [shadcn/ui](https://ui.shadcn.com)
   - Styling with [Tailwind CSS](https://tailwindcss.com)
   - [Radix UI](https://radix-ui.com) for headless component primitives
   - Icons from [Phosphor Icons](https://phosphoricons.com)
 - [NextAuth.js](https://github.com/nextauthjs/next-auth) for authentication
-- [Vercel Postgres](https://vercel.com/storage/postgres) for database
+- [Vercel Postgres](https://vercel.com/storage/postgres) or [Neon Postgres](https://neon.tech) for database
 - [tRPC](https://github.com/trpc/trpc) for End-to-end APIs
 
 ## Model Providers
@@ -41,7 +41,7 @@
 
 You can deploy your own version of the Next.js AI Chatbot to Vercel with one click:
 
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?demo-title=Next.js+AI+Chatbot&demo-description=A+full-featured%2C+hackable+Next.js+AI+chatbot&demo-url=https%3A%2F%2Fcopilot.is%2F&demo-image=%2F%2Fcopilot.is%2Fopengraph-image.png&project-name=Next.js+AI+Chatbot&repository-name=ai-chatbot&repository-url=https%3A%2F%2Fgithub.com%2Fcopilot-is%2Fcopilot.is&skippable-integrations=1&env=AUTH_GITHUB_ID%2CAUTH_GITHUB_SECRET%2CAUTH_SECRET&envDescription=How+to+get+these+env+vars&envLink=https%3A%2F%2Fgithub.com%2Fcopilot-is%2Fcopilot.is%2Fblob%2Fmain%2F.env.example&teamCreateStatus=hidden&stores=[{"type":"postgres"}])
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?demo-title=Next.js+AI+Chatbot&demo-description=A+full-featured%2C+hackable+Next.js+AI+chatbot&demo-url=https%3A%2F%2Fcopilot.is%2F&demo-image=%2F%2Fcopilot.is%2Fopengraph-image.png&project-name=Next.js+AI+Chatbot&repository-name=ai-chatbot&repository-url=https%3A%2F%2Fgithub.com%2Fcopilot-is%2Fcopilot.is&skippable-integrations=1&env=AUTH_GITHUB_ID%2CAUTH_GITHUB_SECRET%2CAUTH_SECRET&envDescription=How+to+get+these+env+vars&envLink=https%3A%2F%2Fgithub.com%2Fcopilot-is%2Fcopilot.is%2Fblob%2Fmain%2F.env.example&teamCreateStatus=hidden&stores=[{"type":"postgres"}]&buildCommand=pnpm+vercel-build)
 
 ## Creating a Vercel Postgres Instance
 
@@ -49,13 +49,11 @@ Follow the steps outlined in the [quick start guide](https://vercel.com/docs/sto
 
 ## Running locally
 
-You will need to use the environment variables [defined in `.env.example`](.env.example) to run Next.js AI Chatbot. It's recommended you use [Vercel Environment Variables](https://vercel.com/docs/projects/environment-variables) for this, but a `.env` file is all that is necessary.
+You will need to use the environment variables defined in [`.env.example`](.env.example) to run Next.js AI Chatbot. It's recommended you use [Vercel Environment Variables](https://vercel.com/docs/projects/environment-variables) for this, but a `.env` file is all that is necessary.
+
+For local development, it's recommended to use [Neon Postgres](https://neon.tech) as your database. Set `DATABASE_PROVIDER=neon` in your environment variables to use Neon Postgres.
 
 > Note: You should not commit your `.env` file or it will expose secrets that will allow others to control access to your various OpenAI and authentication provider accounts.
-
-1. Install Vercel CLI: `npm i -g vercel`
-2. Link local instance with Vercel and GitHub accounts (creates `.vercel` directory): `vercel link`
-3. Download your environment variables: `vercel env pull`
 
 ```bash
 pnpm install
