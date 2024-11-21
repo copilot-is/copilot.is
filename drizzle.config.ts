@@ -9,5 +9,9 @@ export default defineConfig({
   dbCredentials: {
     url: appConfig.db.url
   },
-  tablesFilter: [appConfig.db.prefix + '*']
+  tablesFilter: [appConfig.db.prefix + '*'],
+  migrations: {
+    table: appConfig.db.prefix + 'schema_migrations',
+    schema: 'public'
+  }
 });
