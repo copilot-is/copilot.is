@@ -7,7 +7,10 @@ const config = {
   arrowParens: 'avoid',
   tabWidth: 2,
   trailingComma: 'none',
-  plugins: ['@ianvs/prettier-plugin-sort-imports'],
+  plugins: [
+    '@ianvs/prettier-plugin-sort-imports',
+    'prettier-plugin-tailwindcss'
+  ],
   importOrder: [
     '^(react/(.*)$)|^(react$)',
     '^(next/(.*)$)|^(next$)',
