@@ -59,7 +59,7 @@ You will need to use the environment variables [defined in `.env.example`](.env.
 
 ```bash
 pnpm install
-pnpm db:push
+pnpm db:migrate
 pnpm dev
 ```
 
