@@ -76,8 +76,9 @@ export const users = createTable('user', {
   id: varchar('id', { length: 255 }).notNull().primaryKey(),
   name: varchar('name', { length: 255 }),
   email: varchar('email', { length: 255 }).notNull(),
-  emailVerified: timestamp('emailVerified', {
-    mode: 'date'
+  emailVerified: timestamp('email_verified', {
+    mode: 'date',
+    withTimezone: true
   }).default(sql`CURRENT_TIMESTAMP`),
   image: varchar('image', { length: 255 })
 });
@@ -126,7 +127,10 @@ export const sessions = createTable(
     userId: varchar('userId', { length: 255 })
       .notNull()
       .references(() => users.id, { onDelete: 'cascade' }),
-    expires: timestamp('expires', { mode: 'date' }).notNull()
+    expires: timestamp('expires', {
+      mode: 'date',
+      withTimezone: true
+    }).notNull()
   },
   session => [index('session_userId_idx').on(session.userId)]
 );
@@ -140,7 +144,10 @@ export const verificationTokens = createTable(
   {
     identifier: varchar('identifier', { length: 255 }).notNull(),
     token: varchar('token', { length: 255 }).notNull(),
-    expires: timestamp('expires', { mode: 'date' }).notNull()
+    expires: timestamp('expires', {
+      mode: 'date',
+      withTimezone: true
+    }).notNull()
   },
   vt => [primaryKey({ columns: [vt.identifier, vt.token] })]
 );
