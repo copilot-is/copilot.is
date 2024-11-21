@@ -10,7 +10,7 @@ export default defineConfig({
     url: appConfig.db.url
   },
   migrations: {
-    table: '__drizzle_migrations',
+    table: 'drizzle_migrations',
     schema: 'public'
   }
 });
