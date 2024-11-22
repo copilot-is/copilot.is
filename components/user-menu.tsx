@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import Image from 'next/image';
+import Link from 'next/link';
 import {
   ArrowSquareOut,
   CaretDown,
@@ -12,6 +13,7 @@ import {
   Monitor,
   Moon,
   PaintBrush,
+  Shield,
   SignOut,
   Sun
 } from '@phosphor-icons/react';
@@ -169,6 +171,18 @@ export function UserMenu() {
                 </DropdownMenuCheckboxItem>
               </DropdownMenuGroup>
               <DropdownMenuSeparator />
+              <DropdownMenuItem asChild>
+                <Link
+                  href="/privacy"
+                  className="flex w-full items-center justify-between px-2 py-1.5 text-sm outline-none transition-colors focus:bg-accent focus:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50"
+                >
+                  <div className="flex items-center">
+                    <Shield className="mr-2 size-4" />
+                    Privacy Policy
+                  </div>
+                  <ArrowSquareOut className="size-4" />
+                </Link>
+              </DropdownMenuItem>
               <DropdownMenuItem asChild>
                 <a
                   href="https://github.com/copilot-is/copilot.is"
