@@ -25,30 +25,35 @@ export default async function Page() {
         <div className="space-y-6">
           <div className="flex flex-col space-y-2 text-center">
             <h1 className="text-2xl font-semibold tracking-tight">
-              Sign in to your account
+              AI Chatbot
             </h1>
+            <p className="text-sm text-muted-foreground">
+              Supporting OpenAI, Google Gemini, Claude, and Grok.
+            </p>
           </div>
-          <LoginButton github={GITHUB_ENABLED} google={GOOGLE_ENABLED} />
-          <p className="text-center text-xs leading-relaxed text-muted-foreground">
-            By signing in, you agree to our{' '}
-            <Link
-              href="/privacy"
-              className="underline underline-offset-2 hover:text-primary"
-            >
-              Privacy Policy
-            </Link>
-            {', '}
-            This is an open source project{' '}
-            <a
-              href="https://github.com/copilot-is/copilot.is"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="underline underline-offset-2 hover:text-primary"
-            >
-              View on GitHub
-            </a>
-            .
-          </p>
+          <div className="space-y-4 rounded-xl border p-6 shadow-lg">
+            <LoginButton github={GITHUB_ENABLED} google={GOOGLE_ENABLED} />
+            <p className="text-center text-xs leading-relaxed text-muted-foreground">
+              By signing in, you agree to our{' '}
+              <Link
+                href="/privacy"
+                className="underline underline-offset-2 hover:text-primary"
+              >
+                Privacy Policy
+              </Link>
+              {', '}
+              This is an open source project{' '}
+              <a
+                href="https://github.com/copilot-is/copilot.is"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="underline underline-offset-2 hover:text-primary"
+              >
+                View on GitHub
+              </a>
+              .
+            </p>
+          </div>
         </div>
       </div>
     </div>
