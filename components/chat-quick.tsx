@@ -23,7 +23,7 @@ export function ChatQuick({ id }: ChatUIProps) {
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const { model, settings } = useSettings();
-  const { addChat, addChatDetail, setNewChatId } = useStore();
+  const { addChat, setNewChatId } = useStore();
 
   const isVision = isVisionModel(model);
   const usage = { ...settings, model, prompt: undefined };
@@ -54,8 +54,7 @@ export function ChatQuick({ id }: ChatUIProps) {
               toast.error(result.error);
               return;
             }
-            addChat(result);
-            addChatDetail({ ...result, ungenerated: true });
+            addChat({ ...result, ungenerated: true });
             setNewChatId(result.id);
             router.push(`/chat/${result.id}`);
             setIsLoading(false);

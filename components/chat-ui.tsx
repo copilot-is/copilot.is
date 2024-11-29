@@ -1,19 +1,18 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import { useChat, type Message as AIMessage } from 'ai/react';
+import { useChat } from 'ai/react';
 import ScrollToBottom from 'react-scroll-to-bottom';
 import { toast } from 'sonner';
 
 import { api } from '@/lib/api';
 import { GenerateTitlePrompt } from '@/lib/constant';
-import { UserContent, type Message } from '@/lib/types';
+import { Chat, UserContent, type AIMessage, type Message } from '@/lib/types';
 import {
   apiFromModel,
   formatSystemPrompt,
   generateId,
   getMessageContentText,
-  getProviderConfig,
   isImageModel,
   isVisionModel,
   providerFromModel
@@ -24,46 +23,29 @@ import { ChatHeader } from '@/components/chat-header';
 import { ChatList } from '@/components/chat-list';
 import { PromptForm } from '@/components/prompt-form';
 
+const PRODUCT_NAME = process.env.NEXT_PUBLIC_PRODUCT_NAME;
+
 interface ChatUIProps {
-  id: string;
+  chat: Chat;
 }
 
-export function ChatUI({ id }: ChatUIProps) {
+export function ChatUI(props: ChatUIProps) {
+  const id = props.chat.id;
   const messageId = generateId();
   const hasExecutedRef = useRef(false);
   const regenerateIdRef = useRef<string>();
   const userMessageRef = useRef<Message>();
   const [isFetching, setIsFetching] = useState(false);
-  const { apiCustomEnabled, apiConfigs, settings, generateTitleModels } =
-    useSettings();
-  const {
-    chatDetails,
-    addChatDetail,
-    updateChat,
-    updateChatDetail,
-    setNewChatId
-  } = useStore();
+  const { settings, generateTitleModels } = useSettings();
+  const { chats, addChat, updateChat, setNewChatId } = useStore();
 
-  const chat = chatDetails[id];
+  const chat = chats[id] || props.chat;
+  const title = chat?.title;
   const model = chat?.usage?.model;
   const ungenerated = chat?.ungenerated;
   const isVision = isVisionModel(model);
   const prompt = formatSystemPrompt(model, settings.prompt);
   const provider = providerFromModel(model);
-  const customProvider =
-    apiCustomEnabled && provider ? apiConfigs?.[provider]?.provider : undefined;
-  const config = getProviderConfig(
-    apiCustomEnabled,
-    provider,
-    customProvider,
-    apiConfigs
-  );
-
-  const usage = {
-    ...chat?.usage,
-    stream: true,
-    prompt
-  };
 
   const {
     append,
@@ -76,10 +58,10 @@ export function ChatUI({ id }: ChatUIProps) {
     setInput
   } = useChat({
     id,
-    api: apiFromModel(model, customProvider),
+    api: apiFromModel(model),
     sendExtraMessageFields: true,
     generateId: () => generateId(),
-    body: { usage, config },
+    body: { ...chat?.usage, stream: true, prompt },
     async onResponse(res) {
       if (res.status !== 200) {
         setInput(input);
@@ -93,14 +75,14 @@ export function ChatUI({ id }: ChatUIProps) {
       const userMessage = userMessageRef.current;
       const result = await api.createChat(
         id,
-        usage,
+        chat?.usage,
         [userMessage, message].filter(Boolean) as Message[],
         regenerateId
       );
       if (result && 'error' in result) {
         toast.error(result.error);
       } else {
-        addChatDetail(result);
+        addChat(result);
         if (result.title === 'Untitled') {
           await generateTitle(id, result.messages);
         }
@@ -110,10 +92,22 @@ export function ChatUI({ id }: ChatUIProps) {
   });
 
   useEffect(() => {
+    if (title) {
+      document.title = `${title} - ${PRODUCT_NAME}`;
+    }
+  }, [title]);
+
+  useEffect(() => {
+    if (props.chat) {
+      addChat(props.chat);
+    }
+  }, [props.chat, addChat]);
+
+  useEffect(() => {
     if (chat && chat.messages) {
       setMessages(chat.messages as AIMessage[]);
     }
-  }, [apiConfigs, chat, setMessages]);
+  }, [chat, setMessages]);
 
   useEffect(() => {
     if (!hasExecutedRef.current) {
@@ -132,7 +126,7 @@ export function ChatUI({ id }: ChatUIProps) {
         };
         userMessageRef.current = userMessage as Message;
         reload();
-        updateChatDetail(id, { ungenerated: false });
+        updateChat(id, { ungenerated: undefined });
         userMessageRef.current = undefined;
       }
       hasExecutedRef.current = true;
@@ -158,22 +152,14 @@ export function ChatUI({ id }: ChatUIProps) {
         const genModel = (provider && generateTitleModels[provider]) || model;
 
         if (!isImageModel(genModel)) {
-          const genUsage = {
-            ...chat?.usage,
-            model: genModel,
-            prompt: undefined
-          };
-
           const result = await api.createAI(
-            apiFromModel(genModel, customProvider),
+            apiFromModel(genModel),
             genMessages,
-            genUsage,
-            config
+            { ...chat?.usage, model: genModel }
           );
           if (result && !('error' in result) && result.content) {
             await api.updateChat(id, { title: result.content });
             updateChat(id, { title: result.content });
-            updateChatDetail(id, { title: result.content });
             setNewChatId(id);
           }
         }

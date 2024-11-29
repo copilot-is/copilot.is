@@ -1,18 +1,18 @@
 import { NextResponse } from 'next/server';
 import { createAnthropic } from '@ai-sdk/anthropic';
 import { generateText, streamText } from 'ai';
+import { createAnthropicVertex } from 'anthropic-vertex';
 
 import { appConfig } from '@/lib/appconfig';
-import { APIConfig, Message, type Usage } from '@/lib/types';
+import { VertexAIModels } from '@/lib/constant';
+import { Message, type Usage } from '@/lib/types';
 import { auth } from '@/server/auth';
 
 export const dynamic = 'force-dynamic';
 export const maxDuration = 60;
 
-type PostData = {
+type PostData = Usage & {
   messages: Message[];
-  usage: Usage;
-  config?: APIConfig;
 };
 
 export async function POST(req: Request) {
@@ -23,8 +23,8 @@ export async function POST(req: Request) {
   }
 
   const json: PostData = await req.json();
-  const { messages, usage, config } = json;
   const {
+    messages,
     model,
     stream,
     prompt,
@@ -32,21 +32,31 @@ export async function POST(req: Request) {
     frequencyPenalty,
     presencePenalty,
     maxTokens
-  } = usage;
+  } = json;
 
   try {
-    const customEnabled = appConfig.apiCustomEnabled && config && config.token;
+    const provider = appConfig.anthropic.provider;
+    let languageModel;
 
-    const anthropic = createAnthropic({
-      apiKey: customEnabled ? config.token : appConfig.anthropic.apiKey,
-      baseURL:
-        customEnabled && config.baseURL
-          ? config.baseURL
-          : appConfig.anthropic.baseURL
-    });
+    if (provider === 'vertex') {
+      const vertex = createAnthropicVertex({
+        project: appConfig.vertex.project,
+        location: appConfig.vertex.location,
+        googleAuthOptions: {
+          credentials: JSON.parse(appConfig.vertex.credentials || '{}')
+        }
+      });
+      languageModel = vertex(VertexAIModels[model] || model);
+    } else {
+      const anthropic = createAnthropic({
+        apiKey: appConfig.anthropic.apiKey,
+        baseURL: appConfig.anthropic.baseURL
+      });
+      languageModel = anthropic(model);
+    }
 
     const parameters = {
-      model: anthropic(model),
+      model: languageModel,
       system: prompt,
       messages,
       temperature,

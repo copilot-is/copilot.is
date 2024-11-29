@@ -4,93 +4,58 @@ import { z } from 'zod';
 import { createTRPCRouter, protectedProcedure } from '@/server/api/trpc';
 import { chats, messages } from '@/server/db/schema';
 
-const Message = z.discriminatedUnion('role', [
-  // CoreSystemMessage
+const MessageContent = z.discriminatedUnion('type', [
+  // TextPart
   z.object({
-    id: z.string(),
-    role: z.literal('system'),
-    content: z.string()
+    type: z.literal('text'),
+    text: z.string()
   }),
-  // CoreUserMessage
+  // ImagePart
   z.object({
-    id: z.string(),
-    role: z.literal('user'),
-    content: z.union([
+    type: z.literal('image'),
+    image: z.union([
       z.string(),
-      z.array(
-        z.discriminatedUnion('type', [
-          // TextPart
-          z.object({
-            type: z.literal('text'),
-            text: z.string()
-          }),
-          // ImagePart
-          z.object({
-            type: z.literal('image'),
-            image: z.union([
-              z.string(),
-              z.instanceof(Uint8Array),
-              z.instanceof(ArrayBuffer),
-              z.instanceof(Buffer),
-              z.instanceof(URL)
-            ]),
-            mimeType: z.string().optional()
-          }),
-          // FilePart
-          z.object({
-            type: z.literal('file'),
-            data: z.union([
-              z.string(),
-              z.instanceof(Uint8Array),
-              z.instanceof(ArrayBuffer),
-              z.instanceof(Buffer),
-              z.instanceof(URL)
-            ]),
-            mimeType: z.string()
-          })
-        ])
-      )
-    ])
+      z.instanceof(Uint8Array),
+      z.instanceof(ArrayBuffer),
+      z.instanceof(Buffer),
+      z.instanceof(URL)
+    ]),
+    mimeType: z.string().optional()
   }),
-  // CoreAssistantMessage
+  // FilePart
   z.object({
-    id: z.string(),
-    role: z.literal('assistant'),
-    content: z.union([
+    type: z.literal('file'),
+    data: z.union([
       z.string(),
-      z.array(
-        z.discriminatedUnion('type', [
-          // TextPart
-          z.object({
-            type: z.literal('text'),
-            text: z.string()
-          }),
-          // ToolCallPart
-          z.object({
-            type: z.literal('tool-call'),
-            toolCallId: z.string(),
-            toolName: z.string(),
-            args: z.unknown()
-          })
-        ])
-      )
-    ])
+      z.instanceof(Uint8Array),
+      z.instanceof(ArrayBuffer),
+      z.instanceof(Buffer),
+      z.instanceof(URL)
+    ]),
+    mimeType: z.string()
   }),
-  // CoreToolMessage
+  // ToolCallPart
   z.object({
-    id: z.string(),
-    role: z.literal('tool'),
-    content: z.array(
-      z.object({
-        type: z.literal('tool-result'),
-        toolCallId: z.string(),
-        toolName: z.string(),
-        result: z.unknown(),
-        isError: z.boolean().optional()
-      })
-    )
+    type: z.literal('tool-call'),
+    toolCallId: z.string(),
+    toolName: z.string(),
+    args: z.unknown()
+  }),
+  // ToolResultPart
+  z.object({
+    type: z.literal('tool-result'),
+    toolCallId: z.string(),
+    toolName: z.string(),
+    result: z.unknown(),
+    isError: z.boolean().optional()
   })
 ]);
+
+const Message = z.object({
+  id: z.string(),
+  role: z.enum(['system', 'user', 'assistant', 'tool']),
+  content: z.union([z.string(), z.array(MessageContent)])
+});
 
 export const chatRouter = createTRPCRouter({
   create: protectedProcedure

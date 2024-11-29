@@ -1,8 +1,8 @@
 import { CoreMessage, ImagePart, TextPart, UserContent } from 'ai';
+import { type Message as AIMessage } from 'ai/react';
 import { type Session } from 'next-auth';
 
-export type { UserContent, TextPart, ImagePart };
-
+export type { UserContent, TextPart, ImagePart, AIMessage };
 export type User = Session['user'];
 export type MessageContent = CoreMessage['content'];
 
@@ -18,13 +18,12 @@ export interface Chat extends Record<string, any> {
   updatedAt: string | Date;
 }
 
-export type Message = CoreMessage & {
-  id: string;
+export type Message = Omit<AIMessage, 'role' | 'content' | 'createdAt'> & {
   chatId?: string;
   userId?: string;
   createdAt?: string | Date;
   updatedAt?: string | Date;
-};
+} & CoreMessage;
 
 export interface Usage extends Record<string, any> {
   model: string;
@@ -74,19 +73,3 @@ export type Result = {
 export type Voice = 'alloy' | 'echo' | 'fable' | 'onyx' | 'nova' | 'shimmer';
 
 export type APIProvider = 'azure' | 'vertex';
-
-export type APIParameter =
-  | 'token'
-  | 'baseURL'
-  | 'provider'
-  | 'project'
-  | 'location';
-
-export type APIConfig = Partial<Omit<Record<APIParameter, string>, 'provider'>>;
-
-export type APIConfigs = Partial<
-  Record<
-    Provider | APIProvider,
-    Partial<Record<APIParameter, string>> & { provider?: APIProvider }
-  >
->;

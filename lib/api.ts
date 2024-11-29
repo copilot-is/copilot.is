@@ -1,5 +1,4 @@
 import {
-  APIConfig,
   Message,
   Result,
   User,
@@ -11,15 +10,14 @@ import {
 const createAI = async (
   api: string,
   messages: { role: string; content: string }[],
-  usage: Usage,
-  config?: APIConfig
+  usage: Usage
 ) => {
   const res = await fetch(api, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json'
     },
-    body: JSON.stringify({ messages, usage, config })
+    body: JSON.stringify({ messages, ...usage })
   });
 
   const json = await res.json();
@@ -33,17 +31,16 @@ const createAI = async (
 
 const createAudio = async (
   api: string,
+  model: string,
   voice: Voice,
-  input: string,
-  usage: Usage,
-  config?: APIConfig
+  input: string
 ) => {
   const res = await fetch(api, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json'
     },
-    body: JSON.stringify({ voice, input, usage, config })
+    body: JSON.stringify({ model, voice, input })
   });
 
   const json = await res.json();

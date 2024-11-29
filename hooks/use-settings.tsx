@@ -4,9 +4,6 @@ import * as React from 'react';
 
 import { DefaultSettings } from '@/lib/constant';
 import {
-  APIConfigs,
-  APIParameter,
-  APIProvider,
   Provider,
   Voice,
   type Model,
@@ -16,7 +13,6 @@ import {
 import { useLocalStorage } from '@/hooks/use-local-storage';
 
 type SettingsContextProps = {
-  apiCustomEnabled: boolean;
   availableModels: Model[];
   generateTitleModels: Partial<Record<Provider, string>>;
   tts: TTS;
@@ -25,12 +21,6 @@ type SettingsContextProps = {
   setModel: (value: string) => void;
   settings: Settings;
   setSettings: (key: keyof Settings, value: Settings[keyof Settings]) => void;
-  apiConfigs: APIConfigs;
-  setAPIConfigs: (
-    provider: Provider | APIProvider,
-    key: APIParameter,
-    value?: string
-  ) => void;
 };
 
 const SettingsContext = React.createContext<SettingsContextProps | undefined>(
@@ -50,16 +40,12 @@ export const SettingsProvider = ({
   defaultModel,
   availableModels,
   generateTitleModels,
-  apiCustomEnabled,
-  apiProvider,
   children
 }: {
   defaultTTS: TTS;
   defaultModel: string;
   availableModels: Model[];
   generateTitleModels: Partial<Record<Provider, string>>;
-  apiCustomEnabled: boolean;
-  apiProvider: Partial<Record<Provider, { provider?: APIProvider }>>;
   children: React.ReactNode;
 }) => {
   const [model, setModel, modelLoading] = useLocalStorage<
@@ -68,16 +54,12 @@ export const SettingsProvider = ({
   const [tts, setTextToSpeech, ttsLoading] = useLocalStorage<
     SettingsContextProps['tts']
   >('tts', { model: defaultTTS.model, voice: defaultTTS.voice });
-  const [apiConfigs, setAPIConfigs, configsLoading] = useLocalStorage<
-    SettingsContextProps['apiConfigs']
-  >('configs', apiProvider);
 
   const [settings, setSettings, settingsLoading] = useLocalStorage<
     SettingsContextProps['settings']
   >('settings', DefaultSettings);
 
-  const isLoading =
-    ttsLoading && modelLoading && configsLoading && settingsLoading;
+  const isLoading = ttsLoading && modelLoading && settingsLoading;
 
   if (isLoading) {
     return null;
@@ -86,15 +68,14 @@ export const SettingsProvider = ({
   return (
     <SettingsContext.Provider
       value={{
-        apiCustomEnabled,
         availableModels,
+        generateTitleModels,
         tts: { ...tts, enabled: defaultTTS.enabled },
         setTextToSpeech(key: 'model' | 'voice', value?: string | Voice) {
           setTextToSpeech({ ...tts, [key]: value });
         },
         model,
         setModel,
-        generateTitleModels,
         settings,
         setSettings: (key: keyof Settings, value: Settings[keyof Settings]) => {
           if (value === null || value === undefined) {
@@ -110,20 +91,6 @@ export const SettingsProvider = ({
               [key]: value
             });
           }
-        },
-        apiConfigs,
-        setAPIConfigs: (
-          provider: Provider | APIProvider,
-          key: APIParameter,
-          value?: string
-        ) => {
-          setAPIConfigs({
-            ...apiConfigs,
-            [provider]: {
-              ...apiConfigs[provider],
-              [key]: value === '' ? undefined : value
-            }
-          });
         }
       }}
     >

@@ -3,16 +3,14 @@ import { createOpenAI } from '@ai-sdk/openai';
 import { generateText, streamText } from 'ai';
 
 import { appConfig } from '@/lib/appconfig';
-import { APIConfig, Message, type Usage } from '@/lib/types';
+import { Message, type Usage } from '@/lib/types';
 import { auth } from '@/server/auth';
 
 export const dynamic = 'force-dynamic';
 export const maxDuration = 60;
 
-type PostData = {
+type PostData = Usage & {
   messages: Message[];
-  usage: Usage;
-  config?: APIConfig;
 };
 
 export async function POST(req: Request) {
@@ -23,8 +21,8 @@ export async function POST(req: Request) {
   }
 
   const json: PostData = await req.json();
-  const { messages, usage, config } = json;
   const {
+    messages,
     model,
     stream,
     prompt,
@@ -32,15 +30,12 @@ export async function POST(req: Request) {
     frequencyPenalty,
     presencePenalty,
     maxTokens
-  } = usage;
+  } = json;
 
   try {
-    const customEnabled = appConfig.apiCustomEnabled && config && config.token;
-
     const xai = createOpenAI({
-      apiKey: customEnabled ? config.token : appConfig.xai.apiKey,
-      baseURL:
-        customEnabled && config.baseURL ? config.baseURL : appConfig.xai.baseURL
+      apiKey: appConfig.xai.apiKey,
+      baseURL: appConfig.xai.baseURL
     });
 
     const parameters = {

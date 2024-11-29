@@ -1,16 +1,10 @@
 import { NextResponse } from 'next/server';
-import OpenAI from 'openai';
+import OpenAI, { AzureOpenAI } from 'openai';
 import { type ImagesResponse } from 'openai/resources/images';
 
 import { appConfig } from '@/lib/appconfig';
 import { streamImage } from '@/lib/streams/stream-image';
-import {
-  APIConfig,
-  ImagePart,
-  Message,
-  TextPart,
-  type Usage
-} from '@/lib/types';
+import { ImagePart, Message, TextPart } from '@/lib/types';
 import { auth } from '@/server/auth';
 
 export const dynamic = 'force-dynamic';
@@ -47,15 +41,10 @@ function extractContent(res: ImagesResponse) {
   return data;
 }
 
-const openai = new OpenAI({
-  apiKey: appConfig.openai.apiKey,
-  baseURL: appConfig.openai.baseURL
-});
-
 type PostData = {
   messages: Message[];
-  usage: Usage;
-  config?: APIConfig;
+  model: string;
+  stream: boolean;
 };
 
 export async function POST(req: Request) {
@@ -66,22 +55,29 @@ export async function POST(req: Request) {
   }
 
   const json: PostData = await req.json();
-  const { messages, usage, config } = json;
-  const { model, stream } = usage;
-
-  if (appConfig.apiCustomEnabled && config) {
-    if (config.token) {
-      openai.apiKey = config.token;
-    }
-    if (config.token && config.baseURL) {
-      openai.baseURL = config.baseURL;
-    }
-  }
+  const { messages, model, stream } = json;
 
   try {
+    const provider = appConfig.openai.provider;
+    let openai;
+
+    if (provider === 'azure') {
+      openai = new AzureOpenAI({
+        apiKey: appConfig.azure.apiKey,
+        endpoint: appConfig.azure.baseURL,
+        deployment: model,
+        apiVersion: '2024-08-01-preview'
+      });
+    } else {
+      openai = new OpenAI({
+        apiKey: appConfig.openai.apiKey,
+        baseURL: appConfig.openai.baseURL
+      });
+    }
+
     const prompt = messages[messages.length - 1].content.toString();
     const images = await openai.images.generate({
-      model,
+      model: provider === 'azure' ? '' : model,
       prompt,
       response_format: 'b64_json'
     });

@@ -8,7 +8,6 @@ import { Message, User, type Chat } from '@/lib/types';
 type State = {
   user: User | null;
   chats: Record<string, Chat>;
-  chatDetails: Record<string, Chat>;
   newChatId?: string;
 };
 
@@ -19,34 +18,28 @@ type Action = {
   addChat: (chat: Chat) => void;
   updateChat: (
     id: string,
-    updates: Partial<Pick<Chat, 'title' | 'shared' | 'usage'>>
+    updates: Partial<Pick<Chat, 'title' | 'shared' | 'usage' | 'ungenerated'>>
   ) => void;
   removeChat: (chatId: string) => void;
   clearChats: () => void;
-  addChatDetail: (chat: Chat) => void;
-  updateChatDetail: (
-    id: string,
-    updates: Partial<Pick<Chat, 'title' | 'shared' | 'usage' | 'ungenerated'>>
-  ) => void;
-  updateChatMessage: (chatId: string, message: Message) => void;
-  removeChatMessage: (chatId: string, messageId: string) => void;
+  updateMessage: (chatId: string, message: Message) => void;
+  removeMessage: (chatId: string, messageId: string) => void;
 };
 
 export const useStore = create<State & Action>()(
   devtools((set, get) => ({
     user: null,
     chats: {},
-    chatDetails: {},
     setUser: (user: User) => set({ user }),
     newChatId: undefined,
     setNewChatId: (chatId?: string) => set({ newChatId: chatId }),
     setChats: (chats: Chat[]) =>
       set(() => ({
         chats: chats.reduce(
-          (acc, chat) => {
-            acc[chat.id] = chat;
-            return acc;
-          },
+          (acc, chat) => ({
+            ...acc,
+            [chat.id]: chat
+          }),
           {} as Record<string, Chat>
         )
       })),
@@ -56,75 +49,52 @@ export const useStore = create<State & Action>()(
       })),
     updateChat: (
       id: string,
-      updates: Partial<Pick<Chat, 'title' | 'shared' | 'usage'>>
+      updates: Partial<Pick<Chat, 'title' | 'shared' | 'usage' | 'ungenerated'>>
     ) =>
-      set(state => {
-        if (!state.chats[id]) {
-          return state;
-        }
-        return {
-          chats: { ...state.chats, [id]: { ...state.chats[id], ...updates } }
-        };
-      }),
+      set(state => ({
+        chats: state.chats[id]
+          ? {
+              ...state.chats,
+              [id]: { ...state.chats[id], ...updates }
+            }
+          : state.chats
+      })),
     removeChat: (chatId: string) =>
       set(state => {
         const newChats = { ...state.chats };
         delete newChats[chatId];
         return { chats: newChats };
       }),
-    clearChats: () => set({ chats: {}, chatDetails: {} }),
-    addChatDetail: (chat: Chat) =>
-      set(state => ({
-        chatDetails: { ...state.chatDetails, [chat.id]: chat }
-      })),
-    updateChatDetail: (
-      id: string,
-      updates: Partial<Pick<Chat, 'title' | 'shared' | 'usage' | 'ungenerated'>>
-    ) =>
+    clearChats: () => set({ chats: {} }),
+    updateMessage: (chatId: string, message: Message) =>
       set(state => {
-        if (!state.chatDetails[id]) {
+        if (!state.chats[chatId]?.messages) {
           return state;
         }
-        return {
-          chatDetails: {
-            ...state.chatDetails,
-            [id]: { ...state.chatDetails[id], ...updates }
-          }
-        };
-      }),
-    updateChatMessage: (chatId: string, message: Message) =>
-      set(state => {
-        if (!state.chatDetails[chatId] || !state.chatDetails[chatId].messages) {
-          return state;
-        }
-        const chat = state.chatDetails[chatId];
-        const messageIndex = chat.messages.findIndex(
-          msg => msg.id === message.id
-        );
+        const chat = state.chats[chatId];
+        const messageIndex = chat.messages.findIndex(m => m.id === message.id);
         if (messageIndex === -1) {
           return state;
         }
         const updatedMessages = [...chat.messages];
         updatedMessages[messageIndex] = message;
         return {
-          chatDetails: {
-            ...state.chatDetails,
+          chats: {
+            ...state.chats,
             [chatId]: { ...chat, messages: updatedMessages }
           }
         };
       }),
-    removeChatMessage: (chatId: string, messageId: string) =>
+    removeMessage: (chatId: string, messageId: string) =>
       set(state => {
-        if (!state.chatDetails[chatId] || !state.chatDetails[chatId].messages) {
+        if (!state.chats[chatId]?.messages) {
           return state;
         }
-        const chat = state.chatDetails[chatId];
-        const updatedMessages = chat.messages.filter(
-          msg => msg.id !== messageId
-        );
+        const chat = state.chats[chatId];
+        const updatedMessages = chat.messages.filter(m => m.id !== messageId);
         return {
-          chatDetails: {
-            ...state.chatDetails,
+          chats: {
+            ...state.chats,
             [chatId]: { ...chat, messages: updatedMessages }
           }
         };

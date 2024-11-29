@@ -1,62 +1,37 @@
-'use client';
+import { Metadata } from 'next';
 
-import { use, useEffect, useState } from 'react';
-
-import { api } from '@/lib/api';
-import { useStore } from '@/store/useStore';
+import { type Chat } from '@/lib/types';
+import { api } from '@/trpc/server';
 import { ChatNotFound } from '@/components/chat-notfound';
-import { ChatSpinner } from '@/components/chat-spinner';
 import { ChatUI } from '@/components/chat-ui';
 
 export const dynamic = 'force-dynamic';
 export const maxDuration = 60;
 
-export interface PageProps {
+interface PageProps {
   params: Promise<{
     chatId: string;
   }>;
 }
 
-const PRODUCT_NAME = process.env.NEXT_PUBLIC_PRODUCT_NAME;
-
-export default function Page(props: PageProps) {
-  const params = use(props.params);
+export async function generateMetadata(props: PageProps): Promise<Metadata> {
+  const params = await props.params;
   const chatId = params.chatId;
-  const [isLoading, setIsLoading] = useState(false);
-  const { chatDetails, addChatDetail } = useStore();
-  const [notFound, setNotFound] = useState(false);
+  const chat = await api.chat.detail.query({ chatId });
 
-  const chat = chatDetails[chatId];
-  const title = chat?.title;
+  return {
+    title: chat?.title
+  };
+}
 
-  useEffect(() => {
-    if (title) {
-      document.title = `${title} - ${PRODUCT_NAME}`;
-    }
-  }, [title]);
+export default async function Page(props: PageProps) {
+  const params = await props.params;
+  const chatId = params.chatId;
 
-  useEffect(() => {
-    const fetchData = async () => {
-      if (!chat) {
-        setIsLoading(true);
-        const result = await api.getChatById(chatId);
-        if (result && 'error' in result) {
-          setNotFound(true);
-        } else {
-          addChatDetail(result);
-        }
-        setIsLoading(false);
-      }
-    };
+  const chat = await api.chat.detail.query({ chatId });
+  if (!chat) {
+    return <ChatNotFound />;
+  }
 
-    fetchData();
-  }, [chatId, chat, addChatDetail]);
-
-  return isLoading ? (
-    <ChatSpinner />
-  ) : notFound ? (
-    <ChatNotFound />
-  ) : (
-    <ChatUI id={chatId} />
-  );
+  return <ChatUI chat={chat as Chat} />;
 }

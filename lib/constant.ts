@@ -1,10 +1,4 @@
-import {
-  APIProvider,
-  ChatCategory,
-  Settings,
-  Voice,
-  type Model
-} from '@/lib/types';
+import { ChatCategory, Voice, type Model, type Settings } from '@/lib/types';
 
 export const SupportedModels: Model[] = [
   {
@@ -98,6 +92,11 @@ export const SupportedModels: Model[] = [
   {
     text: 'Grok beta',
     value: 'grok-beta',
+    provider: 'xai'
+  },
+  {
+    text: 'Grok Vision beta',
+    value: 'grok-vision-beta',
     vision: true,
     provider: 'xai'
   }
@@ -166,9 +165,3 @@ export const VertexAIModels: Record<string, string> = {
   'claude-3-sonnet-20240229': 'claude-3-sonnet@20240229',
   'claude-3-haiku-20240307': 'claude-3-haiku@20240307'
 };
-
-export const APIProviders: { text: string; value: 'null' | APIProvider }[] = [
-  { text: 'Select a provider', value: 'null' },
-  { text: 'Azure OpenAI', value: 'azure' },
-  { text: 'Google Vertex AI', value: 'vertex' }
-];

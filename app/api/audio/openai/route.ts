@@ -1,24 +1,18 @@
 import { NextResponse } from 'next/server';
-import OpenAI from 'openai';
+import OpenAI, { AzureOpenAI } from 'openai';
 
 import { appConfig } from '@/lib/appconfig';
 import { Voices } from '@/lib/constant';
-import { APIConfig, Voice, type Usage } from '@/lib/types';
+import { Voice } from '@/lib/types';
 import { auth } from '@/server/auth';
 
 export const dynamic = 'force-dynamic';
 export const maxDuration = 60;
 
-const openai = new OpenAI({
-  apiKey: appConfig.openai.apiKey,
-  baseURL: appConfig.openai.baseURL
-});
-
 type PostData = {
+  model: string;
   input: string;
   voice: Voice;
-  usage: Usage;
-  config?: APIConfig;
 };
 
 export async function POST(req: Request) {
@@ -29,8 +23,7 @@ export async function POST(req: Request) {
   }
 
   const json: PostData = await req.json();
-  const { input, voice, usage, config } = json;
-  const { model } = usage;
+  const { model, input, voice } = json;
 
   if (!model || !input || !voice || !Voices.includes(voice)) {
     return NextResponse.json(
@@ -39,18 +32,26 @@ export async function POST(req: Request) {
     );
   }
 
-  if (appConfig.apiCustomEnabled && config) {
-    if (config.token) {
-      openai.apiKey = config.token;
-    }
-    if (config.token && config.baseURL) {
-      openai.baseURL = config.baseURL;
-    }
-  }
-
   try {
+    const provider = appConfig.openai.provider;
+    let openai;
+
+    if (provider === 'azure') {
+      openai = new AzureOpenAI({
+        apiKey: appConfig.azure.apiKey,
+        endpoint: appConfig.azure.baseURL,
+        deployment: model,
+        apiVersion: '2024-08-01-preview'
+      });
+    } else {
+      openai = new OpenAI({
+        apiKey: appConfig.openai.apiKey,
+        baseURL: appConfig.openai.baseURL
+      });
+    }
+
     const res = await openai.audio.speech.create({
-      model,
+      model: provider === 'azure' ? '' : model,
       voice,
       input,
       response_format: 'mp3'

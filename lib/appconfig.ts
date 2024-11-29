@@ -14,14 +14,17 @@ export interface AppConfig {
   readonly openai: {
     apiKey: string;
     baseURL?: string;
+    provider?: APIProvider;
   };
   readonly google: {
     apiKey: string;
     baseURL?: string;
+    provider?: APIProvider;
   };
   readonly anthropic: {
     apiKey: string;
     baseURL?: string;
+    provider?: APIProvider;
   };
   readonly vertex: {
     project?: string;
@@ -44,8 +47,6 @@ export interface AppConfig {
   readonly defaultModel: string;
   readonly availableModels: Record<Provider, string[]>;
   readonly generateTitleModels: Partial<Record<Provider, string>>;
-  readonly apiCustomEnabled: boolean;
-  readonly apiProvider: Partial<Record<Provider, { provider?: APIProvider }>>;
   readonly umami: {
     scriptURL?: string;
     websiteId?: string;
@@ -65,15 +66,18 @@ export const appConfig: AppConfig = {
   },
   openai: {
     baseURL: process.env.OPENAI_BASE_URL,
-    apiKey: process.env.OPENAI_API_KEY || ''
+    apiKey: process.env.OPENAI_API_KEY || '',
+    provider: process.env.OPENAI_API_PROVIDER as APIProvider
   },
   google: {
     baseURL: process.env.GOOGLE_GENERATIVE_AI_BASE_URL,
-    apiKey: process.env.GOOGLE_GENERATIVE_AI_API_KEY || ''
+    apiKey: process.env.GOOGLE_GENERATIVE_AI_API_KEY || '',
+    provider: process.env.GOOGLE_API_PROVIDER as APIProvider
   },
   anthropic: {
     baseURL: process.env.ANTHROPIC_BASE_URL,
-    apiKey: process.env.ANTHROPIC_API_KEY || ''
+    apiKey: process.env.ANTHROPIC_API_KEY || '',
+    provider: process.env.ANTHROPIC_API_PROVIDER as APIProvider
   },
   vertex: {
     project: process.env.GOOGLE_VERTEX_PROJECT,
@@ -104,29 +108,6 @@ export const appConfig: AppConfig = {
     openai: process.env.OPENAI_GENERATE_TITLE_MODEL,
     google: process.env.GOOGLE_GENERATE_TITLE_MODEL,
     anthropic: process.env.ANTHROPIC_GENERATE_TITLE_MODEL
-  },
-  apiCustomEnabled:
-    process.env.API_CUSTOM_ENABLED === 'false'
-      ? false
-      : process.env.API_CUSTOM_ENABLED === undefined
-        ? true
-        : true,
-  apiProvider: {
-    openai: process.env.OPENAI_API_PROVIDER
-      ? {
-          provider: process.env.OPENAI_API_PROVIDER as APIProvider
-        }
-      : undefined,
-    google: process.env.GOOGLE_API_PROVIDER
-      ? {
-          provider: process.env.GOOGLE_API_PROVIDER as APIProvider
-        }
-      : undefined,
-    anthropic: process.env.ANTHROPIC_API_PROVIDER
-      ? {
-          provider: process.env.ANTHROPIC_API_PROVIDER as APIProvider
-        }
-      : undefined
   },
   umami: {
     scriptURL: process.env.UMAMI_SCRIPT_URL,

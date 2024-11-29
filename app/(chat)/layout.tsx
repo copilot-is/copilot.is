@@ -1,5 +1,3 @@
-'use client';
-
 import { SidebarProvider } from '@/hooks/use-sidebar';
 import { Sidebar } from '@/components/sidebar';
 

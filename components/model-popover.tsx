@@ -22,10 +22,10 @@ import { Textarea } from '@/components/ui/textarea';
 export const ModelPopover = () => {
   const form = useForm();
   const { chatId } = useParams<{ chatId: string }>();
-  const { chatDetails, updateChatDetail, updateChat } = useStore();
+  const { chats, updateChat } = useStore();
   const { model, settings, setSettings } = useSettings();
 
-  const chat = chatDetails[chatId?.toString()];
+  const chat = chats[chatId?.toString()];
   const chatUsage = { ...{ ...settings, model }, ...chat?.usage };
   const isImage = isImageModel(chatUsage.model || model);
 
@@ -36,7 +36,6 @@ export const ModelPopover = () => {
         [key]: value
       };
       updateChat(chat.id, { usage });
-      updateChatDetail(chat.id, { usage });
     } else {
       setSettings(key, value);
     }

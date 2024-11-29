@@ -1,9 +1,10 @@
 import { NextResponse } from 'next/server';
 import { createGoogleGenerativeAI } from '@ai-sdk/google';
+import { createVertex } from '@ai-sdk/google-vertex';
 import { generateText, streamText } from 'ai';
 
 import { appConfig } from '@/lib/appconfig';
-import { APIConfig, Message, type Usage } from '@/lib/types';
+import { Message, type Usage } from '@/lib/types';
 import { auth } from '@/server/auth';
 
 export const dynamic = 'force-dynamic';
@@ -12,7 +13,6 @@ export const maxDuration = 60;
 type PostData = {
   messages: Message[];
   usage: Usage;
-  config?: APIConfig;
 };
 
 export async function POST(req: Request) {
@@ -23,7 +23,7 @@ export async function POST(req: Request) {
   }
 
   const json: PostData = await req.json();
-  const { messages, usage, config } = json;
+  const { messages, usage } = json;
   const {
     model,
     stream,
@@ -35,18 +35,28 @@ export async function POST(req: Request) {
   } = usage;
 
   try {
-    const customEnabled = appConfig.apiCustomEnabled && config && config.token;
+    const provider = appConfig.openai.provider;
+    let languageModel;
 
-    const google = createGoogleGenerativeAI({
-      apiKey: customEnabled ? config.token : appConfig.google.apiKey,
-      baseURL:
-        customEnabled && config.baseURL
-          ? config.baseURL
-          : appConfig.google.baseURL
-    });
+    if (provider === 'vertex') {
+      const vertex = createVertex({
+        project: appConfig.vertex.project,
+        location: appConfig.vertex.location,
+        googleAuthOptions: {
+          credentials: JSON.parse(appConfig.vertex.credentials || '{}')
+        }
+      });
+      languageModel = vertex(model);
+    } else {
+      const google = createGoogleGenerativeAI({
+        apiKey: appConfig.google.apiKey,
+        baseURL: appConfig.google.baseURL
+      });
+      languageModel = google('models/' + model);
+    }
 
     const parameters = {
-      model: google('models/' + model),
+      model: languageModel,
       system: prompt,
       messages,
       temperature,

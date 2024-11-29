@@ -39,13 +39,13 @@ export function ModelMenu() {
   const isMobile = useMediaQuery('(max-width: 1023px)');
   const { chatId } = useParams<{ chatId: string }>();
 
-  const { chatDetails, updateChatDetail, updateChat } = useStore();
+  const { chats, updateChat } = useStore();
   const { availableModels, model, setModel, settings } = useSettings();
   const [isPending, startTransition] = React.useTransition();
   const [isAlertOpen, setIsAlertOpen] = useState(false);
   const [newModel, setNewModel] = useState('');
 
-  const chat = chatDetails[chatId?.toString()];
+  const chat = chats[chatId?.toString()];
   const chatModel = chat?.usage?.model;
   const selectedModel = SupportedModels.find(
     m => m.value === (chatModel || model)
@@ -74,7 +74,6 @@ export function ModelMenu() {
           return;
         }
         updateChat(chat.id, { usage });
-        updateChatDetail(chat.id, { usage });
         setIsAlertOpen(false);
         setNewModel('');
       });

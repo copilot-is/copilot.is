@@ -15,13 +15,7 @@ import { toast } from 'sonner';
 
 import { api } from '@/lib/api';
 import { Message } from '@/lib/types';
-import {
-  apiFromModel,
-  cn,
-  getMessageContentText,
-  getProviderConfig,
-  providerFromModel
-} from '@/lib/utils';
+import { apiFromModel, cn, getMessageContentText } from '@/lib/utils';
 import { useCopyToClipboard } from '@/hooks/use-copy-to-clipboard';
 import { useSettings } from '@/hooks/use-settings';
 import { useStore } from '@/store/useStore';
@@ -63,8 +57,8 @@ export function ChatMessageActions({
   isLastMessage,
   readonly
 }: ChatMessageActionsProps) {
-  const { apiCustomEnabled, tts, apiConfigs } = useSettings();
-  const { updateChatMessage, removeChatMessage } = useStore();
+  const { tts } = useSettings();
+  const { updateMessage, removeMessage } = useStore();
   const { isCopied, copyToClipboard } = useCopyToClipboard({ timeout: 3000 });
   const [content, setContent] = React.useState('');
   const [editDialogOpen, setEditDialogOpen] = React.useState(false);
@@ -88,27 +82,14 @@ export function ChatMessageActions({
 
   const onRead = async () => {
     if (tts.enabled && tts.model && tts.voice) {
-      const provider = providerFromModel(tts.model);
-      const customProvider =
-        apiCustomEnabled && provider
-          ? apiConfigs?.[provider]?.provider
-          : undefined;
-      const config = getProviderConfig(
-        apiCustomEnabled,
-        provider,
-        customProvider,
-        apiConfigs
-      );
-      const usage = { model: tts.model };
       const input = getMessageContentText(message.content);
 
       setIsLoadingAudio(true);
       const result = await api.createAudio(
-        apiFromModel(tts.model, customProvider),
+        apiFromModel(tts.model),
+        tts.model,
         tts.voice,
-        input,
-        usage,
-        config
+        input
       );
       setIsLoadingAudio(false);
 
@@ -247,7 +228,7 @@ export function ChatMessageActions({
                         return;
                       }
                       toast.success('Message saved', { duration: 2000 });
-                      updateChatMessage(chatId, updated);
+                      updateMessage(chatId, updated);
                       setEditDialogOpen(false);
                     });
                   }}
@@ -304,7 +285,7 @@ export function ChatMessageActions({
                         return;
                       }
                       toast.success('Message deleted', { duration: 2000 });
-                      removeChatMessage(chatId, message.id);
+                      removeMessage(chatId, message.id);
                       setDeleteDialogOpen(false);
                     });
                   }}
