@@ -56,18 +56,6 @@ export const isImageModel = (value: string): boolean => {
   return model?.type === 'images';
 };
 
-export const getSupportedModels = (
-  availableModels: Record<Provider, string[]>
-) => {
-  const supportedModels = SupportedModels.filter(({ value, provider }) => {
-    return availableModels[provider].length
-      ? availableModels[provider].includes(value)
-      : true;
-  });
-
-  return supportedModels;
-};
-
 export function getMediaTypeFromDataURL(dataURL: string): string | null {
   const matches = dataURL.match(/^data:([A-Za-z-+\/]+);base64/);
   return matches ? matches[1] : null;

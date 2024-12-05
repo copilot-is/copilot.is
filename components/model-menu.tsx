@@ -99,22 +99,28 @@ export function ModelMenu() {
           </SelectValue>
         </SelectTrigger>
         <SelectContent align={isMobile ? 'center' : 'start'}>
-          {availableModels.map(model => (
-            <SelectItem key={model.value} value={model.value}>
-              <div className="flex items-center">
-                {model.provider === 'openai' && <IconOpenAI />}
-                {model.provider === 'google' && <IconGoogleAI />}
-                {model.provider === 'anthropic' && <IconClaudeAI />}
-                {model.provider === 'xai' && <IconGork />}
-                <div className="ml-2">
-                  <div className="font-medium">{model.text}</div>
-                  <div className="text-xs text-muted-foreground">
-                    {model.value}
+          {availableModels.length > 0 ? (
+            availableModels.map(model => (
+              <SelectItem key={model.value} value={model.value}>
+                <div className="flex items-center">
+                  {model.provider === 'openai' && <IconOpenAI />}
+                  {model.provider === 'google' && <IconGoogleAI />}
+                  {model.provider === 'anthropic' && <IconClaudeAI />}
+                  {model.provider === 'xai' && <IconGork />}
+                  <div className="ml-2">
+                    <div className="font-medium">{model.text}</div>
+                    <div className="text-xs text-muted-foreground">
+                      {model.value}
+                    </div>
                   </div>
                 </div>
-              </div>
-            </SelectItem>
-          ))}
+              </SelectItem>
+            ))
+          ) : (
+            <div className="py-1 text-center text-sm text-muted-foreground">
+              No available models
+            </div>
+          )}
         </SelectContent>
       </Select>
       <AlertDialog open={isAlertOpen} onOpenChange={setIsAlertOpen}>

@@ -1,4 +1,7 @@
-import { APIProvider, Provider, Voice } from '@/lib/types';
+import { APIProvider, Model, Provider, Voice } from '@/lib/types';
+
+import { SupportedModels } from './constant';
+import { ENV } from './env';
 
 export interface AppConfig {
   readonly product: {
@@ -12,19 +15,27 @@ export interface AppConfig {
     url: string;
   };
   readonly openai: {
-    apiKey: string;
+    enabled: boolean;
+    apiKey?: string;
     baseURL?: string;
     provider?: APIProvider;
   };
   readonly google: {
-    apiKey: string;
+    enabled: boolean;
+    apiKey?: string;
     baseURL?: string;
     provider?: APIProvider;
   };
   readonly anthropic: {
-    apiKey: string;
+    enabled: boolean;
+    apiKey?: string;
     baseURL?: string;
     provider?: APIProvider;
+  };
+  readonly xai: {
+    enabled: boolean;
+    apiKey?: string;
+    baseURL?: string;
   };
   readonly vertex: {
     project?: string;
@@ -32,12 +43,8 @@ export interface AppConfig {
     credentials?: string;
   };
   readonly azure: {
-    apiKey: string;
+    apiKey?: string;
     baseURL?: string;
-  };
-  readonly xai: {
-    apiKey: string;
-    baseURL: string;
   };
   readonly tts: {
     enabled: boolean;
@@ -45,7 +52,7 @@ export interface AppConfig {
     voice: Voice;
   };
   readonly defaultModel: string;
-  readonly availableModels: Record<Provider, string[]>;
+  readonly availableModels: Model[];
   readonly generateTitleModels: Partial<Record<Provider, string>>;
   readonly umami: {
     scriptURL?: string;
@@ -55,62 +62,90 @@ export interface AppConfig {
 
 export const appConfig: AppConfig = {
   product: {
-    name: process.env.NEXT_PUBLIC_PRODUCT_NAME || 'Copilot',
-    subtitle: process.env.NEXT_PUBLIC_PRODUCT_SUBTITLE || 'AI Chatbot',
-    description: process.env.NEXT_PUBLIC_PRODUCT_DESCRIPTION,
-    url: process.env.NEXT_PUBLIC_PRODUCT_URL
+    name: ENV.NEXT_PUBLIC_PRODUCT_NAME,
+    subtitle: ENV.NEXT_PUBLIC_PRODUCT_SUBTITLE,
+    description: ENV.NEXT_PUBLIC_PRODUCT_DESCRIPTION,
+    url: ENV.NEXT_PUBLIC_PRODUCT_URL
   },
   db: {
-    provider: process.env.DATABASE_PROVIDER,
-    url: process.env.POSTGRES_URL || ''
+    provider: ENV.DATABASE_PROVIDER,
+    url: ENV.POSTGRES_URL
   },
+  defaultModel: ENV.DEFAULT_MODEL,
   openai: {
-    baseURL: process.env.OPENAI_BASE_URL,
-    apiKey: process.env.OPENAI_API_KEY || '',
-    provider: process.env.OPENAI_API_PROVIDER as APIProvider
+    enabled: ENV.OPENAI_ENABLED === 'true',
+    baseURL: ENV.OPENAI_BASE_URL,
+    apiKey: ENV.OPENAI_API_KEY,
+    provider: ENV.OPENAI_API_PROVIDER as APIProvider
   },
   google: {
-    baseURL: process.env.GOOGLE_GENERATIVE_AI_BASE_URL,
-    apiKey: process.env.GOOGLE_GENERATIVE_AI_API_KEY || '',
-    provider: process.env.GOOGLE_API_PROVIDER as APIProvider
+    enabled: ENV.GOOGLE_ENABLED === 'true',
+    baseURL: ENV.GOOGLE_GENERATIVE_AI_BASE_URL,
+    apiKey: ENV.GOOGLE_GENERATIVE_AI_API_KEY,
+    provider: ENV.GOOGLE_API_PROVIDER as APIProvider
   },
   anthropic: {
-    baseURL: process.env.ANTHROPIC_BASE_URL,
-    apiKey: process.env.ANTHROPIC_API_KEY || '',
-    provider: process.env.ANTHROPIC_API_PROVIDER as APIProvider
-  },
-  vertex: {
-    project: process.env.GOOGLE_VERTEX_PROJECT,
-    location: process.env.GOOGLE_VERTEX_LOCATION,
-    credentials: process.env.GOOGLE_APPLICATION_CREDENTIALS
-  },
-  azure: {
-    baseURL: process.env.AZURE_BASE_URL,
-    apiKey: process.env.AZURE_API_KEY || ''
+    enabled: ENV.ANTHROPIC_ENABLED === 'true',
+    baseURL: ENV.ANTHROPIC_BASE_URL,
+    apiKey: ENV.ANTHROPIC_API_KEY,
+    provider: ENV.ANTHROPIC_API_PROVIDER as APIProvider
   },
   xai: {
-    baseURL: process.env.XAI_BASE_URL || 'https://api.x.ai/v1',
-    apiKey: process.env.XAI_API_KEY || ''
+    enabled: ENV.XAI_ENABLED === 'true',
+    baseURL: ENV.XAI_BASE_URL,
+    apiKey: ENV.XAI_API_KEY
+  },
+  vertex: {
+    project: ENV.GOOGLE_VERTEX_PROJECT,
+    location: ENV.GOOGLE_VERTEX_LOCATION,
+    credentials: ENV.GOOGLE_APPLICATION_CREDENTIALS
+  },
+  azure: {
+    baseURL: ENV.AZURE_BASE_URL,
+    apiKey: ENV.AZURE_API_KEY
   },
   tts: {
-    enabled: process.env.TTS_ENABLED === 'true',
-    model: process.env.TTS_MODEL || 'tts-1',
-    voice: (process.env.TTS_VOICE || 'alloy') as Voice
+    enabled: ENV.OPENAI_ENABLED === 'true' && ENV.TTS_ENABLED === 'true',
+    model: ENV.TTS_MODEL,
+    voice: ENV.TTS_VOICE as Voice
   },
-  defaultModel: process.env.DEFAULT_MODEL || 'gpt-4o',
-  availableModels: {
-    openai: process.env.OPENAI_MODELS?.split(',') || [],
-    google: process.env.GOOGLE_MODELS?.split(',') || [],
-    anthropic: process.env.ANTHROPIC_MODELS?.split(',') || [],
-    xai: process.env.XAI_MODELS?.split(',') || []
-  },
+  availableModels: [
+    ...(ENV.OPENAI_ENABLED === 'true'
+      ? SupportedModels.filter(model =>
+          ENV.OPENAI_MODELS
+            ? ENV.OPENAI_MODELS.split(',').includes(model.value)
+            : model.provider === 'openai'
+        )
+      : []),
+    ...(ENV.GOOGLE_ENABLED === 'true'
+      ? SupportedModels.filter(model =>
+          ENV.GOOGLE_MODELS
+            ? ENV.GOOGLE_MODELS.split(',').includes(model.value)
+            : model.provider === 'google'
+        )
+      : []),
+    ...(ENV.ANTHROPIC_ENABLED === 'true'
+      ? SupportedModels.filter(model =>
+          ENV.ANTHROPIC_MODELS
+            ? ENV.ANTHROPIC_MODELS.split(',').includes(model.value)
+            : model.provider === 'anthropic'
+        )
+      : []),
+    ...(ENV.XAI_ENABLED === 'true'
+      ? SupportedModels.filter(model =>
+          ENV.XAI_MODELS
+            ? ENV.XAI_MODELS.split(',').includes(model.value)
+            : model.provider === 'xai'
+        )
+      : [])
+  ],
   generateTitleModels: {
-    openai: process.env.OPENAI_GENERATE_TITLE_MODEL,
-    google: process.env.GOOGLE_GENERATE_TITLE_MODEL,
-    anthropic: process.env.ANTHROPIC_GENERATE_TITLE_MODEL
+    openai: ENV.OPENAI_GENERATE_TITLE_MODEL,
+    google: ENV.GOOGLE_GENERATE_TITLE_MODEL,
+    anthropic: ENV.ANTHROPIC_GENERATE_TITLE_MODEL
   },
   umami: {
-    scriptURL: process.env.UMAMI_SCRIPT_URL,
-    websiteId: process.env.UMAMI_WEBSITE_ID
+    scriptURL: ENV.UMAMI_SCRIPT_URL,
+    websiteId: ENV.UMAMI_WEBSITE_ID
   }
 };

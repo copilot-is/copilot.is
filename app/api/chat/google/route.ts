@@ -22,6 +22,13 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
+  if (!appConfig.google.enabled) {
+    return NextResponse.json(
+      { error: 'Google AI is disabled' },
+      { status: 403 }
+    );
+  }
+
   const json: PostData = await req.json();
   const { messages, usage } = json;
   const {

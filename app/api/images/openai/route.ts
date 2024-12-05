@@ -54,6 +54,10 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
+  if (!appConfig.openai.enabled) {
+    return NextResponse.json({ error: 'OpenAI is disabled' }, { status: 403 });
+  }
+
   const json: PostData = await req.json();
   const { messages, model, stream } = json;
 

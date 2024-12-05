@@ -5,7 +5,7 @@ import '@/app/globals.css';
 
 import { appConfig } from '@/lib/appconfig';
 import { fontMono, fontSans } from '@/lib/fonts';
-import { cn, getSupportedModels } from '@/lib/utils';
+import { cn } from '@/lib/utils';
 import { SettingsProvider } from '@/hooks/use-settings';
 import { TRPCReactProvider } from '@/trpc/react';
 import { Providers } from '@/components/providers';
@@ -68,7 +68,7 @@ export default function RootLayout({ children }: RootLayoutProps) {
             <SettingsProvider
               defaultTTS={appConfig.tts}
               defaultModel={appConfig.defaultModel}
-              availableModels={getSupportedModels(appConfig.availableModels)}
+              availableModels={appConfig.availableModels}
               generateTitleModels={appConfig.generateTitleModels}
             >
               {children}

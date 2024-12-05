@@ -1,61 +1,9 @@
 import { and, eq } from 'drizzle-orm';
 import { z } from 'zod';
 
+import { messageSchema } from '@/types/message';
 import { createTRPCRouter, protectedProcedure } from '@/server/api/trpc';
 import { chats, messages } from '@/server/db/schema';
-
-const MessageContent = z.discriminatedUnion('type', [
-  // TextPart
-  z.object({
-    type: z.literal('text'),
-    text: z.string()
-  }),
-  // ImagePart
-  z.object({
-    type: z.literal('image'),
-    image: z.union([
-      z.string(),
-      z.instanceof(Uint8Array),
-      z.instanceof(ArrayBuffer),
-      z.instanceof(Buffer),
-      z.instanceof(URL)
-    ]),
-    mimeType: z.string().optional()
-  }),
-  // FilePart
-  z.object({
-    type: z.literal('file'),
-    data: z.union([
-      z.string(),
-      z.instanceof(Uint8Array),
-      z.instanceof(ArrayBuffer),
-      z.instanceof(Buffer),
-      z.instanceof(URL)
-    ]),
-    mimeType: z.string()
-  }),
-  // ToolCallPart
-  z.object({
-    type: z.literal('tool-call'),
-    toolCallId: z.string(),
-    toolName: z.string(),
-    args: z.unknown()
-  }),
-  // ToolResultPart
-  z.object({
-    type: z.literal('tool-result'),
-    toolCallId: z.string(),
-    toolName: z.string(),
-    result: z.unknown(),
-    isError: z.boolean().optional()
-  })
-]);
-
-const Message = z.object({
-  id: z.string(),
-  role: z.enum(['system', 'user', 'assistant', 'tool']),
-  content: z.union([z.string(), z.array(MessageContent)])
-});
 
 export const chatRouter = createTRPCRouter({
   create: protectedProcedure
@@ -65,7 +13,7 @@ export const chatRouter = createTRPCRouter({
         regenerateId: z.string().optional(),
         title: z.string().trim().min(1).max(255),
         messages: z
-          .array(Message)
+          .array(messageSchema)
           .min(1)
           .max(2)
           .refine(
@@ -270,7 +218,7 @@ export const chatRouter = createTRPCRouter({
       z.object({
         chatId: z.string(),
         messageId: z.string(),
-        message: Message.refine(msg => msg.role === 'user', {
+        message: messageSchema.refine(msg => msg.role === 'user', {
           message: 'Only messages with role "user" can be updated.'
         })
       })

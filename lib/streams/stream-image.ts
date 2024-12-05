@@ -1,4 +1,4 @@
-import { formatStreamPart } from 'ai';
+import { formatDataStreamPart } from 'ai';
 import { type ImagesResponse } from 'openai/resources/images';
 
 export function streamImage(images: ImagesResponse): {
@@ -14,17 +14,21 @@ export function streamImage(images: ImagesResponse): {
         for (const image of images.data) {
           if (image.b64_json) {
             controller.enqueue(
-              formatStreamPart(
+              formatDataStreamPart(
                 'text',
                 `![](data:image/png;base64,${image.b64_json})`
               )
             );
           }
           if (image.url) {
-            controller.enqueue(formatStreamPart('text', `![](${image.url})`));
+            controller.enqueue(
+              formatDataStreamPart('text', `![](${image.url})`)
+            );
           }
           if (image.revised_prompt) {
-            controller.enqueue(formatStreamPart('text', image.revised_prompt));
+            controller.enqueue(
+              formatDataStreamPart('text', image.revised_prompt)
+            );
           }
         }
         controller.close();

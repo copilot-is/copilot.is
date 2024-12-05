@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { createOpenAI } from '@ai-sdk/openai';
+import { createXai } from '@ai-sdk/xai';
 import { generateText, streamText } from 'ai';
 
 import { appConfig } from '@/lib/appconfig';
@@ -20,6 +20,10 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
+  if (!appConfig.xai.enabled) {
+    return NextResponse.json({ error: 'xAI is disabled' }, { status: 403 });
+  }
+
   const json: PostData = await req.json();
   const {
     messages,
@@ -33,7 +37,7 @@ export async function POST(req: Request) {
   } = json;
 
   try {
-    const xai = createOpenAI({
+    const xai = createXai({
       apiKey: appConfig.xai.apiKey,
       baseURL: appConfig.xai.baseURL
     });

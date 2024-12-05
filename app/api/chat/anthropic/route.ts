@@ -22,6 +22,13 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
+  if (!appConfig.anthropic.enabled) {
+    return NextResponse.json(
+      { error: 'Anthropic is disabled' },
+      { status: 403 }
+    );
+  }
+
   const json: PostData = await req.json();
   const {
     messages,
