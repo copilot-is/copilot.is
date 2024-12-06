@@ -81,7 +81,7 @@ export async function POST(req: Request) {
       });
     }
 
-    const res = await streamText(parameters);
+    const res = streamText(parameters);
 
     return res.toDataStreamResponse();
   } catch (err: any) {
