@@ -24,7 +24,6 @@
     "@ai-sdk/google": "^0.0.51",
     "@ai-sdk/google-vertex": "^0.0.40",
     "@ai-sdk/openai": "^0.0.66",
-    "@ai-sdk/provider": "^1.0.1",
     "@ai-sdk/xai": "^1.0.4",
     "@auth/drizzle-adapter": "^1.7.4",
     "@hookform/resolvers": "^3.9.1",
