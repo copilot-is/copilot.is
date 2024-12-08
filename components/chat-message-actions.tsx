@@ -235,7 +235,7 @@ export function ChatMessageActions({
                 >
                   {isEditPending ? (
                     <>
-                      <CircleNotch className="mr-2 animate-spin" />
+                      <CircleNotch className="animate-spin" />
                       Saving...
                     </>
                   ) : (
@@ -292,7 +292,7 @@ export function ChatMessageActions({
                 >
                   {isDeletePending ? (
                     <>
-                      <CircleNotch className="mr-2 animate-spin" />
+                      <CircleNotch className="animate-spin" />
                       Deleting...
                     </>
                   ) : (

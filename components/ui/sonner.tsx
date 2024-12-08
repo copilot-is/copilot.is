@@ -38,7 +38,7 @@ const Toaster = ({ ...props }: ToasterProps) => {
         warning: <Warning weight="fill" className="size-5 fill-yellow-500" />,
         error: <XCircle weight="fill" className="size-5 fill-red-500" />,
         loading: (
-          <CircleNotch className="size-5 animate-spin text-muted-foreground" />
+          <CircleNotch className="size-5 animate-spin fill-muted-foreground" />
         )
       }}
       {...props}

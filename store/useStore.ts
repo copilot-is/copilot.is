@@ -34,13 +34,18 @@ export const useStore = create<State & Action>()(
     newChatId: undefined,
     setNewChatId: (chatId?: string) => set({ newChatId: chatId }),
     setChats: (chats: Chat[]) =>
-      set(() => ({
+      set(state => ({
         chats: chats.reduce(
-          (acc, chat) => ({
-            ...acc,
-            [chat.id]: chat
-          }),
-          {} as Record<string, Chat>
+          (acc, chat) => {
+            if (state.chats[chat.id]) {
+              return acc;
+            }
+            return {
+              ...acc,
+              [chat.id]: chat
+            };
+          },
+          { ...state.chats } as Record<string, Chat>
         )
       })),
     addChat: (chat: Chat) =>

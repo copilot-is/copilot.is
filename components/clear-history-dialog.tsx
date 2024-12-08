@@ -63,7 +63,7 @@ export function ClearHistoryDialog({
           >
             {isPending ? (
               <>
-                <CircleNotch className="mr-2 animate-spin" />
+                <CircleNotch className="animate-spin" />
                 Deleting...
               </>
             ) : (

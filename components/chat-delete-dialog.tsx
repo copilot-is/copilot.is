@@ -66,7 +66,7 @@ export function ChatDeleteDialog({
           >
             {isPending ? (
               <>
-                <CircleNotch className="mr-2 animate-spin" />
+                <CircleNotch className="animate-spin" />
                 Deleting...
               </>
             ) : (

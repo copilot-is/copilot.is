@@ -86,7 +86,7 @@ export function ChatShareDialog({
             >
               {isDeletePending ? (
                 <>
-                  <CircleNotch className="mr-2 animate-spin" />
+                  <CircleNotch className="animate-spin" />
                   Deleting...
                 </>
               ) : (
@@ -116,7 +116,7 @@ export function ChatShareDialog({
           >
             {isSharePending ? (
               <>
-                <CircleNotch className="mr-2 animate-spin" />
+                <CircleNotch className="animate-spin" />
                 Copying...
               </>
             ) : (

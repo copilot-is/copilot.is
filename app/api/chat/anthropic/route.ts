@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { createAnthropic } from '@ai-sdk/anthropic';
+import { createVertexAnthropic } from '@ai-sdk/google-vertex/anthropic';
 import { generateText, streamText } from 'ai';
-import { createAnthropicVertex } from 'anthropic-vertex';
 
 import { appConfig } from '@/lib/appconfig';
 import { VertexAIModels } from '@/lib/constant';
@@ -46,7 +46,7 @@ export async function POST(req: Request) {
     let languageModel;
 
     if (provider === 'vertex') {
-      const vertex = createAnthropicVertex({
+      const vertex = createVertexAnthropic({
         project: appConfig.vertex.project,
         location: appConfig.vertex.location,
         googleAuthOptions: {

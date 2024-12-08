@@ -62,21 +62,19 @@ export function ModelMenu() {
 
   const confirmModelChange = async () => {
     if (newModel) {
-      startTransition(async () => {
-        const usage = {
-          ...settings,
-          model: newModel,
-          prompt: undefined
-        };
-        const result = await api.updateChat(chat.id, { usage });
-        if (result && 'error' in result) {
-          toast.error(result.error);
-          return;
-        }
-        updateChat(chat.id, { usage });
-        setIsAlertOpen(false);
-        setNewModel('');
-      });
+      const usage = {
+        ...settings,
+        model: newModel,
+        prompt: undefined
+      };
+      const result = await api.updateChat(chat.id, { usage });
+      if (result && 'error' in result) {
+        toast.error(result.error);
+        return;
+      }
+      updateChat(chat.id, { usage });
+      setIsAlertOpen(false);
+      setNewModel('');
     }
   };
 
@@ -146,7 +144,7 @@ export function ModelMenu() {
             >
               {isPending ? (
                 <>
-                  <CircleNotch className="mr-2 animate-spin" />
+                  <CircleNotch className="animate-spin" />
                   Saving...
                 </>
               ) : (
