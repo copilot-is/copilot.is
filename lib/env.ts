@@ -19,13 +19,6 @@ const envSchema = z.object({
   NEXT_PUBLIC_PRODUCT_URL: z.string().optional(),
 
   // Database
-  DATABASE_PROVIDER: z
-    .string()
-    .optional()
-    .refine(
-      val => !val || val === 'neon',
-      'DATABASE_PROVIDER must be either empty or "neon"'
-    ),
   POSTGRES_URL: z
     .string()
     .refine(

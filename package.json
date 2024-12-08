@@ -27,7 +27,6 @@
     "@ai-sdk/xai": "^1.0.5",
     "@auth/drizzle-adapter": "^1.7.4",
     "@hookform/resolvers": "^3.9.1",
-    "@neondatabase/serverless": "^0.10.4",
     "@phosphor-icons/react": "^2.1.7",
     "@radix-ui/react-alert-dialog": "^1.1.2",
     "@radix-ui/react-checkbox": "^1.1.2",

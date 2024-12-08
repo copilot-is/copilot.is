@@ -11,7 +11,6 @@ export interface AppConfig {
     url?: string;
   };
   readonly db: {
-    provider?: string;
     url: string;
   };
   readonly openai: {
@@ -68,7 +67,6 @@ export const appConfig: AppConfig = {
     url: ENV.NEXT_PUBLIC_PRODUCT_URL
   },
   db: {
-    provider: ENV.DATABASE_PROVIDER,
     url: ENV.POSTGRES_URL
   },
   defaultModel: ENV.DEFAULT_MODEL,
@@ -142,7 +140,8 @@ export const appConfig: AppConfig = {
   generateTitleModels: {
     openai: ENV.OPENAI_GENERATE_TITLE_MODEL,
     google: ENV.GOOGLE_GENERATE_TITLE_MODEL,
-    anthropic: ENV.ANTHROPIC_GENERATE_TITLE_MODEL
+    anthropic: ENV.ANTHROPIC_GENERATE_TITLE_MODEL,
+    xai: ENV.XAI_GENERATE_TITLE_MODEL
   },
   umami: {
     scriptURL: ENV.UMAMI_SCRIPT_URL,
