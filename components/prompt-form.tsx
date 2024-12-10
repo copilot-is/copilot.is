@@ -225,7 +225,7 @@ export function PromptForm({
                   variant="ghost"
                   size="icon"
                   className="size-8 text-muted-foreground"
-                  disabled={isUploadPending}
+                  disabled={isLoading || isUploadPending}
                   onClick={() => {
                     fileRef.current?.click();
                   }}

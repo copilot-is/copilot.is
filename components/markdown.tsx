@@ -1,9 +1,12 @@
-import { FC, memo } from 'react';
+import { memo } from 'react';
 import ReactMarkdown, { Options } from 'react-markdown';
 
-export const MemoizedReactMarkdown: FC<Options> = memo(
-  ReactMarkdown,
+const MemoizedReactMarkdown = memo(
+  (props: Options) => <ReactMarkdown {...props} />,
   (prevProps, nextProps) =>
     prevProps.children === nextProps.children &&
     prevProps.className === nextProps.className
 );
+MemoizedReactMarkdown.displayName = 'MemoizedReactMarkdown';
+
+export { MemoizedReactMarkdown };

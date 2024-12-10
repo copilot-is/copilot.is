@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 
@@ -21,7 +21,7 @@ export function ChatQuick({ id }: ChatUIProps) {
   const router = useRouter();
   const messageId = generateId();
   const [input, setInput] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
+  const [isPending, startTransition] = useTransition();
   const { model, settings } = useSettings();
   const { addChat, setNewChatId } = useStore();
 
@@ -39,25 +39,25 @@ export function ChatQuick({ id }: ChatUIProps) {
           textareaClassName="min-h-16"
           isWaiting={true}
           isVision={isVision}
-          isLoading={isLoading}
+          isLoading={isPending}
           input={input}
           setInput={setInput}
           onSubmit={async (content: UserContent) => {
-            setIsLoading(true);
-            const userMessage: Message = {
-              id: messageId,
-              role: 'user',
-              content
-            };
-            const result = await api.createChat(id, usage, [userMessage]);
-            if (result && 'error' in result) {
-              toast.error(result.error);
-              return;
-            }
-            addChat({ ...result, ungenerated: true });
-            setNewChatId(result.id);
-            router.push(`/chat/${result.id}`);
-            setIsLoading(false);
+            startTransition(async () => {
+              const userMessage: Message = {
+                id: messageId,
+                role: 'user',
+                content
+              };
+              const result = await api.createChat(id, usage, [userMessage]);
+              if (result && 'error' in result) {
+                toast.error(result.error);
+                return;
+              }
+              addChat({ ...result, ungenerated: true });
+              setNewChatId(result.id);
+              router.push(`/chat/${result.id}`);
+            });
           }}
         />
       </div>

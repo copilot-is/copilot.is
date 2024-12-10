@@ -1,5 +1,3 @@
-'use client';
-
 import React from 'react';
 import { Robot, User } from '@phosphor-icons/react';
 
