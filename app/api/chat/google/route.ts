@@ -10,9 +10,8 @@ import { auth } from '@/server/auth';
 export const dynamic = 'force-dynamic';
 export const maxDuration = 60;
 
-type PostData = {
+type PostData = Usage & {
   messages: Message[];
-  usage: Usage;
 };
 
 export async function POST(req: Request) {
@@ -30,8 +29,8 @@ export async function POST(req: Request) {
   }
 
   const json: PostData = await req.json();
-  const { messages, usage } = json;
   const {
+    messages,
     model,
     stream,
     prompt,
@@ -39,7 +38,7 @@ export async function POST(req: Request) {
     frequencyPenalty,
     presencePenalty,
     maxTokens
-  } = usage;
+  } = json;
 
   try {
     const provider = appConfig.openai.provider;
