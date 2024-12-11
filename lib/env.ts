@@ -30,20 +30,20 @@ const envSchema = z.object({
   AUTH_SECRET: z.string(),
 
   // GitHub Auth
-  AUTH_GITHUB_ENABLED: z.string().default('true'),
+  AUTH_GITHUB_ENABLED: z.string().default('false'),
   AUTH_GITHUB_ID: z.string().optional(),
   AUTH_GITHUB_SECRET: z.string().optional(),
 
   // Google Auth
-  AUTH_GOOGLE_ENABLED: z.string().default('true'),
+  AUTH_GOOGLE_ENABLED: z.string().default('false'),
   AUTH_GOOGLE_ID: z.string().optional(),
   AUTH_GOOGLE_SECRET: z.string().optional(),
 
   // OpenAI
-  OPENAI_ENABLED: z.string().default('true'),
+  OPENAI_ENABLED: z.string().default('false'),
   OPENAI_BASE_URL: z.string().optional(),
   OPENAI_API_KEY: z.string().optional(),
-  OPENAI_API_PROVIDER: z.string().optional(),
+  OPENAI_API_PROVIDER: z.enum(['azure']).optional(),
   OPENAI_MODELS: z.string().optional(),
   OPENAI_GENERATE_TITLE_MODEL: z.string().optional(),
 
@@ -52,10 +52,10 @@ const envSchema = z.object({
   AZURE_API_KEY: z.string().optional(),
 
   // Google
-  GOOGLE_ENABLED: z.string().default('true'),
+  GOOGLE_ENABLED: z.string().default('false'),
   GOOGLE_GENERATIVE_AI_BASE_URL: z.string().optional(),
   GOOGLE_GENERATIVE_AI_API_KEY: z.string().optional(),
-  GOOGLE_API_PROVIDER: z.string().optional(),
+  GOOGLE_API_PROVIDER: z.enum(['vertex']).optional(),
   GOOGLE_MODELS: z.string().optional(),
   GOOGLE_GENERATE_TITLE_MODEL: z.string().optional(),
 
@@ -65,22 +65,22 @@ const envSchema = z.object({
   GOOGLE_APPLICATION_CREDENTIALS: z.string().optional(),
 
   // Anthropic
-  ANTHROPIC_ENABLED: z.string().default('true'),
+  ANTHROPIC_ENABLED: z.string().default('false'),
   ANTHROPIC_BASE_URL: z.string().optional(),
   ANTHROPIC_API_KEY: z.string().optional(),
-  ANTHROPIC_API_PROVIDER: z.string().optional(),
+  ANTHROPIC_API_PROVIDER: z.enum(['vertex']).optional(),
   ANTHROPIC_MODELS: z.string().optional(),
   ANTHROPIC_GENERATE_TITLE_MODEL: z.string().optional(),
 
   // xAI
-  XAI_ENABLED: z.string().default('true'),
+  XAI_ENABLED: z.string().default('false'),
   XAI_BASE_URL: z.string().optional(),
   XAI_API_KEY: z.string().optional(),
   XAI_MODELS: z.string().optional(),
   XAI_GENERATE_TITLE_MODEL: z.string().optional(),
 
   // TTS
-  TTS_ENABLED: z.string().default('true'),
+  TTS_ENABLED: z.string().default('false'),
   TTS_MODEL: z.string().default('tts-1'),
   TTS_VOICE: z.string().default('alloy'),
 
