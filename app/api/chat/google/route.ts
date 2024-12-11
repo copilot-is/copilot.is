@@ -41,7 +41,7 @@ export async function POST(req: Request) {
   } = json;
 
   try {
-    const provider = appConfig.openai.provider;
+    const provider = appConfig.google.provider;
     let languageModel;
 
     if (provider === 'vertex') {
