@@ -47,7 +47,7 @@ export function ChatMessage({ message, provider, children }: ChatMessageProps) {
             message.role === 'assistant' ? 'rounded-lg bg-muted p-3' : 'px-1'
           )}
         >
-          <div className="prose break-words dark:prose-invert prose-p:leading-relaxed prose-pre:p-0">
+          <div className="prose break-words dark:prose-invert prose-p:leading-relaxed prose-pre:bg-transparent prose-pre:p-0">
             {message.role === 'user' && (
               <>
                 {Array.isArray(message.content) &&
