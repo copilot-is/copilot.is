@@ -3,7 +3,8 @@ import Script from 'next/script';
 
 import '@/app/globals.css';
 
-import { appConfig } from '@/lib/appconfig';
+import { SupportedModels } from '@/lib/constant';
+import { env } from '@/lib/env';
 import { fontMono, fontSans } from '@/lib/fonts';
 import { cn } from '@/lib/utils';
 import { SettingsProvider } from '@/hooks/use-settings';
@@ -13,16 +14,16 @@ import { TailwindColor } from '@/components/tailwind-color';
 import { TailwindIndicator } from '@/components/tailwind-indicator';
 
 export const metadata: Metadata = {
-  metadataBase: appConfig.product.url
-    ? new URL(appConfig.product.url)
-    : process.env.VERCEL_URL
-      ? new URL(`https://${process.env.VERCEL_URL}`)
-      : new URL(`http://localhost:${process.env.PORT || 3000}`),
+  metadataBase: env.NEXT_PUBLIC_PRODUCT_URL
+    ? new URL(env.NEXT_PUBLIC_PRODUCT_URL)
+    : env.VERCEL_URL
+      ? new URL(`https://${env.VERCEL_URL}`)
+      : new URL(`http://localhost:${env.PORT || 3000}`),
   title: {
-    default: `${appConfig.product.name} - ${appConfig.product.subtitle}`,
-    template: `%s - ${appConfig.product.name}`
+    default: `${env.NEXT_PUBLIC_PRODUCT_NAME} - ${env.NEXT_PUBLIC_PRODUCT_SUBTITLE}`,
+    template: `%s - ${env.NEXT_PUBLIC_PRODUCT_NAME}`
   },
-  description: appConfig.product.description,
+  description: env.NEXT_PUBLIC_PRODUCT_DESCRIPTION,
   icons: {
     icon: '/favicon.svg',
     shortcut: '/favicon.png',
@@ -47,13 +48,59 @@ interface RootLayoutProps {
 }
 
 export default function RootLayout({ children }: RootLayoutProps) {
+  const defaultModel = env.DEFAULT_MODEL;
+
+  const defaultTTS = {
+    enabled: env.OPENAI_ENABLED === 'true' && env.TTS_ENABLED === 'true',
+    model: env.TTS_MODEL,
+    voice: env.TTS_VOICE
+  };
+
+  const availableModels = [
+    ...(env.OPENAI_ENABLED === 'true'
+      ? SupportedModels.filter(model =>
+          env.OPENAI_MODELS
+            ? env.OPENAI_MODELS.split(',').includes(model.value)
+            : model.provider === 'openai'
+        )
+      : []),
+    ...(env.GOOGLE_ENABLED === 'true'
+      ? SupportedModels.filter(model =>
+          env.GOOGLE_MODELS
+            ? env.GOOGLE_MODELS.split(',').includes(model.value)
+            : model.provider === 'google'
+        )
+      : []),
+    ...(env.ANTHROPIC_ENABLED === 'true'
+      ? SupportedModels.filter(model =>
+          env.ANTHROPIC_MODELS
+            ? env.ANTHROPIC_MODELS.split(',').includes(model.value)
+            : model.provider === 'anthropic'
+        )
+      : []),
+    ...(env.XAI_ENABLED === 'true'
+      ? SupportedModels.filter(model =>
+          env.XAI_MODELS
+            ? env.XAI_MODELS.split(',').includes(model.value)
+            : model.provider === 'xai'
+        )
+      : [])
+  ];
+
+  const generateTitleModels = {
+    openai: env.OPENAI_GENERATE_TITLE_MODEL,
+    google: env.GOOGLE_GENERATE_TITLE_MODEL,
+    anthropic: env.ANTHROPIC_GENERATE_TITLE_MODEL,
+    xai: env.XAI_GENERATE_TITLE_MODEL
+  };
+
   return (
     <html lang="en" className="h-full" suppressHydrationWarning>
-      {appConfig.umami.scriptURL && appConfig.umami.websiteId && (
+      {env.UMAMI_SCRIPT_URL && env.UMAMI_WEBSITE_ID && (
         <Script
           defer
-          src={appConfig.umami.scriptURL}
-          data-website-id={appConfig.umami.websiteId}
+          src={env.UMAMI_SCRIPT_URL}
+          data-website-id={env.UMAMI_WEBSITE_ID}
         />
       )}
       <body
@@ -66,10 +113,10 @@ export default function RootLayout({ children }: RootLayoutProps) {
         <TRPCReactProvider>
           <Providers attribute="class" defaultTheme="system" enableSystem>
             <SettingsProvider
-              defaultTTS={appConfig.tts}
-              defaultModel={appConfig.defaultModel}
-              availableModels={appConfig.availableModels}
-              generateTitleModels={appConfig.generateTitleModels}
+              defaultTTS={defaultTTS}
+              defaultModel={defaultModel}
+              availableModels={availableModels}
+              generateTitleModels={generateTitleModels}
             >
               {children}
             </SettingsProvider>

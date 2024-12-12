@@ -7,6 +7,7 @@ import { toast } from 'sonner';
 
 import { api } from '@/lib/api';
 import { GenerateTitlePrompt } from '@/lib/constant';
+import { env } from '@/lib/env';
 import { Chat, UserContent, type AIMessage, type Message } from '@/lib/types';
 import {
   apiFromModel,
@@ -23,7 +24,7 @@ import { ChatHeader } from '@/components/chat-header';
 import { ChatList } from '@/components/chat-list';
 import { PromptForm } from '@/components/prompt-form';
 
-const PRODUCT_NAME = process.env.NEXT_PUBLIC_PRODUCT_NAME;
+const PRODUCT_NAME = env.NEXT_PUBLIC_PRODUCT_NAME;
 
 interface ChatUIProps {
   chat: Chat;

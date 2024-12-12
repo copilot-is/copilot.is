@@ -10,8 +10,8 @@ import { IconGitHub, IconGoogle } from '@/components/ui/icons';
 
 interface LoginButtonProps
   extends Omit<ButtonProps, 'children' | 'disabled' | 'onClick'> {
-  github?: boolean;
-  google?: boolean;
+  github: boolean;
+  google: boolean;
   className?: string;
 }
 

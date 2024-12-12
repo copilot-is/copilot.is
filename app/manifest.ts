@@ -1,12 +1,12 @@
 import { MetadataRoute } from 'next';
 
-import { appConfig } from '@/lib/appconfig';
+import { env } from '@/lib/env';
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: appConfig.product.name,
-    short_name: appConfig.product.name,
-    description: appConfig.product.description,
+    name: env.NEXT_PUBLIC_PRODUCT_NAME,
+    short_name: env.NEXT_PUBLIC_PRODUCT_NAME,
+    description: env.NEXT_PUBLIC_PRODUCT_DESCRIPTION,
     scope: '/',
     start_url: '/?utm_source=pwa',
     display: 'standalone',

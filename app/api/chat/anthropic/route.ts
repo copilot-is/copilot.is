@@ -3,8 +3,8 @@ import { createAnthropic } from '@ai-sdk/anthropic';
 import { createVertexAnthropic } from '@ai-sdk/google-vertex/anthropic';
 import { generateText, streamText } from 'ai';
 
-import { appConfig } from '@/lib/appconfig';
 import { VertexAIModels } from '@/lib/constant';
+import { env } from '@/lib/env';
 import { Message, type Usage } from '@/lib/types';
 import { auth } from '@/server/auth';
 
@@ -22,7 +22,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
-  if (!appConfig.anthropic.enabled) {
+  if (!env.ANTHROPIC_ENABLED) {
     return NextResponse.json(
       { error: 'Anthropic is disabled' },
       { status: 403 }
@@ -42,22 +42,22 @@ export async function POST(req: Request) {
   } = json;
 
   try {
-    const provider = appConfig.anthropic.provider;
+    const provider = env.ANTHROPIC_API_PROVIDER;
     let languageModel;
 
     if (provider === 'vertex') {
       const vertex = createVertexAnthropic({
-        project: appConfig.vertex.project,
-        location: appConfig.vertex.location,
+        project: env.GOOGLE_VERTEX_PROJECT,
+        location: env.GOOGLE_VERTEX_LOCATION,
         googleAuthOptions: {
-          credentials: JSON.parse(appConfig.vertex.credentials || '{}')
+          credentials: JSON.parse(env.GOOGLE_APPLICATION_CREDENTIALS || '{}')
         }
       });
       languageModel = vertex(VertexAIModels[model] || model);
     } else {
       const anthropic = createAnthropic({
-        apiKey: appConfig.anthropic.apiKey,
-        baseURL: appConfig.anthropic.baseURL
+        apiKey: env.ANTHROPIC_API_KEY,
+        baseURL: env.ANTHROPIC_BASE_URL
       });
       languageModel = anthropic(model);
     }

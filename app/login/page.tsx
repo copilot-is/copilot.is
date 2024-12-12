@@ -2,6 +2,7 @@ import { type Metadata } from 'next';
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
 
+import { env } from '@/lib/env';
 import { auth } from '@/server/auth';
 import { LoginButton } from '@/components/login-button';
 
@@ -9,8 +10,8 @@ export const metadata: Metadata = {
   title: 'Sign in'
 };
 
-const GITHUB_ENABLED = process.env.AUTH_GITHUB_ENABLED === 'true';
-const GOOGLE_ENABLED = process.env.AUTH_GOOGLE_ENABLED === 'true';
+const AUTH_GITHUB_ENABLED = env.AUTH_GITHUB_ENABLED === 'true';
+const AUTH_GOOGLE_ENABLED = env.AUTH_GOOGLE_ENABLED === 'true';
 
 export default async function Page() {
   const session = await auth();
@@ -28,7 +29,10 @@ export default async function Page() {
               Sign in to your account
             </h1>
           </div>
-          <LoginButton github={GITHUB_ENABLED} google={GOOGLE_ENABLED} />
+          <LoginButton
+            github={AUTH_GITHUB_ENABLED}
+            google={AUTH_GOOGLE_ENABLED}
+          />
           <p className="text-center text-xs leading-relaxed text-muted-foreground">
             By signing in, you agree to our{' '}
             <Link

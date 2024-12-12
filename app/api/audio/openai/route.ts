@@ -1,8 +1,8 @@
 import { NextResponse } from 'next/server';
 import OpenAI, { AzureOpenAI } from 'openai';
 
-import { appConfig } from '@/lib/appconfig';
 import { Voices } from '@/lib/constant';
+import { env } from '@/lib/env';
 import { Voice } from '@/lib/types';
 import { auth } from '@/server/auth';
 
@@ -22,7 +22,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
-  if (!appConfig.tts.enabled) {
+  if (!env.OPENAI_ENABLED || !env.TTS_ENABLED) {
     return NextResponse.json({ error: 'TTS is disabled' }, { status: 403 });
   }
 
@@ -37,20 +37,20 @@ export async function POST(req: Request) {
   }
 
   try {
-    const provider = appConfig.openai.provider;
+    const provider = env.OPENAI_API_PROVIDER;
     let openai;
 
     if (provider === 'azure') {
       openai = new AzureOpenAI({
-        apiKey: appConfig.azure.apiKey,
-        endpoint: appConfig.azure.baseURL,
+        apiKey: env.AZURE_API_KEY,
+        endpoint: env.AZURE_BASE_URL,
         deployment: model,
         apiVersion: '2024-08-01-preview'
       });
     } else {
       openai = new OpenAI({
-        apiKey: appConfig.openai.apiKey,
-        baseURL: appConfig.openai.baseURL
+        apiKey: env.OPENAI_API_KEY,
+        baseURL: env.OPENAI_BASE_URL
       });
     }
 

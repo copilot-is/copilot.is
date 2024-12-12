@@ -3,7 +3,7 @@ import { createGoogleGenerativeAI } from '@ai-sdk/google';
 import { createVertex } from '@ai-sdk/google-vertex';
 import { generateText, streamText } from 'ai';
 
-import { appConfig } from '@/lib/appconfig';
+import { env } from '@/lib/env';
 import { Message, type Usage } from '@/lib/types';
 import { auth } from '@/server/auth';
 
@@ -21,7 +21,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
-  if (!appConfig.google.enabled) {
+  if (!env.GOOGLE_ENABLED) {
     return NextResponse.json(
       { error: 'Google AI is disabled' },
       { status: 403 }
@@ -41,22 +41,22 @@ export async function POST(req: Request) {
   } = json;
 
   try {
-    const provider = appConfig.google.provider;
+    const provider = env.GOOGLE_API_PROVIDER;
     let languageModel;
 
     if (provider === 'vertex') {
       const vertex = createVertex({
-        project: appConfig.vertex.project,
-        location: appConfig.vertex.location,
+        project: env.GOOGLE_VERTEX_PROJECT,
+        location: env.GOOGLE_VERTEX_LOCATION,
         googleAuthOptions: {
-          credentials: JSON.parse(appConfig.vertex.credentials || '{}')
+          credentials: JSON.parse(env.GOOGLE_APPLICATION_CREDENTIALS || '{}')
         }
       });
       languageModel = vertex(model);
     } else {
       const google = createGoogleGenerativeAI({
-        apiKey: appConfig.google.apiKey,
-        baseURL: appConfig.google.baseURL
+        apiKey: env.GOOGLE_GENERATIVE_AI_API_KEY,
+        baseURL: env.GOOGLE_GENERATIVE_AI_BASE_URL
       });
       languageModel = google('models/' + model);
     }

@@ -3,7 +3,7 @@ import { createAzure } from '@ai-sdk/azure';
 import { createOpenAI } from '@ai-sdk/openai';
 import { generateText, streamText } from 'ai';
 
-import { appConfig } from '@/lib/appconfig';
+import { env } from '@/lib/env';
 import { Message, type Usage } from '@/lib/types';
 import { auth } from '@/server/auth';
 
@@ -21,7 +21,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
-  if (!appConfig.openai.enabled) {
+  if (!env.OPENAI_ENABLED) {
     return NextResponse.json({ error: 'OpenAI is disabled' }, { status: 403 });
   }
 
@@ -38,21 +38,21 @@ export async function POST(req: Request) {
   } = json;
 
   try {
-    const provider = appConfig.openai.provider;
+    const provider = env.OPENAI_API_PROVIDER;
     let languageModel;
 
     if (provider === 'azure') {
       const azure = createAzure({
-        apiKey: appConfig.azure.apiKey,
-        baseURL: appConfig.azure.baseURL
-          ? appConfig.azure.baseURL + '/openai/deployments'
+        apiKey: env.AZURE_API_KEY,
+        baseURL: env.AZURE_BASE_URL
+          ? env.AZURE_BASE_URL + '/openai/deployments'
           : undefined
       });
       languageModel = azure(model);
     } else {
       const openai = createOpenAI({
-        apiKey: appConfig.openai.apiKey,
-        baseURL: appConfig.openai.baseURL
+        apiKey: env.OPENAI_API_KEY,
+        baseURL: env.OPENAI_BASE_URL
       });
       languageModel = openai(model);
     }

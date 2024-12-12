@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { createXai } from '@ai-sdk/xai';
 import { generateText, streamText } from 'ai';
 
-import { appConfig } from '@/lib/appconfig';
+import { env } from '@/lib/env';
 import { Message, type Usage } from '@/lib/types';
 import { auth } from '@/server/auth';
 
@@ -20,7 +20,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
-  if (!appConfig.xai.enabled) {
+  if (!env.XAI_ENABLED) {
     return NextResponse.json({ error: 'xAI is disabled' }, { status: 403 });
   }
 
@@ -38,8 +38,8 @@ export async function POST(req: Request) {
 
   try {
     const xai = createXai({
-      apiKey: appConfig.xai.apiKey,
-      baseURL: appConfig.xai.baseURL
+      apiKey: env.XAI_API_KEY,
+      baseURL: env.XAI_BASE_URL
     });
 
     const parameters = {

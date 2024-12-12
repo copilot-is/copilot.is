@@ -7,6 +7,8 @@ import NextAuth, {
 import GitHub from 'next-auth/providers/github';
 import Google from 'next-auth/providers/google';
 
+import { env } from '@/lib/env';
+
 import { db } from './db';
 import { accounts, sessions, users, verificationTokens } from './db/schema';
 
@@ -19,15 +21,15 @@ declare module 'next-auth' {
 }
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
-  debug: process.env.NODE_ENV !== 'production',
+  debug: env.NODE_ENV !== 'production',
   providers: [
     Google({
-      clientId: process.env.AUTH_GOOGLE_ID,
-      clientSecret: process.env.AUTH_GOOGLE_SECRET
+      clientId: env.AUTH_GOOGLE_ID,
+      clientSecret: env.AUTH_GOOGLE_SECRET
     }),
     GitHub({
-      clientId: process.env.AUTH_GITHUB_ID,
-      clientSecret: process.env.AUTH_GITHUB_SECRET
+      clientId: env.AUTH_GITHUB_ID,
+      clientSecret: env.AUTH_GITHUB_SECRET
     })
   ],
   adapter: DrizzleAdapter(db, {

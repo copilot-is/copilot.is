@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import OpenAI, { AzureOpenAI } from 'openai';
 import { type ImagesResponse } from 'openai/resources/images';
 
-import { appConfig } from '@/lib/appconfig';
+import { env } from '@/lib/env';
 import { streamImage } from '@/lib/streams/stream-image';
 import { ImagePart, Message, TextPart } from '@/lib/types';
 import { auth } from '@/server/auth';
@@ -54,7 +54,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
-  if (!appConfig.openai.enabled) {
+  if (!env.OPENAI_ENABLED) {
     return NextResponse.json({ error: 'OpenAI is disabled' }, { status: 403 });
   }
 
@@ -62,20 +62,20 @@ export async function POST(req: Request) {
   const { messages, model, stream } = json;
 
   try {
-    const provider = appConfig.openai.provider;
+    const provider = env.OPENAI_API_PROVIDER;
     let openai;
 
     if (provider === 'azure') {
       openai = new AzureOpenAI({
-        apiKey: appConfig.azure.apiKey,
-        endpoint: appConfig.azure.baseURL,
+        apiKey: env.AZURE_API_KEY,
+        endpoint: env.AZURE_BASE_URL,
         deployment: model,
         apiVersion: '2024-08-01-preview'
       });
     } else {
       openai = new OpenAI({
-        apiKey: appConfig.openai.apiKey,
-        baseURL: appConfig.openai.baseURL
+        apiKey: env.OPENAI_API_KEY,
+        baseURL: env.OPENAI_BASE_URL
       });
     }
 
