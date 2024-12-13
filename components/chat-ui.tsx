@@ -63,6 +63,9 @@ export function ChatUI(props: ChatUIProps) {
     sendExtraMessageFields: true,
     generateId: () => generateId(),
     body: { ...chat?.usage, stream: true, prompt },
+    onError(err) {
+      toast.error(err.message);
+    },
     async onResponse(res) {
       if (res.status !== 200) {
         setInput(input);

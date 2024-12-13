@@ -42,6 +42,12 @@ export const SupportedModels: Model[] = [
     type: 'images'
   },
   {
+    text: 'Gemini 2.0 Flash',
+    value: 'gemini-2.0-flash-exp',
+    vision: true,
+    provider: 'google'
+  },
+  {
     text: 'Gemini 1.5 Pro',
     value: 'gemini-1.5-pro',
     vision: true,

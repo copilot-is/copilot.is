@@ -82,7 +82,23 @@ export async function POST(req: Request) {
 
     const res = streamText(parameters);
 
-    return res.toDataStreamResponse();
+    return res.toDataStreamResponse({
+      getErrorMessage: error => {
+        if (error == null) {
+          return 'Unknown error';
+        }
+
+        if (typeof error === 'string') {
+          return error;
+        }
+
+        if (error instanceof Error) {
+          return error.message;
+        }
+
+        return JSON.stringify(error);
+      }
+    });
   } catch (err: any) {
     return NextResponse.json({ error: err.message }, { status: 500 });
   }
