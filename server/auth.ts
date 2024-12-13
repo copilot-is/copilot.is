@@ -1,3 +1,4 @@
+import { cache } from 'react';
 import { DrizzleAdapter } from '@auth/drizzle-adapter';
 import NextAuth, {
   type DefaultSession,
@@ -20,7 +21,12 @@ declare module 'next-auth' {
   }
 }
 
-export const { handlers, auth, signIn, signOut } = NextAuth({
+export const {
+  handlers,
+  auth: uncachedAuth,
+  signIn,
+  signOut
+} = NextAuth({
   debug: env.NODE_ENV !== 'production',
   providers: [
     Google({
@@ -60,3 +66,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     signIn: '/login'
   }
 });
+
+const auth = cache(uncachedAuth);
+
+export { auth };

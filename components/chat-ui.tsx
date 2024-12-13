@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
+import { generateId } from 'ai';
 import { useChat } from 'ai/react';
 import ScrollToBottom from 'react-scroll-to-bottom';
 import { toast } from 'sonner';
@@ -12,7 +13,6 @@ import { Chat, UserContent, type AIMessage, type Message } from '@/lib/types';
 import {
   apiFromModel,
   formatSystemPrompt,
-  generateId,
   getMessageContentText,
   isImageModel,
   isVisionModel,
@@ -32,7 +32,6 @@ interface ChatUIProps {
 
 export function ChatUI(props: ChatUIProps) {
   const id = props.chat.id;
-  const messageId = generateId();
   const hasExecutedRef = useRef(false);
   const regenerateIdRef = useRef<string>();
   const userMessageRef = useRef<Message>();
@@ -78,9 +77,9 @@ export function ChatUI(props: ChatUIProps) {
       const regenerateId = regenerateIdRef.current;
       const userMessage = userMessageRef.current;
       const result = await api.createChat(
-        id,
         chat?.usage,
         [userMessage, message].filter(Boolean) as Message[],
+        id,
         regenerateId
       );
       if (result && 'error' in result) {
@@ -204,7 +203,7 @@ export function ChatUI(props: ChatUIProps) {
         onSubmit={async (content: UserContent) => {
           regenerateIdRef.current = undefined;
           const userMessage = {
-            id: messageId,
+            id: generateId(),
             role: 'user',
             content
           };

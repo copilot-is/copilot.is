@@ -2,24 +2,20 @@
 
 import { useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
+import { generateId } from 'ai';
 import { toast } from 'sonner';
 
 import { api } from '@/lib/api';
 import { UserContent, type Message } from '@/lib/types';
-import { generateId, isVisionModel } from '@/lib/utils';
+import { isVisionModel } from '@/lib/utils';
 import { useSettings } from '@/hooks/use-settings';
 import { useStore } from '@/store/useStore';
 import { ChatHeader } from '@/components/chat-header';
 import { EmptyScreen } from '@/components/empty-screen';
 import { PromptForm } from '@/components/prompt-form';
 
-interface ChatUIProps {
-  id: string;
-}
-
-export function ChatQuick({ id }: ChatUIProps) {
+export function ChatQuick() {
   const router = useRouter();
-  const messageId = generateId();
   const [input, setInput] = useState('');
   const [isPending, startTransition] = useTransition();
   const { model, settings } = useSettings();
@@ -45,11 +41,11 @@ export function ChatQuick({ id }: ChatUIProps) {
           onSubmit={async (content: UserContent) => {
             startTransition(async () => {
               const userMessage: Message = {
-                id: messageId,
+                id: generateId(),
                 role: 'user',
                 content
               };
-              const result = await api.createChat(id, usage, [userMessage]);
+              const result = await api.createChat(usage, [userMessage]);
               if (result && 'error' in result) {
                 toast.error(result.error);
                 return;

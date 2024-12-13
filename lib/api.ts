@@ -70,9 +70,9 @@ const getCurrentUser = async () => {
 };
 
 const createChat = async (
-  chatId: string,
   usage: Usage,
   messages: Message[],
+  chatId?: string,
   regenerateId?: string
 ) => {
   const res = await fetch('/api/chat', {
@@ -80,7 +80,7 @@ const createChat = async (
     headers: {
       'Content-Type': 'application/json'
     },
-    body: JSON.stringify({ chatId, usage, messages, regenerateId })
+    body: JSON.stringify({ usage, messages, chatId, regenerateId })
   });
 
   const json = await res.json();

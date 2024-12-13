@@ -1,4 +1,5 @@
 import { NextResponse, type NextRequest } from 'next/server';
+import { generateId } from 'ai';
 
 import { Message, type Usage } from '@/lib/types';
 import { auth } from '@/server/auth';
@@ -43,7 +44,7 @@ export async function POST(req: NextRequest) {
   }
 
   const json: PostData = await req.json();
-  const chatId = json.chatId || '';
+  const chatId = json.chatId || generateId();
   const title = json.title || 'Untitled';
   const { regenerateId, messages, usage } = json;
 

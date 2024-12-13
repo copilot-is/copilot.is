@@ -9,7 +9,7 @@ export const chatRouter = createTRPCRouter({
   create: protectedProcedure
     .input(
       z.object({
-        chatId: z.string(),
+        chatId: z.string().min(1),
         regenerateId: z.string().optional(),
         title: z.string().trim().min(1).max(255),
         messages: z
@@ -29,7 +29,7 @@ export const chatRouter = createTRPCRouter({
             }
           ),
         usage: z.object({
-          model: z.string(),
+          model: z.string().min(1),
           temperature: z.number().optional(),
           frequencyPenalty: z.number().optional(),
           presencePenalty: z.number().optional(),
@@ -125,7 +125,7 @@ export const chatRouter = createTRPCRouter({
     }),
 
   detail: protectedProcedure
-    .input(z.object({ chatId: z.string() }))
+    .input(z.object({ chatId: z.string().min(1) }))
     .query(async ({ ctx, input }) => {
       const chat = await ctx.db.query.chats.findFirst({
         where: and(
@@ -146,7 +146,7 @@ export const chatRouter = createTRPCRouter({
   update: protectedProcedure
     .input(
       z.object({
-        chatId: z.string(),
+        chatId: z.string().min(1),
         chat: z.object({
           title: z.string().trim().min(1).max(255).optional(),
           shared: z.boolean().optional(),
@@ -190,7 +190,7 @@ export const chatRouter = createTRPCRouter({
     }),
 
   delete: protectedProcedure
-    .input(z.object({ chatId: z.string() }))
+    .input(z.object({ chatId: z.string().min(1) }))
     .mutation(async ({ ctx, input }) => {
       await ctx.db
         .delete(chats)
@@ -204,7 +204,7 @@ export const chatRouter = createTRPCRouter({
   }),
 
   getShared: protectedProcedure
-    .input(z.object({ chatId: z.string() }))
+    .input(z.object({ chatId: z.string().min(1) }))
     .query(async ({ ctx, input }) => {
       return await ctx.db.query.chats.findFirst({
         where: and(eq(chats.id, input.chatId), eq(chats.shared, true)),
@@ -220,8 +220,8 @@ export const chatRouter = createTRPCRouter({
   updateMessage: protectedProcedure
     .input(
       z.object({
-        chatId: z.string(),
-        messageId: z.string(),
+        chatId: z.string().min(1),
+        messageId: z.string().min(1),
         message: messageSchema.refine(msg => msg.role === 'user', {
           message: 'Only messages with role "user" can be updated.'
         })
@@ -245,8 +245,8 @@ export const chatRouter = createTRPCRouter({
   deleteMessage: protectedProcedure
     .input(
       z.object({
-        chatId: z.string(),
-        messageId: z.string()
+        chatId: z.string().min(1),
+        messageId: z.string().min(1)
       })
     )
     .mutation(async ({ ctx, input }) => {
