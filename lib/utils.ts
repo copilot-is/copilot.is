@@ -3,13 +3,13 @@ import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 
 import { ServiceProvider, SupportedModels, TTSModels } from '@/lib/constant';
-import { MessageContent, Provider } from '@/lib/types';
+import { MessageContent } from '@/lib/types';
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
-export const generateId = () => generateIdFunc(10);
+export const generateId = () => generateIdFunc();
 
 export function formatDate(input: string | number | Date): string {
   const date = new Date(input);

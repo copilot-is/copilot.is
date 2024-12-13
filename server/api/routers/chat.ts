@@ -107,6 +107,7 @@ export const chatRouter = createTRPCRouter({
         ),
         with: {
           messages: {
+            where: eq(messages.userId, ctx.session.user.id),
             orderBy: (messages, { asc }) => [asc(messages.createdAt)]
           }
         }
@@ -133,6 +134,7 @@ export const chatRouter = createTRPCRouter({
         ),
         with: {
           messages: {
+            where: eq(messages.userId, ctx.session.user.id),
             orderBy: (messages, { asc }) => [asc(messages.createdAt)]
           }
         }
@@ -180,6 +182,7 @@ export const chatRouter = createTRPCRouter({
         ),
         with: {
           messages: {
+            where: eq(messages.userId, ctx.session.user.id),
             orderBy: (messages, { asc }) => [asc(messages.createdAt)]
           }
         }
@@ -207,6 +210,7 @@ export const chatRouter = createTRPCRouter({
         where: and(eq(chats.id, input.chatId), eq(chats.shared, true)),
         with: {
           messages: {
+            where: eq(messages.userId, ctx.session.user.id),
             orderBy: (messages, { asc }) => [asc(messages.createdAt)]
           }
         }
