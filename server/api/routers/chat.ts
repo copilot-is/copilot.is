@@ -9,25 +9,14 @@ export const chatRouter = createTRPCRouter({
   create: protectedProcedure
     .input(
       z.object({
-        chatId: z.string().min(1),
-        regenerateId: z.string().optional(),
+        id: z.string().min(1),
         title: z.string().trim().min(1).max(255),
         messages: z
           .array(messageSchema)
-          .min(1)
-          .max(2)
-          .refine(
-            messages =>
-              (messages.length === 1 &&
-                ['user', 'assistant'].includes(messages[0].role)) ||
-              (messages.length === 2 &&
-                messages[0].role === 'user' &&
-                messages[1].role === 'assistant'),
-            {
-              message:
-                'Messages must contain one user/assistant message or exactly one user message followed by one assistant message.'
-            }
-          ),
+          .length(1)
+          .refine(messages => messages[0].role === 'user', {
+            message: 'Messages must contain exactly one user message.'
+          }),
         usage: z.object({
           model: z.string().min(1),
           temperature: z.number().optional(),
@@ -39,70 +28,142 @@ export const chatRouter = createTRPCRouter({
     )
     .mutation(async ({ ctx, input }) => {
       const chat = await ctx.db.query.chats.findFirst({
-        where: eq(chats.id, input.chatId)
+        where: eq(chats.id, input.id)
       });
-      if (!chat) {
-        await ctx.db.insert(chats).values({
-          id: input.chatId,
-          title: input.title,
-          userId: ctx.session.user.id,
-          usage: input.usage
-        });
-      } else {
+
+      if (chat) {
+        throw new Error('Chat already exists');
+      }
+
+      await ctx.db.insert(chats).values({
+        id: input.id,
+        title: input.title,
+        userId: ctx.session.user.id,
+        usage: input.usage
+      });
+
+      const message = await ctx.db.query.messages.findFirst({
+        where: eq(messages.id, input.messages[0].id)
+      });
+
+      if (message) {
+        throw new Error('Message already exists');
+      }
+
+      await ctx.db.insert(messages).values({
+        id: input.messages[0].id,
+        content: input.messages[0].content ?? '',
+        role: input.messages[0].role,
+        chatId: input.id,
+        userId: ctx.session.user.id
+      });
+
+      return await ctx.db.query.chats.findFirst({
+        where: and(
+          eq(chats.id, input.id),
+          eq(chats.userId, ctx.session.user.id)
+        ),
+        with: {
+          messages: {
+            where: eq(messages.userId, ctx.session.user.id),
+            orderBy: (messages, { asc }) => [asc(messages.createdAt)]
+          }
+        }
+      });
+    }),
+
+  update: protectedProcedure
+    .input(
+      z.object({
+        id: z.string().min(1),
+        regenerateId: z.string().optional(),
+        title: z.string().trim().min(1).max(255).optional(),
+        shared: z.boolean().optional(),
+        messages: z
+          .array(messageSchema)
+          .min(1)
+          .max(2)
+          .refine(
+            messages =>
+              (messages.length === 1 &&
+                ['assistant'].includes(messages[0].role)) ||
+              (messages.length === 2 &&
+                messages[0].role === 'user' &&
+                messages[1].role === 'assistant'),
+            {
+              message:
+                'Messages must contain one user/assistant message or exactly one user message followed by one assistant message.'
+            }
+          )
+          .optional(),
+        usage: z
+          .object({
+            model: z.string().min(1),
+            temperature: z.number().optional(),
+            frequencyPenalty: z.number().optional(),
+            presencePenalty: z.number().optional(),
+            maxTokens: z.number().optional()
+          })
+          .optional()
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      const updates: Record<string, any> = {};
+      if (input.title) updates.title = input.title;
+      if (input.shared) updates.shared = input.shared;
+      if (input.usage) updates.usage = input.usage;
+
+      if (updates.title || updates.shared || updates.usage) {
         await ctx.db
           .update(chats)
-          .set({ usage: input.usage })
+          .set(updates)
           .where(
-            and(
-              eq(chats.id, input.chatId),
-              eq(chats.userId, ctx.session.user.id)
-            )
+            and(eq(chats.id, input.id), eq(chats.userId, ctx.session.user.id))
           );
       }
 
-      if (
-        input.messages.length === 1 &&
-        input.messages[0].role === 'assistant' &&
-        input.regenerateId
-      ) {
-        await ctx.db
-          .delete(messages)
-          .where(
-            and(
-              eq(messages.id, input.regenerateId),
-              eq(messages.chatId, input.chatId),
-              eq(messages.userId, ctx.session.user.id)
-            )
-          );
-      }
-
-      const values = [];
-      for (const message of input.messages) {
-        const exists = await ctx.db.query.messages.findFirst({
-          where: and(
-            eq(messages.id, message.id),
-            eq(messages.chatId, input.chatId),
-            eq(messages.userId, ctx.session.user.id)
-          )
-        });
-        if (!exists) {
-          values.push({
-            id: message.id,
-            content: message.content ?? '',
-            role: message.role,
-            chatId: input.chatId,
-            userId: ctx.session.user.id
-          });
+      if (input.messages) {
+        if (
+          input.messages.length === 1 &&
+          input.messages[0].role === 'assistant' &&
+          input.regenerateId
+        ) {
+          await ctx.db
+            .delete(messages)
+            .where(
+              and(
+                eq(messages.id, input.regenerateId),
+                eq(messages.chatId, input.id),
+                eq(messages.userId, ctx.session.user.id)
+              )
+            );
         }
-      }
 
-      if (values.length > 0) {
-        await ctx.db.insert(messages).values(values);
+        const values = [];
+        for (const message of input.messages) {
+          const exists = await ctx.db.query.messages.findFirst({
+            where: eq(messages.id, message.id)
+          });
+          if (!exists) {
+            values.push({
+              id: message.id,
+              role: message.role,
+              content: message.content ?? '',
+              createdAt: message.createdAt,
+              chatId: input.id,
+              userId: ctx.session.user.id
+            });
+          }
+        }
+
+        if (values.length > 0) {
+          await ctx.db.insert(messages).values(values);
+        }
       }
 
       return await ctx.db.query.chats.findFirst({
         where: and(
-          eq(chats.id, input.chatId),
+          eq(chats.id, input.id),
           eq(chats.userId, ctx.session.user.id)
         ),
         with: {
@@ -115,11 +176,22 @@ export const chatRouter = createTRPCRouter({
     }),
 
   list: protectedProcedure
-    .input(z.object({ limit: z.number().optional() }).optional())
+    .input(
+      z
+        .object({
+          limit: z.number().min(1).default(50).optional(),
+          offset: z.number().min(0).default(0).optional()
+        })
+        .optional()
+    )
     .query(async ({ ctx, input }) => {
+      const limit = input?.limit ?? 50;
+      const offset = input?.offset ?? 0;
+
       return await ctx.db.query.chats.findMany({
         orderBy: (chats, { desc }) => [desc(chats.createdAt)],
-        limit: input?.limit ?? 50,
+        limit: limit,
+        offset: offset,
         where: eq(chats.userId, ctx.session.user.id)
       });
     }),
@@ -141,52 +213,6 @@ export const chatRouter = createTRPCRouter({
       });
 
       return chat;
-    }),
-
-  update: protectedProcedure
-    .input(
-      z.object({
-        chatId: z.string().min(1),
-        chat: z.object({
-          title: z.string().trim().min(1).max(255).optional(),
-          shared: z.boolean().optional(),
-          usage: z
-            .object({
-              model: z.string().trim().min(1),
-              temperature: z.number().optional(),
-              frequencyPenalty: z.number().optional(),
-              presencePenalty: z.number().optional(),
-              maxTokens: z.number().optional()
-            })
-            .optional()
-        })
-      })
-    )
-    .mutation(async ({ ctx, input }) => {
-      const updates: Record<string, any> = {};
-      if ('title' in input.chat) updates.title = input.chat.title;
-      if ('shared' in input.chat) updates.shared = input.chat.shared;
-      if ('usage' in input.chat) updates.usage = input.chat.usage;
-
-      await ctx.db
-        .update(chats)
-        .set(updates)
-        .where(
-          and(eq(chats.id, input.chatId), eq(chats.userId, ctx.session.user.id))
-        );
-
-      return await ctx.db.query.chats.findFirst({
-        where: and(
-          eq(chats.id, input.chatId),
-          eq(chats.userId, ctx.session.user.id)
-        ),
-        with: {
-          messages: {
-            where: eq(messages.userId, ctx.session.user.id),
-            orderBy: (messages, { asc }) => [asc(messages.createdAt)]
-          }
-        }
-      });
     }),
 
   delete: protectedProcedure
@@ -230,7 +256,7 @@ export const chatRouter = createTRPCRouter({
     .mutation(async ({ ctx, input }) => {
       return await ctx.db
         .update(messages)
-        .set(input.message)
+        .set({ ...input.message, updatedAt: new Date() })
         .where(
           and(
             eq(messages.id, input.messageId),

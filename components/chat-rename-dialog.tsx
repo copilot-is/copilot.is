@@ -59,13 +59,13 @@ export function ChatRenameDialog({
                   return;
                 }
 
-                const result = await api.updateChat(chat.id, { title });
+                const result = await api.updateChat({ id: chat.id, title });
                 if (result && 'error' in result) {
                   toast.error(result.error);
                   return;
                 }
                 toast.success('Chat title saved', { duration: 2000 });
-                updateChat(chat.id, { title });
+                updateChat({ id: chat.id, title });
                 onOpenChange(false);
               });
             }}

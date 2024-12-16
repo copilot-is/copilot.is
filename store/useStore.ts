@@ -17,8 +17,11 @@ type Action = {
   setChats: (chats: Chat[]) => void;
   addChat: (chat: Chat) => void;
   updateChat: (
-    id: string,
-    updates: Partial<Pick<Chat, 'title' | 'shared' | 'usage' | 'ungenerated'>>
+    chat: Partial<
+      Pick<Chat, 'title' | 'shared' | 'usage' | 'messages' | 'ungenerated'>
+    > & {
+      id: string;
+    }
   ) => void;
   removeChat: (chatId: string) => void;
   clearChats: () => void;
@@ -53,14 +56,17 @@ export const useStore = create<State & Action>()(
         chats: { ...state.chats, [chat.id]: chat }
       })),
     updateChat: (
-      id: string,
-      updates: Partial<Pick<Chat, 'title' | 'shared' | 'usage' | 'ungenerated'>>
+      chat: Partial<
+        Pick<Chat, 'title' | 'shared' | 'usage' | 'messages' | 'ungenerated'>
+      > & {
+        id: string;
+      }
     ) =>
       set(state => ({
-        chats: state.chats[id]
+        chats: state.chats[chat.id]
           ? {
               ...state.chats,
-              [id]: { ...state.chats[id], ...updates }
+              [chat.id]: { ...state.chats[chat.id], ...chat }
             }
           : state.chats
       })),

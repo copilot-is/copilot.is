@@ -67,12 +67,12 @@ export function ModelMenu() {
         model: newModel,
         prompt: undefined
       };
-      const result = await api.updateChat(chat.id, { usage });
+      const result = await api.updateChat({ id: chat.id, usage });
       if (result && 'error' in result) {
         toast.error(result.error);
         return;
       }
-      updateChat(chat.id, { usage });
+      updateChat({ id: chat.id, usage });
       setIsAlertOpen(false);
       setNewModel('');
     }

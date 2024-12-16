@@ -76,12 +76,12 @@ export function ChatUI(props: ChatUIProps) {
       setIsFetching(true);
       const regenerateId = regenerateIdRef.current;
       const userMessage = userMessageRef.current;
-      const result = await api.createChat(
-        chat?.usage,
-        [userMessage, message].filter(Boolean) as Message[],
+      const result = await api.updateChat({
         id,
+        usage: chat?.usage,
+        messages: [userMessage, message].filter(Boolean) as Message[],
         regenerateId
-      );
+      });
       if (result && 'error' in result) {
         toast.error(result.error);
       } else {
@@ -129,7 +129,7 @@ export function ChatUI(props: ChatUIProps) {
         };
         userMessageRef.current = userMessage as Message;
         reload();
-        updateChat(id, { ungenerated: undefined });
+        updateChat({ id, ungenerated: undefined });
         userMessageRef.current = undefined;
       }
       hasExecutedRef.current = true;
@@ -161,8 +161,8 @@ export function ChatUI(props: ChatUIProps) {
             { ...chat?.usage, model: genModel }
           );
           if (result && !('error' in result) && result.content) {
-            await api.updateChat(id, { title: result.content });
-            updateChat(id, { title: result.content });
+            await api.updateChat({ id, title: result.content });
+            updateChat({ id, title: result.content });
             setNewChatId(id);
           }
         }
@@ -205,7 +205,8 @@ export function ChatUI(props: ChatUIProps) {
           const userMessage = {
             id: generateId(),
             role: 'user',
-            content
+            content,
+            createdAt: new Date()
           };
           userMessageRef.current = userMessage as Message;
           await append(userMessage as AIMessage);

@@ -8,6 +8,13 @@ export const messageSchema = z.discriminatedUnion('role', [
     id: z.string(),
     role: z.literal('system'),
     content: z.string(),
+    createdAt: z.union([
+      z.date().optional(),
+      z
+        .string()
+        .transform(str => new Date(str))
+        .optional()
+    ]),
     experimental_providerMetadata: z
       .record(z.string(), z.record(z.string(), jsonValueSchema))
       .optional()
@@ -36,6 +43,13 @@ export const messageSchema = z.discriminatedUnion('role', [
         ])
       )
     ]),
+    createdAt: z.union([
+      z.date().optional(),
+      z
+        .string()
+        .transform(str => new Date(str))
+        .optional()
+    ]),
     experimental_providerMetadata: z
       .record(z.string(), z.record(z.string(), jsonValueSchema))
       .optional()
@@ -59,6 +73,13 @@ export const messageSchema = z.discriminatedUnion('role', [
           })
         ])
       )
+    ]),
+    createdAt: z.union([
+      z.date().optional(),
+      z
+        .string()
+        .transform(str => new Date(str))
+        .optional()
     ]),
     experimental_providerMetadata: z
       .record(z.string(), z.record(z.string(), jsonValueSchema))
@@ -94,6 +115,13 @@ export const messageSchema = z.discriminatedUnion('role', [
           .optional()
       })
     ),
+    createdAt: z.union([
+      z.date().optional(),
+      z
+        .string()
+        .transform(str => new Date(str))
+        .optional()
+    ]),
     experimental_providerMetadata: z
       .record(z.string(), z.record(z.string(), jsonValueSchema))
       .optional()

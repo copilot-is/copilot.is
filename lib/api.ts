@@ -70,17 +70,16 @@ const getCurrentUser = async () => {
 };
 
 const createChat = async (
-  usage: Usage,
-  messages: Message[],
-  chatId?: string,
-  regenerateId?: string
+  chat: Pick<Chat, 'usage' | 'messages'> & {
+    title?: string;
+  }
 ) => {
   const res = await fetch('/api/chat', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json'
     },
-    body: JSON.stringify({ usage, messages, chatId, regenerateId })
+    body: JSON.stringify(chat)
   });
 
   const json = await res.json();
@@ -141,10 +140,12 @@ const clearChats = async () => {
 };
 
 const updateChat = async (
-  chatId: string,
-  chat: Partial<Pick<Chat, 'title' | 'shared' | 'usage'>>
+  chat: Partial<Pick<Chat, 'title' | 'shared' | 'usage' | 'messages'>> & {
+    id: string;
+    regenerateId?: string;
+  }
 ) => {
-  const res = await fetch(`/api/chat/${chatId}`, {
+  const res = await fetch(`/api/chat/${chat.id}`, {
     method: 'PUT',
     headers: {
       'Content-Type': 'application/json'

@@ -40,12 +40,17 @@ export function ChatQuick() {
           setInput={setInput}
           onSubmit={async (content: UserContent) => {
             startTransition(async () => {
-              const userMessage: Message = {
-                id: generateId(),
-                role: 'user',
-                content
-              };
-              const result = await api.createChat(usage, [userMessage]);
+              const messages: Message[] = [
+                {
+                  id: generateId(),
+                  role: 'user',
+                  content
+                }
+              ];
+              const result = await api.createChat({
+                usage,
+                messages
+              });
               if (result && 'error' in result) {
                 toast.error(result.error);
                 return;

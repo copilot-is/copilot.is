@@ -69,7 +69,8 @@ export function ChatShareDialog({
               disabled={isDeletePending}
               onClick={() => {
                 startDeleteTransition(async () => {
-                  const result = await api.updateChat(chat.id, {
+                  const result = await api.updateChat({
+                    id: chat.id,
                     shared: false
                   });
                   if (result && 'error' in result) {
@@ -79,7 +80,7 @@ export function ChatShareDialog({
                   toast.success('Shared link deleted success', {
                     duration: 2000
                   });
-                  updateChat(chat.id, { shared: false });
+                  updateChat({ id: chat.id, shared: false });
                   onOpenChange(false);
                 });
               }}
@@ -100,14 +101,15 @@ export function ChatShareDialog({
               startShareTransition(async () => {
                 const sharePath = `/share/${chat.id}`;
                 if (!chat.shared) {
-                  const result = await api.updateChat(chat.id, {
+                  const result = await api.updateChat({
+                    id: chat.id,
                     shared: true
                   });
                   if (result && 'error' in result) {
                     toast.error(result.error);
                     return;
                   }
-                  updateChat(chat.id, { shared: true });
+                  updateChat({ id: chat.id, shared: true });
                 }
 
                 copyShareLink(sharePath);

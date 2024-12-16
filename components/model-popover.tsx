@@ -35,7 +35,7 @@ export const ModelPopover = () => {
         ...chatUsage,
         [key]: value
       };
-      updateChat(chat.id, { usage });
+      updateChat({ id: chat.id, usage });
     } else {
       setSettings(key, value);
     }

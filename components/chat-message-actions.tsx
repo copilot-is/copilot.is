@@ -100,6 +100,7 @@ export function ChatMessageActions({
 
       const audio = new Audio(result.audio);
       audioRef.current = audio;
+      audio.volume = 1;
       audio.play();
       setIsPlaying(true);
 

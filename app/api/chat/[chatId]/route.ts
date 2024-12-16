@@ -32,7 +32,11 @@ export async function GET(
   }
 }
 
-type PutData = Pick<Chat, 'title' | 'shared' | 'usage'>;
+type PutData = Partial<
+  Pick<Chat, 'id' | 'title' | 'shared' | 'usage' | 'messages'>
+> & {
+  regenerateId?: string;
+};
 
 export async function PUT(
   req: NextRequest,
@@ -45,7 +49,7 @@ export async function PUT(
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
-  const chatId = params.chatId;
+  const id = params.chatId;
   const chat: PutData = await req.json();
 
   if (!chat) {
@@ -56,11 +60,11 @@ export async function PUT(
   }
 
   try {
-    const data = await api.chat.update.mutate({ chatId, chat });
+    const data = await api.chat.update.mutate({ id, ...chat });
     return NextResponse.json(data);
-  } catch (err) {
+  } catch (err: any) {
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { error: err.message || 'Internal server error' },
       { status: 500 }
     );
   }

@@ -1,7 +1,7 @@
 import { NextResponse, type NextRequest } from 'next/server';
 import { generateId } from 'ai';
 
-import { Message, type Usage } from '@/lib/types';
+import { Chat } from '@/lib/types';
 import { auth } from '@/server/auth';
 import { api } from '@/trpc/server';
 
@@ -28,12 +28,8 @@ export async function GET() {
   }
 }
 
-type PostData = {
-  chatId?: string;
-  regenerateId?: string;
+type PostData = Pick<Chat, 'usage' | 'messages'> & {
   title?: string;
-  messages: Message[];
-  usage: Usage;
 };
 
 export async function POST(req: NextRequest) {
@@ -44,21 +40,20 @@ export async function POST(req: NextRequest) {
   }
 
   const json: PostData = await req.json();
-  const chatId = json.chatId || generateId();
+  const id = generateId();
   const title = json.title || 'Untitled';
-  const { regenerateId, messages, usage } = json;
+  const { messages, usage } = json;
 
-  if (!usage) {
+  if (!usage || !messages) {
     return NextResponse.json(
-      { error: 'Invalid usage parameters' },
+      { error: 'Invalid usage or messages parameters' },
       { status: 400 }
     );
   }
 
   try {
     const data = await api.chat.create.mutate({
-      chatId,
-      regenerateId,
+      id,
       title,
       usage,
       messages
