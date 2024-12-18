@@ -96,6 +96,17 @@ export const SupportedModels: Model[] = [
     provider: 'anthropic'
   },
   {
+    text: 'Grok 2',
+    value: 'grok-2-1212',
+    provider: 'xai'
+  },
+  {
+    text: 'Grok 2 Vision',
+    value: 'grok-2-vision-1212',
+    vision: true,
+    provider: 'xai'
+  },
+  {
     text: 'Grok beta',
     value: 'grok-beta',
     provider: 'xai'
