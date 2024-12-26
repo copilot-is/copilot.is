@@ -33,8 +33,8 @@ interface ChatUIProps {
 export function ChatUI(props: ChatUIProps) {
   const id = props.chat.id;
   const hasExecutedRef = useRef(false);
-  const regenerateIdRef = useRef<string>();
-  const userMessageRef = useRef<Message>();
+  const regenerateIdRef = useRef<string>(undefined);
+  const userMessageRef = useRef<Message>(undefined);
   const [isFetching, setIsFetching] = useState(false);
   const { settings, generateTitleModels } = useSettings();
   const { chats, addChat, updateChat, setNewChatId } = useStore();

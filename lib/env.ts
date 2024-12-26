@@ -93,8 +93,7 @@ export const env = createEnv({
   client: {
     NEXT_PUBLIC_PRODUCT_NAME: z.string().default('Copilot'),
     NEXT_PUBLIC_PRODUCT_SUBTITLE: z.string().default('AI Chatbot'),
-    NEXT_PUBLIC_PRODUCT_DESCRIPTION: z.string().optional(),
-    NEXT_PUBLIC_PRODUCT_URL: z.string().optional()
+    NEXT_PUBLIC_PRODUCT_DESCRIPTION: z.string().optional()
   },
   runtimeEnv: {
     NODE_ENV: process.env.NODE_ENV,
@@ -170,8 +169,6 @@ export const env = createEnv({
     NEXT_PUBLIC_PRODUCT_SUBTITLE: process.env.NEXT_PUBLIC_PRODUCT_SUBTITLE,
     NEXT_PUBLIC_PRODUCT_DESCRIPTION:
       process.env.NEXT_PUBLIC_PRODUCT_DESCRIPTION,
-    NEXT_PUBLIC_PRODUCT_URL: process.env.NEXT_PUBLIC_PRODUCT_URL,
-
     // Analytics
     UMAMI_SCRIPT_URL: process.env.UMAMI_SCRIPT_URL,
     UMAMI_WEBSITE_ID: process.env.UMAMI_WEBSITE_ID

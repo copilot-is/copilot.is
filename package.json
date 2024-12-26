@@ -3,7 +3,7 @@
   "version": "1.0.0-beta.3",
   "private": true,
   "scripts": {
-    "dev": "next dev",
+    "dev": "next dev --turbopack",
     "build": "next build",
     "vercel-build": "drizzle-kit migrate && next build",
     "start": "next start",
@@ -19,12 +19,12 @@
     "db:studio": "drizzle-kit studio"
   },
   "dependencies": {
-    "@ai-sdk/anthropic": "^1.0.5",
-    "@ai-sdk/azure": "^1.0.10",
-    "@ai-sdk/google": "^1.0.11",
-    "@ai-sdk/google-vertex": "^2.0.10",
-    "@ai-sdk/openai": "^1.0.8",
-    "@ai-sdk/xai": "^1.0.8",
+    "@ai-sdk/anthropic": "^1.0.6",
+    "@ai-sdk/azure": "^1.0.13",
+    "@ai-sdk/google": "^1.0.12",
+    "@ai-sdk/google-vertex": "^2.0.12",
+    "@ai-sdk/openai": "^1.0.11",
+    "@ai-sdk/xai": "^1.0.14",
     "@auth/drizzle-adapter": "^1.7.4",
     "@hookform/resolvers": "^3.9.1",
     "@phosphor-icons/react": "^2.1.7",
@@ -48,20 +48,20 @@
     "@trpc/react-query": "^10.45.2",
     "@trpc/server": "^10.45.2",
     "@vercel/postgres": "^0.10.0",
-    "ai": "^4.0.20",
+    "ai": "^4.0.22",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "drizzle-orm": "^0.36.4",
     "framer-motion": "^11.15.0",
     "geist": "^1.3.1",
     "nanoid": "^5.0.9",
-    "next": "15.0.3",
+    "next": "15.1.2",
     "next-auth": "5.0.0-beta.25",
-    "next-themes": "^0.3.0",
+    "next-themes": "^0.4.4",
     "openai": "^4.77.0",
-    "react": "^18.3.1",
-    "react-dom": "^18.3.1",
-    "react-hook-form": "^7.54.1",
+    "react": "19.0.0",
+    "react-dom": "19.0.0",
+    "react-hook-form": "^7.54.2",
     "react-markdown": "^9.0.1",
     "react-scroll-to-bottom": "^4.2.0",
     "react-syntax-highlighter": "^15.6.1",
@@ -72,22 +72,22 @@
     "sonner": "^1.7.1",
     "superjson": "^2.2.2",
     "zod": "^3.24.1",
-    "zustand": "^4.5.5"
+    "zustand": "^5.0.2"
   },
   "devDependencies": {
     "@ianvs/prettier-plugin-sort-imports": "^4.4.0",
     "@redux-devtools/extension": "^3.3.0",
     "@tailwindcss/typography": "^0.5.15",
     "@types/node": "^20.17.9",
-    "@types/react": "18.3.12",
-    "@types/react-dom": "^18.3.2",
+    "@types/react": "19.0.2",
+    "@types/react-dom": "19.0.2",
     "@types/react-scroll-to-bottom": "^4.2.5",
     "@types/react-syntax-highlighter": "^15.5.13",
     "@typescript-eslint/parser": "^8.17.0",
     "autoprefixer": "^10.4.20",
     "drizzle-kit": "^0.28.1",
     "eslint": "^9.16.0",
-    "eslint-config-next": "15.0.3",
+    "eslint-config-next": "15.1.2",
     "eslint-config-prettier": "^9.1.0",
     "eslint-plugin-tailwindcss": "^3.17.5",
     "postcss": "^8.4.49",
@@ -97,5 +97,11 @@
     "tailwindcss": "^3.4.16",
     "tailwindcss-animate": "^1.0.7",
     "typescript": "^5.7.2"
+  },
+  "pnpm": {
+    "overrides": {
+      "@types/react": "19.0.2",
+      "@types/react-dom": "19.0.2"
+    }
   }
 }

@@ -33,9 +33,9 @@ export function ChatMessageMarkdown({ content }: ChatMessageMarkdownProps) {
         },
         code({ node, className, children, ...props }) {
           const childArray = React.Children.toArray(children);
-          const firstChild = childArray[0] as React.ReactElement;
+          const firstChild = childArray[0] as React.ReactElement<any>;
           const firstChildAsString = React.isValidElement(firstChild)
-            ? (firstChild as React.ReactElement).props.children
+            ? (firstChild as React.ReactElement<any>).props.children
             : firstChild;
 
           if (firstChildAsString === '▍') {

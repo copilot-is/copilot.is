@@ -14,11 +14,6 @@ import { TailwindColor } from '@/components/tailwind-color';
 import { TailwindIndicator } from '@/components/tailwind-indicator';
 
 export const metadata: Metadata = {
-  metadataBase: env.NEXT_PUBLIC_PRODUCT_URL
-    ? new URL(env.NEXT_PUBLIC_PRODUCT_URL)
-    : env.VERCEL_URL
-      ? new URL(`https://${env.VERCEL_URL}`)
-      : new URL(`http://localhost:${env.PORT || 3000}`),
   title: {
     default: `${env.NEXT_PUBLIC_PRODUCT_NAME} - ${env.NEXT_PUBLIC_PRODUCT_SUBTITLE}`,
     template: `%s - ${env.NEXT_PUBLIC_PRODUCT_NAME}`
