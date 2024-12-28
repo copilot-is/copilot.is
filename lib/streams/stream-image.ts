@@ -27,7 +27,7 @@ export function streamImage(images: ImagesResponse): {
           }
           if (image.revised_prompt) {
             controller.enqueue(
-              formatDataStreamPart('text', image.revised_prompt)
+              formatDataStreamPart('text', `\n\n${image.revised_prompt}`)
             );
           }
         }
