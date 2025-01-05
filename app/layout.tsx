@@ -79,6 +79,13 @@ export default function RootLayout({ children }: RootLayoutProps) {
             ? env.XAI_MODELS.split(',').includes(model.value)
             : model.provider === 'xai'
         )
+      : []),
+    ...(env.DEEPSEEK_ENABLED === 'true'
+      ? SupportedModels.filter(model =>
+          env.DEEPSEEK_MODELS
+            ? env.DEEPSEEK_MODELS.split(',').includes(model.value)
+            : model.provider === 'deepseek'
+        )
       : [])
   ];
 
@@ -86,7 +93,8 @@ export default function RootLayout({ children }: RootLayoutProps) {
     openai: env.OPENAI_GENERATE_TITLE_MODEL,
     google: env.GOOGLE_GENERATE_TITLE_MODEL,
     anthropic: env.ANTHROPIC_GENERATE_TITLE_MODEL,
-    xai: env.XAI_GENERATE_TITLE_MODEL
+    xai: env.XAI_GENERATE_TITLE_MODEL,
+    deepseek: env.DEEPSEEK_GENERATE_TITLE_MODEL
   };
 
   return (

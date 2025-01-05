@@ -3,19 +3,13 @@
 import * as React from 'react';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
-import { Robot } from '@phosphor-icons/react';
 import { motion } from 'framer-motion';
 
 import { type Chat } from '@/lib/types';
 import { cn, providerFromModel } from '@/lib/utils';
 import { useStore } from '@/store/useStore';
 import { buttonVariants } from '@/components/ui/button';
-import {
-  IconClaudeAI,
-  IconGoogleAI,
-  IconGork,
-  IconOpenAI
-} from '@/components/ui/icons';
+import { ModelIcon } from '@/components/model-icon';
 
 interface SidebarItemProps {
   index: number;
@@ -51,11 +45,7 @@ export function SidebarItem({ index, chat, children }: SidebarItemProps) {
       }}
     >
       <div className="absolute left-1.5 flex size-6 items-center justify-center rounded-full border bg-background">
-        {provider === 'openai' && <IconOpenAI />}
-        {provider === 'google' && <IconGoogleAI />}
-        {provider === 'anthropic' && <IconClaudeAI />}
-        {provider === 'xai' && <IconGork />}
-        {!provider && <Robot />}
+        <ModelIcon provider={provider} />
       </div>
       <Link
         href={`/chat/${chat.id}`}

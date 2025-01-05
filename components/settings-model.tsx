@@ -7,12 +7,6 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Form, FormControl, FormItem, FormLabel } from '@/components/ui/form';
 import {
-  IconClaudeAI,
-  IconGoogleAI,
-  IconGork,
-  IconOpenAI
-} from '@/components/ui/icons';
-import {
   Select,
   SelectContent,
   SelectItem,
@@ -21,6 +15,7 @@ import {
 } from '@/components/ui/select';
 import { Slider } from '@/components/ui/slider';
 import { Textarea } from '@/components/ui/textarea';
+import { ModelIcon } from '@/components/model-icon';
 
 export const SettingsModel = () => {
   const form = useForm();
@@ -38,12 +33,7 @@ export const SettingsModel = () => {
               <SelectTrigger>
                 <SelectValue placeholder="Select a model">
                   <div className="flex items-center">
-                    {selectedModel?.provider === 'openai' && <IconOpenAI />}
-                    {selectedModel?.provider === 'google' && <IconGoogleAI />}
-                    {selectedModel?.provider === 'anthropic' && (
-                      <IconClaudeAI />
-                    )}
-                    {selectedModel?.provider === 'xai' && <IconGork />}
+                    <ModelIcon provider={selectedModel?.provider} />
                     <span className="ml-2 font-medium">
                       {selectedModel?.text}
                     </span>
@@ -56,10 +46,7 @@ export const SettingsModel = () => {
                 availableModels.map(model => (
                   <SelectItem key={model.value} value={model.value}>
                     <div className="flex items-center">
-                      {model.provider === 'openai' && <IconOpenAI />}
-                      {model.provider === 'google' && <IconGoogleAI />}
-                      {model.provider === 'anthropic' && <IconClaudeAI />}
-                      {model.provider === 'xai' && <IconGork />}
+                      <ModelIcon provider={model.provider} />
                       <div className="ml-2">
                         <div className="font-medium">{model.text}</div>
                         <div className="text-xs text-muted-foreground">

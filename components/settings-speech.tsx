@@ -5,7 +5,6 @@ import { useForm } from 'react-hook-form';
 import { TTSModels, Voices } from '@/lib/constant';
 import { useSettings } from '@/hooks/use-settings';
 import { Form, FormControl, FormItem, FormLabel } from '@/components/ui/form';
-import { IconClaudeAI, IconGoogleAI, IconOpenAI } from '@/components/ui/icons';
 import {
   Select,
   SelectContent,
@@ -13,6 +12,7 @@ import {
   SelectTrigger,
   SelectValue
 } from '@/components/ui/select';
+import { ModelIcon } from '@/components/model-icon';
 
 export const SettingsSpeech = () => {
   const form = useForm();
@@ -32,11 +32,7 @@ export const SettingsSpeech = () => {
               <SelectTrigger>
                 <SelectValue placeholder="Select a model">
                   <div className="flex items-center">
-                    {selectedModel?.provider === 'openai' && <IconOpenAI />}
-                    {selectedModel?.provider === 'google' && <IconGoogleAI />}
-                    {selectedModel?.provider === 'anthropic' && (
-                      <IconClaudeAI />
-                    )}
+                    <ModelIcon provider={selectedModel?.provider} />
                     <span className="ml-2 font-medium">
                       {selectedModel?.text}
                     </span>
@@ -48,9 +44,7 @@ export const SettingsSpeech = () => {
               {TTSModels.map(model => (
                 <SelectItem key={model.value} value={model.value}>
                   <div className="flex items-center">
-                    {model.provider === 'openai' && <IconOpenAI />}
-                    {model.provider === 'google' && <IconGoogleAI />}
-                    {model.provider === 'anthropic' && <IconClaudeAI />}
+                    <ModelIcon provider={model.provider} />
                     <div className="ml-2">
                       <div className="font-medium">{model.text}</div>
                       <div className="text-xs text-muted-foreground">

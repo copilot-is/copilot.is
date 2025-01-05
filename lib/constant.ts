@@ -116,6 +116,16 @@ export const SupportedModels: Model[] = [
     value: 'grok-vision-beta',
     vision: true,
     provider: 'xai'
+  },
+  {
+    text: 'DeepSeek Chat',
+    value: 'deepseek-chat',
+    provider: 'deepseek'
+  },
+  {
+    text: 'DeepSeek Coder',
+    value: 'deepseek-coder',
+    provider: 'deepseek'
   }
 ];
 
@@ -147,7 +157,8 @@ export enum ServiceProvider {
   openai = 'OpenAI',
   google = 'Google',
   anthropic = 'Anthropic',
-  xai = 'xAI'
+  xai = 'xAI',
+  deepseek = 'DeepSeek'
 }
 
 export const SystemPrompt = `A large language model trained by {provider}.

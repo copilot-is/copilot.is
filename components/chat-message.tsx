@@ -1,15 +1,10 @@
 import React from 'react';
-import { Robot, User } from '@phosphor-icons/react';
+import { User } from '@phosphor-icons/react';
 
 import { Message, Provider } from '@/lib/types';
 import { cn } from '@/lib/utils';
-import {
-  IconClaudeAI,
-  IconGoogleAI,
-  IconGork,
-  IconOpenAI
-} from '@/components/ui/icons';
 import { ChatMessageMarkdown } from '@/components/chat-message-markdown';
+import { ModelIcon } from '@/components/model-icon';
 
 export interface ChatMessageProps {
   message: Message;
@@ -31,15 +26,7 @@ export function ChatMessage({ message, provider, children }: ChatMessageProps) {
           )}
         >
           {message.role === 'user' ? <User /> : null}
-          {message.role === 'assistant' && (
-            <>
-              {provider === 'openai' && <IconOpenAI />}
-              {provider === 'google' && <IconGoogleAI />}
-              {provider === 'anthropic' && <IconClaudeAI />}
-              {provider === 'xai' && <IconGork />}
-              {!provider && <Robot />}
-            </>
-          )}
+          {message.role === 'assistant' && <ModelIcon provider={provider} />}
         </div>
         <div
           className={cn(

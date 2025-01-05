@@ -76,6 +76,13 @@ export const env = createEnv({
     XAI_MODELS: z.string().optional(),
     XAI_GENERATE_TITLE_MODEL: z.string().optional(),
 
+    // DeepSeek
+    DEEPSEEK_ENABLED: z.string().default('false'),
+    DEEPSEEK_BASE_URL: z.string().optional(),
+    DEEPSEEK_API_KEY: z.string().optional(),
+    DEEPSEEK_MODELS: z.string().optional(),
+    DEEPSEEK_GENERATE_TITLE_MODEL: z.string().optional(),
+
     // TTS
     TTS_ENABLED: z.string().default('false'),
     TTS_MODEL: z.enum(['tts-1', 'tts-1-hd']).default('tts-1'),
@@ -155,6 +162,13 @@ export const env = createEnv({
     XAI_API_KEY: process.env.XAI_API_KEY,
     XAI_MODELS: process.env.XAI_MODELS,
     XAI_GENERATE_TITLE_MODEL: process.env.XAI_GENERATE_TITLE_MODEL,
+
+    // DeepSeek
+    DEEPSEEK_ENABLED: process.env.DEEPSEEK_ENABLED,
+    DEEPSEEK_BASE_URL: process.env.DEEPSEEK_BASE_URL,
+    DEEPSEEK_API_KEY: process.env.DEEPSEEK_API_KEY,
+    DEEPSEEK_MODELS: process.env.XAI_MODELS,
+    DEEPSEEK_GENERATE_TITLE_MODEL: process.env.DEEPSEEK_GENERATE_TITLE_MODEL,
 
     // TTS
     TTS_ENABLED: process.env.TTS_ENABLED,

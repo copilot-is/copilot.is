@@ -26,7 +26,7 @@ export function ChatMessageMarkdown({ content }: ChatMessageMarkdownProps) {
             <img
               alt=""
               loading="lazy"
-              className="mb-0 mt-0 h-auto w-full max-w-xs"
+              className="my-0 h-auto w-full max-w-xs"
               {...props}
             />
           );

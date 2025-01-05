@@ -22,18 +22,13 @@ import {
   AlertDialogTitle
 } from '@/components/ui/alert-dialog';
 import {
-  IconClaudeAI,
-  IconGoogleAI,
-  IconGork,
-  IconOpenAI
-} from '@/components/ui/icons';
-import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue
 } from '@/components/ui/select';
+import { ModelIcon } from '@/components/model-icon';
 
 export function ModelMenu() {
   const isMobile = useMediaQuery('(max-width: 1023px)');
@@ -88,10 +83,7 @@ export function ModelMenu() {
         <SelectTrigger className="size-auto border-none shadow-none hover:bg-accent data-[state=open]:bg-accent [&>svg]:size-3">
           <SelectValue placeholder="Select a model">
             <div className="flex items-center">
-              {selectedModel?.provider === 'openai' && <IconOpenAI />}
-              {selectedModel?.provider === 'google' && <IconGoogleAI />}
-              {selectedModel?.provider === 'anthropic' && <IconClaudeAI />}
-              {selectedModel?.provider === 'xai' && <IconGork />}
+              <ModelIcon provider={selectedModel?.provider} />
               <span className="ml-2 font-medium">{selectedModel?.text}</span>
             </div>
           </SelectValue>
@@ -101,10 +93,7 @@ export function ModelMenu() {
             availableModels.map(model => (
               <SelectItem key={model.value} value={model.value}>
                 <div className="flex items-center">
-                  {model.provider === 'openai' && <IconOpenAI />}
-                  {model.provider === 'google' && <IconGoogleAI />}
-                  {model.provider === 'anthropic' && <IconClaudeAI />}
-                  {model.provider === 'xai' && <IconGork />}
+                  <ModelIcon provider={model.provider} />
                   <div className="ml-2">
                     <div className="font-medium">{model.text}</div>
                     <div className="text-xs text-muted-foreground">
