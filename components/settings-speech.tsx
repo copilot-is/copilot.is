@@ -12,30 +12,29 @@ import {
   SelectTrigger,
   SelectValue
 } from '@/components/ui/select';
-import { ModelIcon } from '@/components/model-icon';
+import { ProviderIcon } from '@/components/provider-icon';
 
 export const SettingsSpeech = () => {
   const form = useForm();
-  const { tts, setTextToSpeech } = useSettings();
-  const selectedModel = TTSModels.find(m => m.value === tts.model);
+  const { userSettings, setUserSettings } = useSettings();
+  const { speechModel, speechVoice } = userSettings;
+  const selectedModel = TTSModels.find(m => m.value === speechModel);
 
   return (
     <Form {...form}>
       <div className="space-y-4">
-        <FormItem>
+        <FormItem className="flex items-center justify-between space-y-0">
           <FormLabel>Model</FormLabel>
           <Select
-            onValueChange={value => setTextToSpeech('model', value)}
-            value={tts.model}
+            onValueChange={value => setUserSettings('speechModel', value)}
+            value={speechModel}
           >
             <FormControl>
-              <SelectTrigger>
+              <SelectTrigger className="w-auto rounded-full">
                 <SelectValue placeholder="Select a model">
                   <div className="flex items-center">
-                    <ModelIcon provider={selectedModel?.provider} />
-                    <span className="ml-2 font-medium">
-                      {selectedModel?.text}
-                    </span>
+                    <ProviderIcon provider={selectedModel?.provider} />
+                    <span className="ml-2">{selectedModel?.text}</span>
                   </div>
                 </SelectValue>
               </SelectTrigger>
@@ -44,9 +43,9 @@ export const SettingsSpeech = () => {
               {TTSModels.map(model => (
                 <SelectItem key={model.value} value={model.value}>
                   <div className="flex items-center">
-                    <ModelIcon provider={model.provider} />
+                    <ProviderIcon provider={model.provider} />
                     <div className="ml-2">
-                      <div className="font-medium">{model.text}</div>
+                      <div>{model.text}</div>
                       <div className="text-xs text-muted-foreground">
                         {model.value}
                       </div>
@@ -57,16 +56,16 @@ export const SettingsSpeech = () => {
             </SelectContent>
           </Select>
         </FormItem>
-        <FormItem>
+        <FormItem className="flex items-center justify-between space-y-0">
           <FormLabel>Voice</FormLabel>
           <Select
-            onValueChange={value => setTextToSpeech('voice', value)}
-            value={tts.voice}
+            onValueChange={value => setUserSettings('speechVoice', value)}
+            value={speechVoice}
           >
             <FormControl>
-              <SelectTrigger className="capitalize">
+              <SelectTrigger className="w-auto rounded-full capitalize">
                 <SelectValue placeholder="Select a voice">
-                  {tts.voice}
+                  {speechVoice}
                 </SelectValue>
               </SelectTrigger>
             </FormControl>

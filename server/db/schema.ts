@@ -1,6 +1,6 @@
+import { UIMessage } from '@ai-sdk/ui-utils';
 import { relations, sql } from 'drizzle-orm';
 import {
-  boolean,
   index,
   integer,
   jsonb,
@@ -11,8 +11,6 @@ import {
   varchar
 } from 'drizzle-orm/pg-core';
 import { type AdapterAccount } from 'next-auth/adapters';
-
-import { type Usage } from '@/lib/types';
 
 /**
  * This is an example of how to use the multi-project schema feature of Drizzle ORM. Use the same
@@ -27,11 +25,10 @@ export const chats = createTable(
   {
     id: varchar('id', { length: 255 }).notNull().primaryKey(),
     title: varchar('title', { length: 255 }).notNull(),
-    usage: jsonb('usage').notNull().$type<Usage>(),
+    model: varchar('model', { length: 255 }).notNull(),
     userId: varchar('user_id', { length: 255 })
       .notNull()
       .references(() => users.id, { onDelete: 'cascade' }),
-    shared: boolean('shared').notNull().default(false),
     createdAt: timestamp('created_at').notNull().defaultNow(),
     updatedAt: timestamp('updated_at').notNull().defaultNow()
   },
@@ -50,9 +47,16 @@ export const messages = createTable(
   'message',
   {
     id: varchar('id', { length: 255 }).notNull().primaryKey(),
-    role: varchar('role', { length: 32 }).notNull(),
-    content: jsonb('content').notNull(),
-    userId: varchar('user_id', { length: 255 }).notNull(),
+    parentId: varchar('parent_id', { length: 255 }).notNull().default(''),
+    role: varchar('role', { length: 32 }).notNull().$type<UIMessage['role']>(),
+    content: text('content').notNull(),
+    parts: jsonb('parts').notNull().$type<UIMessage['parts']>(),
+    experimental_attachments: jsonb('attachments')
+      .notNull()
+      .$type<UIMessage['experimental_attachments']>(),
+    userId: varchar('user_id', { length: 255 })
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
     chatId: varchar('chat_id', { length: 255 })
       .notNull()
       .references(() => chats.id, { onDelete: 'cascade' }),
@@ -60,6 +64,7 @@ export const messages = createTable(
     updatedAt: timestamp('updated_at').notNull().defaultNow()
   },
   message => [
+    index('message_parentId_idx').on(message.parentId),
     index('message_userId_idx').on(message.userId),
     index('message_chatId_idx').on(message.chatId),
     index('message_createdAt_idx').on(message.createdAt)
@@ -68,7 +73,35 @@ export const messages = createTable(
 
 export const messagesRelations = relations(messages, ({ one }) => ({
   user: one(users, { fields: [messages.userId], references: [users.id] }),
-  chat: one(chats, { fields: [messages.chatId], references: [chats.id] })
+  chat: one(chats, { fields: [messages.chatId], references: [chats.id] }),
+  parent: one(messages, {
+    fields: [messages.parentId],
+    references: [messages.id]
+  })
+}));
+
+export const shares = createTable(
+  'share',
+  {
+    id: varchar('id', { length: 255 }).notNull().primaryKey(),
+    chatId: varchar('chat_id', { length: 255 })
+      .notNull()
+      .unique()
+      .references(() => chats.id, { onDelete: 'cascade' }),
+    userId: varchar('user_id', { length: 255 })
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
+    createdAt: timestamp('created_at').notNull().defaultNow()
+  },
+  share => [
+    index('share_chatId_idx').on(share.chatId),
+    index('share_userId_idx').on(share.userId)
+  ]
+);
+
+export const sharesRelations = relations(shares, ({ one }) => ({
+  user: one(users, { fields: [shares.userId], references: [users.id] }),
+  chat: one(chats, { fields: [shares.chatId], references: [chats.id] })
 }));
 
 export const users = createTable('user', {
@@ -79,7 +112,8 @@ export const users = createTable('user', {
     mode: 'date',
     withTimezone: true
   }).default(sql`CURRENT_TIMESTAMP`),
-  image: varchar('image', { length: 255 })
+  image: varchar('image', { length: 255 }),
+  role: varchar('role', { length: 50 }).notNull().default('user')
 });
 
 export const usersRelations = relations(users, ({ many }) => ({

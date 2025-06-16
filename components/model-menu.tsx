@@ -1,107 +1,91 @@
 'use client';
 
-import * as React from 'react';
-import { useState } from 'react';
-import { useParams } from 'next/navigation';
-import { CircleNotch } from '@phosphor-icons/react';
-import { toast } from 'sonner';
+import { UseChatHelpers } from '@ai-sdk/react';
 
-import { api } from '@/lib/api';
-import { SupportedModels } from '@/lib/constant';
-import { useMediaQuery } from '@/hooks/use-media-query';
+import { Model, Provider } from '@/types';
+import { ServiceProvider } from '@/lib/constant';
+import { findModelByValue } from '@/lib/utils';
+import { useIsMobile } from '@/hooks/use-mobile';
 import { useSettings } from '@/hooks/use-settings';
-import { useStore } from '@/store/useStore';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle
-} from '@/components/ui/alert-dialog';
 import {
   Select,
   SelectContent,
+  SelectGroup,
   SelectItem,
+  SelectLabel,
   SelectTrigger,
   SelectValue
 } from '@/components/ui/select';
-import { ModelIcon } from '@/components/model-icon';
+import { ProviderIcon } from '@/components/provider-icon';
 
-export function ModelMenu() {
-  const isMobile = useMediaQuery('(max-width: 1023px)');
-  const { chatId } = useParams<{ chatId: string }>();
+export interface ModelMenuProps extends Pick<UseChatHelpers, 'status'> {
+  model: string;
+  setModel: (value: string) => void;
+}
 
-  const { chats, updateChat } = useStore();
-  const { availableModels, model, setModel, settings } = useSettings();
-  const [isPending, startTransition] = React.useTransition();
-  const [isAlertOpen, setIsAlertOpen] = useState(false);
-  const [newModel, setNewModel] = useState('');
+export function ModelMenu({ status, model, setModel }: ModelMenuProps) {
+  const isMobile = useIsMobile();
+  const selectedModel = findModelByValue(model);
+  const { systemSettings } = useSettings();
+  const { availableModels } = systemSettings;
 
-  const chat = chats[chatId?.toString()];
-  const chatModel = chat?.usage?.model;
-  const selectedModel = SupportedModels.find(
-    m => m.value === (chatModel || model)
+  const groupedModels = availableModels.reduce(
+    (acc, model) => {
+      if (!acc[model.provider]) {
+        acc[model.provider] = [];
+      }
+      acc[model.provider].push(model);
+      return acc;
+    },
+    {} as Record<Provider, Model[]>
   );
 
-  const handleModelChange = (value: string) => {
-    if (chatModel && chatModel !== value) {
-      setIsAlertOpen(true);
-      setNewModel(value);
-    } else {
-      setModel(value);
-    }
-  };
-
-  const confirmModelChange = async () => {
-    if (newModel) {
-      const usage = {
-        ...settings,
-        model: newModel,
-        prompt: undefined
-      };
-      const result = await api.updateChat({ id: chat.id, usage });
-      if (result && 'error' in result) {
-        toast.error(result.error);
-        return;
-      }
-      updateChat({ id: chat.id, usage });
-      setIsAlertOpen(false);
-      setNewModel('');
-    }
-  };
-
   return (
-    <div className="flex flex-1 items-center justify-center px-1 lg:justify-between">
+    <div>
       <Select
-        disabled={isPending}
+        disabled={status === 'submitted' || status === 'streaming'}
         value={selectedModel?.value}
-        onValueChange={handleModelChange}
+        onValueChange={setModel}
       >
-        <SelectTrigger className="size-auto border-none shadow-none hover:bg-accent data-[state=open]:bg-accent [&>svg]:size-3">
+        <SelectTrigger className="rounded-full border shadow-none hover:bg-accent">
           <SelectValue placeholder="Select a model">
             <div className="flex items-center">
-              <ModelIcon provider={selectedModel?.provider} />
-              <span className="ml-2 font-medium">{selectedModel?.text}</span>
+              <ProviderIcon provider={selectedModel?.provider} />
+              <span className="ml-2 text-sm font-medium">
+                {selectedModel?.text}
+              </span>
             </div>
           </SelectValue>
         </SelectTrigger>
         <SelectContent align={isMobile ? 'center' : 'start'}>
           {availableModels.length > 0 ? (
-            availableModels.map(model => (
-              <SelectItem key={model.value} value={model.value}>
-                <div className="flex items-center">
-                  <ModelIcon provider={model.provider} />
-                  <div className="ml-2">
-                    <div className="font-medium">{model.text}</div>
-                    <div className="text-xs text-muted-foreground">
-                      {model.value}
+            Object.entries(groupedModels).map(([provider, models]) => (
+              <SelectGroup key={provider}>
+                <SelectLabel asChild>
+                  <div className="flex items-center px-2 py-1.5">
+                    <ProviderIcon
+                      className="opacity-45 grayscale"
+                      provider={provider as Provider}
+                    />
+                    <div className="ml-2 text-xs font-normal text-muted-foreground">
+                      {ServiceProvider[provider as Provider]}
                     </div>
                   </div>
-                </div>
-              </SelectItem>
+                </SelectLabel>
+                {models.map(model => (
+                  <SelectItem key={model.value} value={model.value}>
+                    <div className="flex items-center">
+                      <ProviderIcon provider={model.provider} />
+                      <div className="ml-2">
+                        <div className="font-medium">{model.text}</div>
+                        <div className="text-xs text-muted-foreground">
+                          {model.value}
+                        </div>
+                      </div>
+                    </div>
+                  </SelectItem>
+                ))}
+              </SelectGroup>
             ))
           ) : (
             <div className="py-1 text-center text-sm text-muted-foreground">
@@ -110,39 +94,6 @@ export function ModelMenu() {
           )}
         </SelectContent>
       </Select>
-      <AlertDialog open={isAlertOpen} onOpenChange={setIsAlertOpen}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
-            <AlertDialogDescription>
-              Are you sure you want to change the model from{' '}
-              <strong>{selectedModel?.value}</strong> to{' '}
-              <strong>{newModel}</strong>?
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction
-              disabled={isPending}
-              onClick={e => {
-                e.preventDefault();
-                startTransition(async () => {
-                  await confirmModelChange();
-                });
-              }}
-            >
-              {isPending ? (
-                <>
-                  <CircleNotch className="animate-spin" />
-                  Saving...
-                </>
-              ) : (
-                <>Save</>
-              )}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
     </div>
   );
 }

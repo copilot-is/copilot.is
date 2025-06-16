@@ -3,14 +3,14 @@
 import * as React from 'react';
 
 import { cn } from '@/lib/utils';
-import { useMediaQuery } from '@/hooks/use-media-query';
+import { useIsMobile } from '@/hooks/use-mobile';
 import { useSidebar } from '@/hooks/use-sidebar';
 import { NewChat } from '@/components/new-chat';
 import { SidebarList } from '@/components/sidebar-list';
 import { UserMenu } from '@/components/user-menu';
 
 export function Sidebar() {
-  const isMobile = useMediaQuery('(max-width: 1023px)');
+  const isMobile = useIsMobile();
   const { isSidebarOpen, closeSidebar } = useSidebar();
 
   return (

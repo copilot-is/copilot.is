@@ -2,99 +2,53 @@
 
 import * as React from 'react';
 import Link from 'next/link';
-import { useParams } from 'next/navigation';
-import { motion } from 'framer-motion';
 
-import { type Chat } from '@/lib/types';
-import { cn, providerFromModel } from '@/lib/utils';
-import { useStore } from '@/store/useStore';
-import { buttonVariants } from '@/components/ui/button';
-import { ModelIcon } from '@/components/model-icon';
+import { Chat } from '@/types';
+import { cn, findModelByValue } from '@/lib/utils';
+import { useChatId } from '@/hooks/use-chat-id';
+import { ProviderIcon } from '@/components/provider-icon';
+
+import { SidebarActions } from './sidebar-actions';
 
 interface SidebarItemProps {
-  index: number;
   chat: Chat;
-  children: React.ReactNode;
 }
 
-export function SidebarItem({ index, chat, children }: SidebarItemProps) {
-  const { chatId } = useParams();
-  const { newChatId, setNewChatId } = useStore();
-  const isActive = chatId === chat.id;
-  const shouldAnimate = index === 0 && isActive && newChatId === chat.id;
-  const provider = providerFromModel(chat.usage.model);
+export function SidebarItem({ chat }: SidebarItemProps) {
+  const chatId = useChatId();
+  const [isOpen, setIsOpen] = React.useState(false);
+
+  const provider = findModelByValue(chat.model)?.provider;
 
   return (
-    <motion.div
-      className="relative mt-2 flex items-center"
-      variants={{
-        initial: {
-          height: 0,
-          opacity: 0
-        },
-        animate: {
-          height: 'auto',
-          opacity: 1
+    <div
+      className={cn(
+        'group relative flex h-9 items-center rounded-md p-2 hover:bg-background hover:shadow-sm dark:hover:bg-accent',
+        {
+          'bg-background shadow-sm dark:bg-accent': chat.id === chatId || isOpen
         }
-      }}
-      initial={shouldAnimate ? 'initial' : undefined}
-      animate={shouldAnimate ? 'animate' : undefined}
-      transition={{
-        duration: 0.25,
-        ease: 'easeIn'
-      }}
+      )}
     >
-      <div className="absolute left-1.5 flex size-6 items-center justify-center rounded-full border bg-background">
-        <ModelIcon provider={provider} />
+      <div className="flex size-6 items-center justify-center rounded-full border bg-background">
+        <ProviderIcon provider={provider} />
       </div>
       <Link
         href={`/chat/${chat.id}`}
         className={cn(
-          buttonVariants({ variant: 'ghost' }),
-          'w-full pl-9 pr-10 font-normal transition-colors hover:bg-background hover:shadow-sm dark:hover:bg-accent',
-          isActive ? 'bg-background font-medium shadow-sm dark:bg-accent' : ''
+          'w-full flex-1 items-center justify-start truncate p-1.5 text-sm',
+          { 'font-medium': chat.id === chatId }
         )}
       >
-        <div className="relative flex-1 truncate break-all">
-          {shouldAnimate ? (
-            chat.title.split('').map((character, index) => (
-              <motion.span
-                key={index}
-                variants={{
-                  initial: {
-                    opacity: 0,
-                    x: -100
-                  },
-                  animate: {
-                    opacity: 1,
-                    x: 0
-                  }
-                }}
-                initial={shouldAnimate ? 'initial' : undefined}
-                animate={shouldAnimate ? 'animate' : undefined}
-                transition={{
-                  duration: 0.25,
-                  ease: 'easeIn',
-                  delay: index * 0.05,
-                  staggerChildren: 0.05
-                }}
-                onAnimationComplete={() => {
-                  if (index === chat.title.length - 1) {
-                    setNewChatId();
-                  }
-                }}
-              >
-                {character}
-              </motion.span>
-            ))
-          ) : (
-            <span>{chat.title}</span>
-          )}
-        </div>
+        {chat.title}
       </Link>
-      <div className="absolute right-1.5 flex items-center justify-center">
-        {children}
-      </div>
-    </motion.div>
+      <SidebarActions
+        className={cn(
+          'absolute right-2 z-10 group-hover:opacity-100',
+          chat.id === chatId || isOpen ? 'opacity-100' : 'opacity-0'
+        )}
+        chat={chat}
+        onOpenChange={setIsOpen}
+      />
+    </div>
   );
 }

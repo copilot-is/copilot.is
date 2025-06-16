@@ -4,9 +4,8 @@ import * as React from 'react';
 import { CircleNotch } from '@phosphor-icons/react';
 import { toast } from 'sonner';
 
-import { api } from '@/lib/api';
-import { type Chat } from '@/lib/types';
-import { useStore } from '@/store/useStore';
+import { Chat } from '@/types';
+import { updateChat } from '@/hooks/use-chats';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -29,7 +28,6 @@ export function ChatRenameDialog({
   open,
   onOpenChange
 }: ChatRenameDialogProps) {
-  const { updateChat } = useStore();
   const [isPending, startTransition] = React.useTransition();
   const [title, setTitle] = React.useState(chat.title);
 
@@ -59,14 +57,13 @@ export function ChatRenameDialog({
                   return;
                 }
 
-                const result = await api.updateChat({ id: chat.id, title });
-                if (result && 'error' in result) {
-                  toast.error(result.error);
-                  return;
+                try {
+                  await updateChat({ id: chat.id, title });
+                  toast.success('Chat title saved', { duration: 2000 });
+                  onOpenChange(false);
+                } catch (err: any) {
+                  toast.error(err.message);
                 }
-                toast.success('Chat title saved', { duration: 2000 });
-                updateChat({ id: chat.id, title });
-                onOpenChange(false);
               });
             }}
           >

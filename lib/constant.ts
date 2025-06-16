@@ -1,6 +1,32 @@
-import { ChatCategory, Voice, type Model, type Settings } from '@/lib/types';
+import { ChatModelSettings, Model, Provider, Voice } from '@/types';
 
-export const SupportedModels: Model[] = [
+export const ChatModels: Model[] = [
+  {
+    text: 'OpenAI o3 mini',
+    value: 'o3-mini',
+    reasoning: true,
+    provider: 'openai'
+  },
+  {
+    text: 'OpenAI o1',
+    value: 'o1',
+    alias: ['o1-preview'],
+    vision: true,
+    reasoning: true,
+    provider: 'openai'
+  },
+  {
+    text: 'OpenAI o1 mini',
+    value: 'o1-mini',
+    reasoning: true,
+    provider: 'openai'
+  },
+  {
+    text: 'GPT-4.5 Preview',
+    value: 'gpt-4.5-preview',
+    vision: true,
+    provider: 'openai'
+  },
   {
     text: 'GPT-4o',
     value: 'gpt-4o',
@@ -14,36 +40,23 @@ export const SupportedModels: Model[] = [
     provider: 'openai'
   },
   {
-    text: 'OpenAI o1 preview',
-    value: 'o1-preview',
-    vision: false,
-    provider: 'openai'
-  },
-  {
-    text: 'OpenAI o1 mini',
-    value: 'o1-mini',
-    vision: false,
-    provider: 'openai'
-  },
-  {
     text: 'GPT-4 Turbo',
     value: 'gpt-4-turbo',
     vision: true,
     provider: 'openai'
   },
   { text: 'GPT-4', value: 'gpt-4', provider: 'openai' },
-  { text: 'GPT-4 32k', value: 'gpt-4-32k', provider: 'openai' },
   { text: 'GPT-3.5 Turbo', value: 'gpt-3.5-turbo', provider: 'openai' },
-  { text: 'GPT-3.5 Turbo 16k', value: 'gpt-3.5-turbo-16k', provider: 'openai' },
-  {
-    text: 'DALL·E 3',
-    value: 'dall-e-3',
-    provider: 'openai',
-    type: 'images'
-  },
   {
     text: 'Gemini 2.0 Flash',
-    value: 'gemini-2.0-flash-exp',
+    value: 'gemini-2.0-flash',
+    alias: ['gemini-2.0-flash-exp'],
+    vision: true,
+    provider: 'google'
+  },
+  {
+    text: 'Gemini 2.0 Flash Lite',
+    value: 'gemini-2.0-flash-lite',
     vision: true,
     provider: 'google'
   },
@@ -66,14 +79,22 @@ export const SupportedModels: Model[] = [
     provider: 'google'
   },
   {
-    text: 'Claude 3.5 Sonnet (New)',
-    value: 'claude-3-5-sonnet-20241022',
+    text: 'Claude 3.7 Sonnet',
+    value: 'claude-3-7-sonnet-20250219',
     vision: true,
+    reasoning: true,
     provider: 'anthropic'
   },
   {
     text: 'Claude 3.5 Sonnet',
-    value: 'claude-3-5-sonnet-20240620',
+    value: 'claude-3-5-sonnet-20241022',
+    alias: ['claude-3-5-sonnet-20240620'],
+    vision: true,
+    provider: 'anthropic'
+  },
+  {
+    text: 'Claude 3.5 Haiku',
+    value: 'claude-3-5-haiku-20241022',
     vision: true,
     provider: 'anthropic'
   },
@@ -96,70 +117,100 @@ export const SupportedModels: Model[] = [
     provider: 'anthropic'
   },
   {
+    text: 'Grok 3',
+    value: 'grok-3',
+    reasoning: true,
+    provider: 'xai'
+  },
+  {
+    text: 'Grok 3 mini',
+    value: 'grok-3-mini',
+    reasoning: true,
+    provider: 'xai'
+  },
+  {
     text: 'Grok 2',
-    value: 'grok-2-1212',
+    value: 'grok-2',
+    alias: ['grok-2-1212', 'grok-2-latest'],
     provider: 'xai'
   },
   {
     text: 'Grok 2 Vision',
-    value: 'grok-2-vision-1212',
+    value: 'grok-2-vision',
+    alias: ['grok-2-vision-1212', 'grok-2-vision-latest'],
     vision: true,
     provider: 'xai'
   },
   {
-    text: 'Grok beta',
+    text: 'Grok',
     value: 'grok-beta',
     provider: 'xai'
   },
   {
-    text: 'Grok Vision beta',
+    text: 'Grok Vision',
     value: 'grok-vision-beta',
     vision: true,
     provider: 'xai'
   },
   {
-    text: 'DeepSeek Chat',
+    text: 'DeepSeek',
     value: 'deepseek-chat',
     provider: 'deepseek'
   },
   {
-    text: 'DeepSeek Coder',
-    value: 'deepseek-coder',
+    text: 'DeepSeek R1',
+    value: 'deepseek-reasoner',
+    reasoning: true,
     provider: 'deepseek'
   }
+];
+
+export const ImageModels: Model[] = [
+  {
+    text: 'DALL·E 3',
+    value: 'dall-e-3',
+    provider: 'openai'
+  },
+  {
+    text: 'DALL·E 2',
+    value: 'dall-e-2',
+    provider: 'openai'
+  },
+  { text: 'Grok 2 Image', value: 'grok-2-image', provider: 'xai' }
 ];
 
 export const TTSModels: Model[] = [
   {
     text: 'OpenAI TTS',
     value: 'tts-1',
-    provider: 'openai',
-    type: 'audio'
+    provider: 'openai'
   },
   {
     text: 'OpenAI TTS HD',
     value: 'tts-1-hd',
-    provider: 'openai',
-    type: 'audio'
+    provider: 'openai'
   }
 ];
 
 export const Voices: Voice[] = [
   'alloy',
+  'ash',
+  'coral',
   'echo',
   'fable',
   'onyx',
   'nova',
+  'sage',
   'shimmer'
 ];
 
-export enum ServiceProvider {
-  openai = 'OpenAI',
-  google = 'Google',
-  anthropic = 'Anthropic',
-  xai = 'xAI',
-  deepseek = 'DeepSeek'
-}
+export const ServiceProvider: Record<Provider, string> = {
+  openai: 'OpenAI',
+  google: 'Google',
+  anthropic: 'Anthropic',
+  xai: 'xAI',
+  deepseek: 'DeepSeek'
+};
 
 export const SystemPrompt = `A large language model trained by {provider}.
 Current model: {model}
@@ -167,23 +218,18 @@ Current time: {time}
 Latex inline: \\(x^2\\)
 Latex block: $$e=mc^2$$`;
 
-export const GenerateTitlePrompt =
-  'Please generate a four to five word title summarizing our conversation without any lead-in, punctuation, quotation marks, periods, symbols, bold text, or additional text. Remove enclosing quotation marks.';
+export const GenerateTitlePrompt = `\n
+- you will generate a short title based on the first message a user begins a conversation with
+- ensure it is not more than 80 characters long
+- the title should be a summary of the user's message
+- do not use quotes or colons`;
 
-export const DefaultSettings: Settings = {
-  prompt: SystemPrompt,
-  temperature: 1,
-  frequencyPenalty: 0,
-  presencePenalty: 0,
-  maxTokens: 4096
-};
-
-export const ChatCategories: ChatCategory[] = [
-  'Today',
-  'Yesterday',
-  'Previous 7 Days',
-  'Previous Month',
-  'Older'
+export const Categories: { text: string; value: string }[] = [
+  { text: 'Today', value: 'today' },
+  { text: 'Yesterday', value: 'yesterday' },
+  { text: 'Previous 7 Days', value: 'lastWeek' },
+  { text: 'Previous 30 Days', value: 'lastMonth' },
+  { text: 'Older', value: 'older' }
 ];
 
 export const VertexAIModels: Record<string, string> = {

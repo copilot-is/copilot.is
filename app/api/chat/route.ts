@@ -1,38 +1,36 @@
-import { NextResponse, type NextRequest } from 'next/server';
-import { generateId } from 'ai';
+import { NextRequest, NextResponse } from 'next/server';
+import { UIMessage } from '@ai-sdk/ui-utils';
+import {
+  appendResponseMessages,
+  createDataStreamResponse,
+  generateText,
+  smoothStream,
+  streamText
+} from 'ai';
 
-import { Chat } from '@/lib/types';
+import { GenerateTitlePrompt, SystemPrompt } from '@/lib/constant';
+import { env } from '@/lib/env';
+import { provider } from '@/lib/provider';
+import {
+  generateUUID,
+  getMostRecentUserMessage,
+  isAvailableModel,
+  systemPrompt
+} from '@/lib/utils';
 import { auth } from '@/server/auth';
 import { api } from '@/trpc/server';
 
-export async function GET() {
-  const session = await auth();
+export const maxDuration = 300;
 
-  if (!session?.user) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
-
-  try {
-    const data = await api.chat.list.query();
-
-    if (!data) {
-      return NextResponse.json({ error: 'Chat not found' }, { status: 404 });
-    }
-
-    return NextResponse.json(data);
-  } catch (err) {
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    );
-  }
-}
-
-type PostData = Pick<Chat, 'usage' | 'messages'> & {
-  title?: string;
+type PostData = {
+  id: string;
+  model: string;
+  messages: UIMessage[];
+  parentMessageId?: string;
+  isReasoning: boolean;
 };
 
-export async function POST(req: NextRequest) {
+export async function POST(req: Request) {
   const session = await auth();
 
   if (!session?.user) {
@@ -40,28 +38,178 @@ export async function POST(req: NextRequest) {
   }
 
   const json: PostData = await req.json();
-  const id = generateId();
-  const title = json.title || 'Untitled';
-  const { messages, usage } = json;
+  const { id, model, messages, parentMessageId, isReasoning } = json;
 
-  if (!usage || !messages) {
+  if (!id || !model) {
     return NextResponse.json(
-      { error: 'Invalid usage or messages parameters' },
+      { error: 'ID and model required' },
       { status: 400 }
     );
   }
 
-  try {
-    const data = await api.chat.create.mutate({
+  if (!isAvailableModel(model)) {
+    return NextResponse.json(
+      { error: `Model ${model} is not available` },
+      { status: 403 }
+    );
+  }
+
+  const userMessage = getMostRecentUserMessage(messages);
+  if (!userMessage) {
+    return NextResponse.json(
+      { error: 'No user message found' },
+      { status: 400 }
+    );
+  }
+
+  let title = 'Untitled';
+  const chat = await api.chat.detail.query({ id, includeMessages: false });
+  if (!chat) {
+    try {
+      const { text } = await generateText({
+        model: provider.languageModel(env.GENERATE_TITLE_MODEL),
+        system: GenerateTitlePrompt,
+        prompt: JSON.stringify(userMessage)
+      });
+
+      title = text ?? title;
+    } catch (err: any) {
+      console.error(
+        `Generate title ${env.GENERATE_TITLE_MODEL} error:`,
+        err.message
+      );
+    }
+
+    await api.chat.create.mutate({
       id,
       title,
-      usage,
-      messages
+      model,
+      messages: [userMessage]
     });
+  } else {
+    title = chat.title;
+    if (parentMessageId && parentMessageId === userMessage.id) {
+      await api.message.delete.mutate({ parentId: parentMessageId });
+    } else {
+      await api.message.create.mutate({
+        chatId: id,
+        messages: [userMessage]
+      });
+    }
+  }
+
+  try {
+    return createDataStreamResponse({
+      execute: dataStream => {
+        dataStream.writeData(title);
+
+        const res = streamText({
+          model: provider.languageModel(model),
+          system: systemPrompt(model, SystemPrompt),
+          messages,
+          maxSteps: 5,
+          experimental_generateMessageId: generateUUID,
+          experimental_transform: smoothStream({
+            chunking: 'word',
+            delayInMs: 15
+          }),
+          onChunk: ({ chunk }) => {
+            if (chunk.type === 'tool-call') {
+              console.log('Called Tool: ', chunk.toolName);
+            }
+            if (chunk.type === 'reasoning') {
+              console.log('Reasoning: ', chunk.textDelta);
+            }
+          },
+          onStepFinish: ({ warnings }) => {
+            if (warnings) {
+              console.log('Warnings: ', warnings);
+            }
+          },
+          onFinish: async ({ response }) => {
+            if (chat && chat.model !== model) {
+              await api.chat.update.mutate({ id, model });
+            }
+
+            const [, assistantMessage] = appendResponseMessages({
+              messages: [userMessage],
+              responseMessages: response.messages
+            });
+
+            await api.message.create.mutate({
+              chatId: id,
+              messages: [
+                {
+                  id: assistantMessage.id,
+                  parentId: userMessage.id,
+                  role: assistantMessage.role,
+                  content: assistantMessage.content,
+                  parts: isReasoning
+                    ? assistantMessage.parts || []
+                    : (assistantMessage.parts || []).filter(
+                        part => part.type !== 'reasoning'
+                      ),
+                  experimental_attachments:
+                    assistantMessage.experimental_attachments ?? []
+                }
+              ]
+            });
+          }
+        });
+
+        res.consumeStream();
+
+        res.mergeIntoDataStream(dataStream, {
+          sendUsage: true,
+          sendReasoning: isReasoning
+        });
+      },
+      onError: error => {
+        if (error == null) {
+          return 'Unknown error';
+        }
+
+        if (typeof error === 'string') {
+          return error;
+        }
+
+        if (error instanceof Error) {
+          return error.message;
+        }
+
+        return JSON.stringify(error);
+      }
+    });
+  } catch (err: any) {
+    return NextResponse.json({ error: err.message }, { status: 500 });
+  }
+}
+
+export async function GET(req: NextRequest) {
+  const session = await auth();
+
+  if (!session?.user) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+
+  const searchParams = req.nextUrl.searchParams;
+  const limit = parseInt(searchParams.get('limit') || '20');
+  const offset = parseInt(searchParams.get('offset') || '0');
+
+  try {
+    const data = await api.chat.list.query({ limit, offset });
+
+    if (!data) {
+      return NextResponse.json(
+        { error: 'Chat history not found' },
+        { status: 404 }
+      );
+    }
+
     return NextResponse.json(data);
   } catch (err) {
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { error: 'Oops, an error occured!' },
       { status: 500 }
     );
   }
@@ -79,7 +227,7 @@ export async function DELETE() {
     return new Response(null, { status: 204 });
   } catch (err) {
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { error: 'Oops, an error occured!' },
       { status: 500 }
     );
   }

@@ -3,9 +3,7 @@ import ReactMarkdown, { Options } from 'react-markdown';
 
 const MemoizedReactMarkdown = memo(
   (props: Options) => <ReactMarkdown {...props} />,
-  (prevProps, nextProps) =>
-    prevProps.children === nextProps.children &&
-    prevProps.className === nextProps.className
+  (prevProps, nextProps) => prevProps.children === nextProps.children
 );
 MemoizedReactMarkdown.displayName = 'MemoizedReactMarkdown';
 

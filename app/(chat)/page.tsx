@@ -1,7 +1,10 @@
-import { ChatQuick } from '@/components/chat-quick';
+import { generateUUID } from '@/lib/utils';
+import { ChatUI } from '@/components/chat-ui';
 
-export const maxDuration = 30;
+export const maxDuration = 120;
 
 export default function Page() {
-  return <ChatQuick />;
+  const id = generateUUID();
+
+  return <ChatUI id={id} />;
 }

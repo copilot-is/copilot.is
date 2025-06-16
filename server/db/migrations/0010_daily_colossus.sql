@@ -1,0 +1,1 @@
+ALTER TABLE "share" ADD CONSTRAINT "share_chat_id_unique" UNIQUE("chat_id");

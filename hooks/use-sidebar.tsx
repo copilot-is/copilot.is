@@ -3,7 +3,7 @@
 import * as React from 'react';
 
 import { useLocalStorage } from '@/hooks/use-local-storage';
-import { useMediaQuery } from '@/hooks/use-media-query';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 interface SidebarContextProps {
   isSidebarOpen: boolean;
@@ -28,7 +28,7 @@ interface SidebarProviderProps {
 }
 
 export function SidebarProvider({ children }: SidebarProviderProps) {
-  const isMobile = useMediaQuery('(max-width: 1023px)');
+  const isMobile = useIsMobile();
   const defaultState = isMobile ? false : true;
 
   const [isSidebarOpen, setSidebarOpen, isLoading] = useLocalStorage<

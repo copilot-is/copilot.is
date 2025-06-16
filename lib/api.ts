@@ -1,41 +1,9 @@
-import {
-  Message,
-  Result,
-  User,
-  Voice,
-  type Chat,
-  type Usage
-} from '@/lib/types';
+import { Attachment, UIMessage } from '@ai-sdk/ui-utils';
 
-const createAI = async (
-  api: string,
-  messages: { role: string; content: string }[],
-  usage: Usage
-) => {
-  const res = await fetch(api, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify({ messages, ...usage })
-  });
+import { Chat, Result, SharedLink, Voice } from '@/types';
 
-  const json = await res.json();
-
-  if (!res.ok) {
-    return { error: json.error } as Result;
-  }
-
-  return json as { role: string; content: string };
-};
-
-const createAudio = async (
-  api: string,
-  model: string,
-  voice: Voice,
-  input: string
-) => {
-  const res = await fetch(api, {
+const createSpeech = async (model: string, voice: Voice, input: string) => {
+  const res = await fetch('/api/audio', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json'
@@ -43,86 +11,13 @@ const createAudio = async (
     body: JSON.stringify({ model, voice, input })
   });
 
-  const json = await res.json();
-
   if (!res.ok) {
-    return { error: json.error } as Result;
+    const result = await res.json();
+    return { error: result.error } as Result;
   }
 
+  const json = await res.json();
   return json as { audio: string };
-};
-
-const getCurrentUser = async () => {
-  const res = await fetch('/api/users/me', {
-    method: 'GET',
-    headers: {
-      'Content-Type': 'application/json'
-    }
-  });
-
-  const json = await res.json();
-
-  if (!res.ok) {
-    return { error: json.error } as Result;
-  }
-
-  return json as User;
-};
-
-const createChat = async (
-  chat: Pick<Chat, 'usage' | 'messages'> & {
-    title?: string;
-  }
-) => {
-  const res = await fetch('/api/chat', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify(chat)
-  });
-
-  const json = await res.json();
-
-  if (!res.ok) {
-    return { error: json.error } as Result;
-  }
-
-  return json as Chat;
-};
-
-const getChats = async () => {
-  const res = await fetch('/api/chat', {
-    method: 'GET',
-    headers: {
-      'Content-Type': 'application/json'
-    }
-  });
-
-  const json = await res.json();
-
-  if (!res.ok) {
-    return { error: json.error } as Result;
-  }
-
-  return json as Chat[];
-};
-
-const getChatById = async (chatId: string) => {
-  const res = await fetch(`/api/chat/${chatId}`, {
-    method: 'GET',
-    headers: {
-      'Content-Type': 'application/json'
-    }
-  });
-
-  const json = await res.json();
-
-  if (!res.ok) {
-    return { error: json.error } as Result;
-  }
-
-  return json as Chat;
 };
 
 const clearChats = async () => {
@@ -134,15 +29,14 @@ const clearChats = async () => {
   });
 
   if (!res.ok) {
-    const json = await res.json();
-    return { error: json.error } as Result;
+    const result = await res.json();
+    return { error: result.error } as Result;
   }
 };
 
 const updateChat = async (
-  chat: Partial<Pick<Chat, 'title' | 'shared' | 'usage' | 'messages'>> & {
+  chat: Partial<Pick<Chat, 'title' | 'model'>> & {
     id: string;
-    regenerateId?: string;
   }
 ) => {
   const res = await fetch(`/api/chat/${chat.id}`, {
@@ -153,17 +47,14 @@ const updateChat = async (
     body: JSON.stringify(chat)
   });
 
-  const json = await res.json();
-
   if (!res.ok) {
-    return { error: json.error } as Result;
+    const result = await res.json();
+    return { error: result.error } as Result;
   }
-
-  return json as Chat;
 };
 
-const removeChat = async (chatId: string) => {
-  const res = await fetch(`/api/chat/${chatId}`, {
+const removeChat = async (id: string) => {
+  const res = await fetch(`/api/chat/${id}`, {
     method: 'DELETE',
     headers: {
       'Content-Type': 'application/json'
@@ -171,35 +62,31 @@ const removeChat = async (chatId: string) => {
   });
 
   if (!res.ok) {
-    const json = await res.json();
-    return { error: json.error } as Result;
+    const result = await res.json();
+    return { error: result.error } as Result;
   }
 };
 
-const updateMessage = async (
-  chatId: string,
-  messageId: string,
-  message: Message
-) => {
-  const res = await fetch(`/api/chat/${chatId}/messages/${messageId}`, {
+const updateMessage = async (message: UIMessage) => {
+  const res = await fetch(`/api/messages/${message.id}`, {
     method: 'PUT',
     headers: {
       'Content-Type': 'application/json'
     },
-    body: JSON.stringify({ chatId, messageId, message })
+    body: JSON.stringify({ message })
   });
 
-  const json = await res.json();
-
   if (!res.ok) {
-    return { error: json.error } as Result;
+    const result = await res.json();
+    return { error: result.error } as Result;
   }
 
-  return json as Message;
+  const json = await res.json();
+  return json as UIMessage;
 };
 
-const removeMessage = async (chatId: string, messageId: string) => {
-  const res = await fetch(`/api/chat/${chatId}/messages/${messageId}`, {
+const removeMessage = async (id: string) => {
+  const res = await fetch(`/api/messages/${id}`, {
     method: 'DELETE',
     headers: {
       'Content-Type': 'application/json'
@@ -207,21 +94,66 @@ const removeMessage = async (chatId: string, messageId: string) => {
   });
 
   if (!res.ok) {
-    const json = await res.json();
-    return { error: json.error } as Result;
+    const result = await res.json();
+    return { error: result.error } as Result;
   }
 };
 
+const uploadFile = async (file: File) => {
+  const formData = new FormData();
+  formData.append('file', file);
+
+  const res = await fetch('/api/files/upload', {
+    method: 'POST',
+    body: formData
+  });
+
+  if (!res.ok) {
+    const result = await res.json();
+    return { error: result.error } as Result;
+  }
+
+  const json = await res.json();
+  return json as Attachment;
+};
+
+const deleteFile = async (url: string) => {
+  const res = await fetch(`/api/files?url=${encodeURIComponent(url)}`, {
+    method: 'DELETE'
+  });
+
+  if (!res.ok) {
+    const result = await res.json();
+    return { error: result.error } as Result;
+  }
+};
+
+const createShare = async (chatId: string) => {
+  const res = await fetch(`/api/share`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({ chatId })
+  });
+
+  if (!res.ok) {
+    const result = await res.json();
+    return { error: result.error } as Result;
+  }
+
+  const json = await res.json();
+  return json as SharedLink;
+};
+
 export const api = {
-  createAI,
-  createAudio,
-  getCurrentUser,
-  createChat,
-  getChats,
-  getChatById,
+  createSpeech,
   updateChat,
   removeChat,
   clearChats,
   updateMessage,
-  removeMessage
+  removeMessage,
+  uploadFile,
+  deleteFile,
+  createShare
 };

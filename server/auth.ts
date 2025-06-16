@@ -1,5 +1,6 @@
 import { cache } from 'react';
 import { DrizzleAdapter } from '@auth/drizzle-adapter';
+import { count, eq } from 'drizzle-orm';
 import NextAuth, {
   type DefaultSession,
   type Session,
@@ -14,9 +15,13 @@ import { db } from './db';
 import { accounts, sessions, users, verificationTokens } from './db/schema';
 
 declare module 'next-auth' {
+  interface User {
+    role?: string;
+  }
   interface Session extends DefaultSession {
     user: {
       id: string;
+      admin: boolean;
     } & DefaultSession['user'];
   }
 }
@@ -45,16 +50,34 @@ export const {
     verificationTokensTable: verificationTokens
   }),
   callbacks: {
-    jwt({ token, profile }) {
+    async signIn({ user, account }) {
+      if (user && user.id && account) {
+        const userCount = await db.select({ count: count() }).from(users);
+        const isFirstUser = userCount[0].count === 0;
+
+        if (isFirstUser) {
+          await db
+            .update(users)
+            .set({ role: 'admin' })
+            .where(eq(users.id, user.id));
+        }
+      }
+      return true;
+    },
+    jwt({ token, user, profile }) {
       if (profile) {
         token.id = profile.id;
         token.image = profile.avatar_url || profile.picture;
+      }
+      if (user) {
+        token.admin = user.role === 'admin';
       }
       return token;
     },
     session({ session, user }: { session: Session; user?: User }) {
       if (session?.user && user?.id) {
         session.user.id = user.id;
+        session.user.admin = user.role === 'admin';
       }
       return session;
     },

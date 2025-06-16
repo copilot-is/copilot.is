@@ -1,59 +1,32 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import {
   ArrowSquareOut,
   CaretDown,
-  ClockCounterClockwise,
   Gear,
   GithubLogo,
-  Monitor,
-  Moon,
-  PaintBrush,
   Shield,
-  SignOut,
-  Sun
+  SignOut
 } from '@phosphor-icons/react';
 import { signOut } from 'next-auth/react';
-import { useTheme } from 'next-themes';
 
-import { api } from '@/lib/api';
-import { cn } from '@/lib/utils';
-import { useStore } from '@/store/useStore';
+import { useCurrentUser } from '@/hooks/use-current-user';
 import {
   DropdownMenu,
-  DropdownMenuCheckboxItem,
   DropdownMenuContent,
-  DropdownMenuGroup,
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu';
 import { Skeleton } from '@/components/ui/skeleton';
-import { ClearHistoryDialog } from '@/components/clear-history-dialog';
 import { SettingsDialog } from '@/components/settings-dialog';
 
 export function UserMenu() {
-  const { user, setUser } = useStore();
-  const { theme, setTheme } = useTheme();
-  const [isLoading, setLoading] = useState(true);
+  const { user, isLoading } = useCurrentUser();
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
-  const [isHistoryOpen, setIsHistoryOpen] = useState(false);
-  const [isAppearanceOpen, setIsAppearanceOpen] = useState(false);
-
-  useEffect(() => {
-    const fetchUser = async () => {
-      const result = await api.getCurrentUser();
-      if (result && !('error' in result)) {
-        setUser(result);
-      }
-      setLoading(false);
-    };
-
-    fetchUser();
-  }, [setUser]);
 
   return (
     <div className="flex items-center p-3">
@@ -97,65 +70,6 @@ export function UserMenu() {
                 <Gear className="mr-2 size-4" />
                 Settings
               </DropdownMenuItem>
-              <DropdownMenuItem
-                className="flex items-center"
-                onClick={() => setIsHistoryOpen(true)}
-              >
-                <ClockCounterClockwise className="mr-2 size-4" />
-                Clear history
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem
-                className="flex items-center justify-between"
-                onClick={e => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  setIsAppearanceOpen(prev => !prev);
-                }}
-              >
-                <div className="flex items-center">
-                  <PaintBrush className="mr-2 size-4" />
-                  Appearance
-                </div>
-                <CaretDown
-                  className={cn(
-                    'size-4 transition-transform',
-                    isAppearanceOpen ? 'rotate-180' : ''
-                  )}
-                />
-              </DropdownMenuItem>
-              <DropdownMenuGroup
-                className={cn(
-                  'transition-transform',
-                  !isAppearanceOpen ? 'hidden' : ''
-                )}
-              >
-                <DropdownMenuSeparator />
-                <DropdownMenuCheckboxItem
-                  className="flex items-center"
-                  checked={theme === 'system'}
-                  onCheckedChange={() => setTheme('system')}
-                >
-                  <Monitor className="mr-2 size-4" />
-                  System
-                </DropdownMenuCheckboxItem>
-                <DropdownMenuCheckboxItem
-                  className="flex items-center"
-                  checked={theme === 'light'}
-                  onCheckedChange={() => setTheme('light')}
-                >
-                  <Sun className="mr-2 size-4" />
-                  Light
-                </DropdownMenuCheckboxItem>
-                <DropdownMenuCheckboxItem
-                  className="flex items-center"
-                  checked={theme === 'dark'}
-                  onCheckedChange={() => setTheme('dark')}
-                >
-                  <Moon className="mr-2 size-4" />
-                  Dark
-                </DropdownMenuCheckboxItem>
-              </DropdownMenuGroup>
               <DropdownMenuSeparator />
               <DropdownMenuItem asChild>
                 <Link
@@ -200,10 +114,6 @@ export function UserMenu() {
         )
       )}
       <SettingsDialog open={isSettingsOpen} onOpenChange={setIsSettingsOpen} />
-      <ClearHistoryDialog
-        open={isHistoryOpen}
-        onOpenChange={setIsHistoryOpen}
-      />
     </div>
   );
 }

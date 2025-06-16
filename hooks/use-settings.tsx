@@ -2,25 +2,22 @@
 
 import * as React from 'react';
 
-import { DefaultSettings } from '@/lib/constant';
-import {
-  Provider,
-  Voice,
-  type Model,
-  type Settings,
-  type TTS
-} from '@/lib/types';
+import { ChatPreferences, SystemSettings, UserSettings } from '@/types';
+import { findModelByValue } from '@/lib/utils';
 import { useLocalStorage } from '@/hooks/use-local-storage';
 
 type SettingsContextProps = {
-  availableModels: Model[];
-  generateTitleModels: Partial<Record<Provider, string>>;
-  tts: TTS;
-  setTextToSpeech: (key: 'model' | 'voice', value?: string | Voice) => void;
-  model: string;
-  setModel: (value: string) => void;
-  settings: Settings;
-  setSettings: (key: keyof Settings, value: Settings[keyof Settings]) => void;
+  systemSettings: SystemSettings;
+  userSettings: UserSettings;
+  setUserSettings: (
+    key: keyof UserSettings,
+    value?: UserSettings[keyof UserSettings] | null
+  ) => void;
+  chatPreferences: ChatPreferences;
+  setChatPreferences: (
+    key: keyof ChatPreferences,
+    value?: ChatPreferences[keyof ChatPreferences] | null
+  ) => void;
 };
 
 const SettingsContext = React.createContext<SettingsContextProps | undefined>(
@@ -36,58 +33,79 @@ export const useSettings = (): SettingsContextProps => {
 };
 
 export const SettingsProvider = ({
-  defaultTTS,
-  defaultModel,
-  availableModels,
-  generateTitleModels,
+  defaultSystemSettings,
+  defaultUserSettings,
+  defaultChatPreferences,
   children
 }: {
-  defaultTTS: TTS;
-  defaultModel: string;
-  availableModels: Model[];
-  generateTitleModels: Partial<Record<Provider, string>>;
+  defaultSystemSettings: SystemSettings;
+  defaultUserSettings: UserSettings;
+  defaultChatPreferences: ChatPreferences;
   children: React.ReactNode;
 }) => {
-  const [model, setModel, modelLoading] = useLocalStorage<
-    SettingsContextProps['model']
-  >('model', defaultModel);
-  const [tts, setTextToSpeech, ttsLoading] = useLocalStorage<
-    SettingsContextProps['tts']
-  >('tts', { model: defaultTTS.model, voice: defaultTTS.voice });
+  const [userSettings, setUserSettings, userSettingsLoading] =
+    useLocalStorage<UserSettings>('user-settings', defaultUserSettings);
+  const [chatPreferences, setChatPreferences, userChatPreferences] =
+    useLocalStorage<ChatPreferences>(
+      'chat-preferences',
+      defaultChatPreferences
+    );
 
-  const [settings, setSettings, settingsLoading] = useLocalStorage<
-    SettingsContextProps['settings']
-  >('settings', DefaultSettings);
-
-  const isLoading = ttsLoading && modelLoading && settingsLoading;
+  const isLoading = userSettingsLoading && userChatPreferences;
 
   if (isLoading) {
     return null;
   }
 
+  function getChatPreferences(
+    chatPreferences: ChatPreferences
+  ): ChatPreferences {
+    const reasoning = findModelByValue(chatPreferences.model)?.reasoning;
+    if (!reasoning) {
+      const { isReasoning, ...rest } = chatPreferences;
+      return rest;
+    }
+    return chatPreferences;
+  }
+
   return (
     <SettingsContext.Provider
       value={{
-        availableModels,
-        generateTitleModels,
-        tts: { ...tts, enabled: defaultTTS.enabled },
-        setTextToSpeech(key: 'model' | 'voice', value?: string | Voice) {
-          setTextToSpeech({ ...tts, [key]: value });
-        },
-        model,
-        setModel,
-        settings,
-        setSettings: (key: keyof Settings, value: Settings[keyof Settings]) => {
+        systemSettings: defaultSystemSettings,
+        userSettings,
+        setUserSettings: (
+          key: keyof UserSettings,
+          value?: UserSettings[keyof UserSettings] | null
+        ) => {
           if (value === null || value === undefined) {
-            if (settings[key] !== DefaultSettings[key]) {
-              setSettings({
-                ...settings,
-                [key]: DefaultSettings[key]
+            if (userSettings[key] !== defaultUserSettings[key]) {
+              setUserSettings({
+                ...userSettings,
+                [key]: defaultUserSettings[key]
               });
             }
           } else {
-            setSettings({
-              ...settings,
+            setUserSettings({
+              ...userSettings,
+              [key]: value
+            });
+          }
+        },
+        chatPreferences: getChatPreferences(chatPreferences),
+        setChatPreferences: (
+          key: keyof ChatPreferences,
+          value?: ChatPreferences[keyof ChatPreferences] | null
+        ) => {
+          if (value === null || value === undefined) {
+            if (chatPreferences[key] !== defaultChatPreferences[key]) {
+              setChatPreferences({
+                ...chatPreferences,
+                [key]: defaultChatPreferences[key]
+              });
+            }
+          } else {
+            setChatPreferences({
+              ...chatPreferences,
               [key]: value
             });
           }

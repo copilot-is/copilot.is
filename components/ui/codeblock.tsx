@@ -16,12 +16,12 @@ interface CodeBlockProps {
 }
 
 const CodeBlock = memo(({ language, value }: CodeBlockProps) => {
-  const { isCopied, copyToClipboard } = useCopyToClipboard({ timeout: 2000 });
+  const { isCopied, copyToClipboard } = useCopyToClipboard();
   const { theme = 'system', systemTheme } = useTheme();
 
-  const onCopy = () => {
+  const onCopy = async () => {
     if (isCopied) return;
-    copyToClipboard(value);
+    await copyToClipboard(value);
   };
 
   const syntaxHighlighter = useMemo(

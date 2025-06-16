@@ -1,6 +1,8 @@
 'use client';
 
 import * as React from 'react';
+import { UseChatHelpers } from '@ai-sdk/react';
+import { UIMessage } from '@ai-sdk/ui-utils';
 import {
   ArrowsClockwise,
   CheckCircle,
@@ -14,11 +16,9 @@ import {
 import { toast } from 'sonner';
 
 import { api } from '@/lib/api';
-import { Message } from '@/lib/types';
-import { apiFromModel, cn, getMessageContentText } from '@/lib/utils';
+import { cn } from '@/lib/utils';
 import { useCopyToClipboard } from '@/hooks/use-copy-to-clipboard';
 import { useSettings } from '@/hooks/use-settings';
-import { useStore } from '@/store/useStore';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -40,27 +40,28 @@ import {
 } from '@/components/ui/dialog';
 import { Textarea } from '@/components/ui/textarea';
 
-interface ChatMessageActionsProps extends React.HTMLAttributes<HTMLDivElement> {
-  chatId: string;
-  reload?: () => void;
-  message: Message;
-  isLoading?: boolean;
+interface ChatMessageActionsProps
+  extends Partial<Pick<UseChatHelpers, 'status' | 'reload' | 'setMessages'>> {
+  model: string;
+  message: UIMessage;
+  isReadonly?: boolean;
   isLastMessage?: boolean;
-  readonly?: boolean;
 }
 
 export function ChatMessageActions({
-  chatId,
+  model,
+  status,
   reload,
   message,
-  isLoading,
-  isLastMessage,
-  readonly
+  setMessages,
+  isReadonly,
+  isLastMessage
 }: ChatMessageActionsProps) {
-  const { tts } = useSettings();
-  const { updateMessage, removeMessage } = useStore();
-  const { isCopied, copyToClipboard } = useCopyToClipboard({ timeout: 3000 });
-  const [content, setContent] = React.useState('');
+  const { systemSettings, userSettings } = useSettings();
+  const { speechEnabled } = systemSettings;
+  const { speechModel, speechVoice } = userSettings;
+  const { isCopied, copyToClipboard } = useCopyToClipboard();
+  const [draftContent, setDraftContent] = React.useState('');
   const [editDialogOpen, setEditDialogOpen] = React.useState(false);
   const [isEditPending, startEditTransition] = React.useTransition();
   const [deleteDialogOpen, setDeleteDialogOpen] = React.useState(false);
@@ -70,43 +71,41 @@ export function ChatMessageActions({
   const audioRef = React.useRef<HTMLAudioElement | null>(null);
 
   React.useEffect(() => {
-    if (!Array.isArray(message.content)) {
-      setContent(message.content);
-    }
+    setDraftContent(message.content);
   }, [message.content]);
 
-  const onCopy = () => {
+  const onCopy = async () => {
     if (isCopied) return;
-    copyToClipboard(getMessageContentText(message.content));
+    await copyToClipboard(message.content);
   };
 
   const onRead = async () => {
-    if (tts.enabled && tts.model && tts.voice) {
-      const input = getMessageContentText(message.content);
-
+    if (speechEnabled && speechModel && speechVoice) {
       setIsLoadingAudio(true);
-      const result = await api.createAudio(
-        apiFromModel(tts.model),
-        tts.model,
-        tts.voice,
-        input
+      const result = await api.createSpeech(
+        speechModel,
+        speechVoice,
+        message.content
       );
       setIsLoadingAudio(false);
 
       if (result && 'error' in result) {
         toast.error(result.error);
+        setIsPlaying(false);
         return;
       }
 
-      const audio = new Audio(result.audio);
-      audioRef.current = audio;
-      audio.volume = 1;
-      audio.play();
-      setIsPlaying(true);
+      if (result.audio) {
+        const audio = new Audio(result.audio);
+        audioRef.current = audio;
+        audio.volume = 1;
+        audio.play();
+        setIsPlaying(true);
 
-      audio.onended = () => {
-        setIsPlaying(false);
-      };
+        audio.onended = () => {
+          setIsPlaying(false);
+        };
+      }
     }
   };
 
@@ -129,12 +128,12 @@ export function ChatMessageActions({
   return (
     <div
       className={cn(
-        'ml-11 inline-flex space-x-1 lg:group-focus-within:visible lg:group-hover:visible',
-        message.role === 'assistant' ? 'mt-1' : '',
+        'mt-2 flex items-center gap-1 lg:group-focus-within:visible lg:group-hover:visible',
+        message.role === 'user' ? 'mr-12 justify-end' : 'ml-12',
         isLastMessage ? 'lg:visible' : 'lg:invisible'
       )}
     >
-      {tts.enabled && tts.model && tts.voice && (
+      {speechEnabled && (
         <Button
           variant="ghost"
           size="icon"
@@ -168,32 +167,35 @@ export function ChatMessageActions({
         )}
         <span className="sr-only">Copy</span>
       </Button>
-      {!readonly && (
+      {!isReadonly && setMessages && reload && (
         <>
           {isLastMessage && (
             <Button
               variant="ghost"
               size="icon"
-              className="size-7 text-muted-foreground"
-              onClick={reload}
-              disabled={isLoading}
+              className="group/retry h-7 w-auto gap-1 px-1.5 text-muted-foreground"
+              onClick={() => reload()}
+              disabled={status !== 'ready'}
             >
               <ArrowsClockwise className="size-4" />
               <span className="sr-only">Retry</span>
+              <span className="hidden text-muted-foreground animate-out fade-out group-hover/retry:inline-block group-hover/retry:animate-in group-hover/retry:fade-in">
+                {model}
+              </span>
             </Button>
           )}
-          {message.role === 'user' && !Array.isArray(message.content) && (
-            <Button
-              variant="ghost"
-              size="icon"
-              className="size-7 text-muted-foreground"
-              disabled={isLoading || isEditPending}
-              onClick={() => setEditDialogOpen(true)}
-            >
-              <PencilSimple className="size-4" />
-              <span className="sr-only">Edit</span>
-            </Button>
-          )}
+          <Button
+            variant="ghost"
+            size="icon"
+            className="size-7 text-muted-foreground"
+            disabled={
+              status === 'submitted' || status === 'streaming' || isEditPending
+            }
+            onClick={() => setEditDialogOpen(true)}
+          >
+            <PencilSimple className="size-4" />
+            <span className="sr-only">Edit</span>
+          </Button>
           <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
             <DialogContent>
               <DialogHeader>
@@ -204,33 +206,44 @@ export function ChatMessageActions({
               </DialogHeader>
               <Textarea
                 className="min-h-32"
-                defaultValue={content}
-                onChange={e => setContent(e.target.value)}
+                defaultValue={draftContent}
+                onChange={e => setDraftContent(e.target.value)}
                 required
               />
               <DialogFooter>
                 <Button
-                  disabled={isEditPending}
+                  disabled={isEditPending || message.content === draftContent}
                   onClick={() => {
                     startEditTransition(async () => {
-                      if (!content) {
-                        toast.error('Message content is required');
-                        return;
-                      }
+                      if (draftContent) {
+                        const updated = {
+                          ...message,
+                          content: draftContent,
+                          parts: message.parts.map(part =>
+                            part.type === 'text'
+                              ? { type: 'text' as const, text: draftContent }
+                              : part
+                          )
+                        };
 
-                      const updated = { ...message, content } as Message;
-                      const result = await api.updateMessage(
-                        chatId,
-                        message.id,
-                        updated
-                      );
-                      if (result && 'error' in result) {
-                        toast.error(result.error);
-                        return;
+                        const result = await api.updateMessage(updated);
+                        if (result && 'error' in result) {
+                          toast.error(result.error);
+                          return;
+                        }
+                        toast.success('Message saved', { duration: 2000 });
+
+                        setMessages(messages => {
+                          return messages.map(m =>
+                            m.id === message.id ? updated : m
+                          );
+                        });
+                        setEditDialogOpen(false);
+
+                        if (message.role === 'user') {
+                          reload();
+                        }
                       }
-                      toast.success('Message saved', { duration: 2000 });
-                      updateMessage(chatId, updated);
-                      setEditDialogOpen(false);
                     });
                   }}
                 >
@@ -250,7 +263,11 @@ export function ChatMessageActions({
             variant="ghost"
             size="icon"
             className="size-7 text-muted-foreground"
-            disabled={isLoading || isDeletePending}
+            disabled={
+              status === 'submitted' ||
+              status === 'streaming' ||
+              isDeletePending
+            }
             onClick={() => setDeleteDialogOpen(true)}
           >
             <Trash className="size-4" />
@@ -264,8 +281,11 @@ export function ChatMessageActions({
               <AlertDialogHeader>
                 <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
                 <AlertDialogDescription>
-                  This will permanently delete your message and remove your data
-                  from our servers.
+                  This will permanently delete your{' '}
+                  {message.role === 'user'
+                    ? 'message and its assistant’s message'
+                    : 'message'}
+                  , remove your data from our servers.
                 </AlertDialogDescription>
               </AlertDialogHeader>
               <AlertDialogFooter>
@@ -277,16 +297,17 @@ export function ChatMessageActions({
                   onClick={e => {
                     e.preventDefault();
                     startDeleteTransition(async () => {
-                      const result = await api.removeMessage(
-                        chatId,
-                        message.id
-                      );
+                      const result = await api.removeMessage(message.id);
                       if (result && 'error' in result) {
                         toast.error(result.error);
                         return;
                       }
                       toast.success('Message deleted', { duration: 2000 });
-                      removeMessage(chatId, message.id);
+                      setMessages(messages =>
+                        messages.filter(
+                          m => m.id !== message.id && m.parentId !== message.id
+                        )
+                      );
                       setDeleteDialogOpen(false);
                     });
                   }}

@@ -1,114 +1,99 @@
 'use client';
 
-import { Fragment, useEffect, useState } from 'react';
+import { Fragment, useCallback, useEffect, useRef, useState } from 'react';
 import { CircleNotch } from '@phosphor-icons/react';
-import { AnimatePresence, motion } from 'framer-motion';
+import { compareDesc, isToday, isYesterday, subDays } from 'date-fns';
 
-import { api } from '@/lib/api';
-import { ChatCategories } from '@/lib/constant';
-import { Chat, ChatCategory } from '@/lib/types';
-import { useStore } from '@/store/useStore';
-import { SidebarActions } from '@/components/sidebar-actions';
+import { Chat } from '@/types';
+import { Categories } from '@/lib/constant';
+import { useChatsInfinite } from '@/hooks/use-chats';
 import { SidebarItem } from '@/components/sidebar-item';
 
 export function SidebarList() {
-  const { chats, setChats } = useStore();
-  const [isLoading, setLoading] = useState(true);
-  const chatEntries = Object.values(chats);
+  const listRef = useRef<HTMLDivElement>(null);
+  const { chats, isLoading, isValidating, setSize, size, hasMore } =
+    useChatsInfinite();
+
+  const handleScroll = useCallback(() => {
+    const el = listRef.current;
+    if (!el || isLoading || isValidating || !hasMore) return;
+    if (el.scrollHeight - el.scrollTop - el.clientHeight < 100) {
+      setSize(size + 1);
+    }
+  }, [isLoading, isValidating, hasMore, setSize, size]);
 
   useEffect(() => {
-    const fetchData = async () => {
-      const result = await api.getChats();
-      if (result && !('error' in result)) {
-        setChats(result);
-      }
-      setLoading(false);
-    };
+    const el = listRef.current;
+    if (!el) return;
+    el.addEventListener('scroll', handleScroll);
+    return () => el.removeEventListener('scroll', handleScroll);
+  }, [handleScroll]);
 
-    fetchData();
-  }, [setChats]);
-
-  const getSortedChats = (list: Chat[], category: ChatCategory) => {
+  const getSortedChats = (list: Chat[], category: string) => {
     const now = new Date();
-    const todayStart = new Date(now.setHours(0, 0, 0, 0));
-    const yesterdayStart = new Date(
-      new Date().setDate(todayStart.getDate() - 1)
-    );
-    const oneWeekAgoStart = new Date(
-      new Date().setDate(todayStart.getDate() - 7)
-    );
-    const oneMonthAgoStart = new Date(
-      new Date().setMonth(todayStart.getMonth() - 1)
-    );
+    const oneWeekAgo = subDays(now, 7);
+    const oneMonthAgo = subDays(now, 30);
 
     return list
       .filter((chat: Chat) => {
         const chatDate = new Date(chat.createdAt);
         switch (category) {
-          case 'Today':
-            return chatDate >= todayStart;
-          case 'Yesterday':
-            return chatDate >= yesterdayStart && chatDate < todayStart;
-          case 'Previous 7 Days':
-            return chatDate >= oneWeekAgoStart && chatDate < yesterdayStart;
-          case 'Previous Month':
-            return chatDate >= oneMonthAgoStart && chatDate < oneWeekAgoStart;
-          case 'Older':
-            return chatDate < oneMonthAgoStart;
-          default:
-            return true;
+          case 'today':
+            return isToday(chatDate);
+          case 'yesterday':
+            return isYesterday(chatDate);
+          case 'lastWeek':
+            return (
+              !isToday(chatDate) &&
+              !isYesterday(chatDate) &&
+              chatDate > oneWeekAgo
+            );
+          case 'lastMonth':
+            return chatDate < oneWeekAgo && chatDate >= oneMonthAgo;
+          case 'older':
+            return chatDate < oneMonthAgo;
         }
       })
-      .sort(
-        (a, b) =>
-          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+      .sort((a, b) =>
+        compareDesc(new Date(a.createdAt), new Date(b.createdAt))
       );
   };
 
   return (
-    <div className="flex-1 overflow-auto">
-      {isLoading && (
+    <div className="flex-1 overflow-auto" ref={listRef}>
+      {isLoading && chats.length === 0 && (
         <div className="flex size-full items-center justify-center">
           <CircleNotch className="size-8 animate-spin text-muted-foreground" />
         </div>
       )}
-      {!isLoading && chatEntries.length === 0 && (
+      {!isLoading && chats.length === 0 && (
         <div className="p-8 text-center">
           <p className="text-sm text-muted-foreground">No chat history</p>
         </div>
       )}
-      {!isLoading && chatEntries.length > 0 && (
+      {!isLoading && chats.length > 0 && (
         <div className="space-y-2 px-3">
-          <AnimatePresence>
-            {ChatCategories.map(category => {
-              const categoryChats = getSortedChats(chatEntries, category);
-              return (
-                categoryChats.length && (
-                  <Fragment key={category}>
-                    <h2 className="px-3 text-xs text-muted-foreground">
-                      {category}
-                    </h2>
-                    {categoryChats.map(
-                      (chat, index) =>
-                        chat && (
-                          <motion.div
-                            key={chat?.id}
-                            exit={{
-                              opacity: 0,
-                              height: 0
-                            }}
-                          >
-                            <SidebarItem index={index} chat={chat}>
-                              <SidebarActions chat={chat} />
-                            </SidebarItem>
-                          </motion.div>
-                        )
-                    )}
-                  </Fragment>
-                )
-              );
-            })}
-          </AnimatePresence>
+          {Categories.map((category, index) => {
+            const groupedChats = getSortedChats(chats, category.value);
+            return (
+              groupedChats.length > 0 && (
+                <Fragment key={index}>
+                  <h2 className="px-3 text-xs text-muted-foreground">
+                    {category.text}
+                  </h2>
+                  {groupedChats.map(
+                    (chat, index) =>
+                      chat && <SidebarItem key={index} chat={chat} />
+                  )}
+                </Fragment>
+              )
+            );
+          })}
+          {isValidating && hasMore && (
+            <div className="flex justify-center py-2">
+              <CircleNotch className="size-6 animate-spin text-muted-foreground" />
+            </div>
+          )}
         </div>
       )}
     </div>

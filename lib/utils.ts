@@ -1,21 +1,35 @@
-import { generateId as generateIdFunc } from 'ai';
+import { Message, UIMessage } from '@ai-sdk/ui-utils';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
+import { v4 as uuidv4 } from 'uuid';
 
-import { ServiceProvider, SupportedModels, TTSModels } from '@/lib/constant';
-import { MessageContent } from '@/lib/types';
+import { Result } from '@/types';
+import {
+  ChatModels,
+  ImageModels,
+  ServiceProvider,
+  TTSModels
+} from '@/lib/constant';
+
+import { env } from './env';
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
-export function formatDate(input: string | number | Date): string {
-  const date = new Date(input);
-  return date.toLocaleDateString('en-US', {
-    month: 'long',
-    day: 'numeric',
-    year: 'numeric'
-  });
+export const fetcher = async (url: string) => {
+  const res = await fetch(url);
+
+  if (!res.ok) {
+    const json = await res.json();
+    throw { error: json.error } as Result;
+  }
+
+  return res.json();
+};
+
+export function generateUUID(): string {
+  return uuidv4();
 }
 
 export function formatString(
@@ -34,76 +48,120 @@ export function formatString(
   return formattedString;
 }
 
-export const apiFromModel = (value: string): string => {
-  const model = SupportedModels.concat(TTSModels).find(m => m.value === value);
-  return `/api/${model?.type || 'chat'}/${model?.provider || 'default'}`;
-};
-
-export const providerFromModel = (value: string) => {
-  const model = SupportedModels.concat(TTSModels).find(m => m.value === value);
-  return model?.provider;
-};
-
-export const isVisionModel = (value: string): boolean => {
-  const model = SupportedModels.find(m => m.value === value);
-  return model?.vision ?? false;
-};
-
-export const isImageModel = (value: string): boolean => {
-  const model = SupportedModels.find(m => m.value === value);
-  return model?.type === 'images';
-};
-
-export function getMediaTypeFromDataURL(dataURL: string): string | null {
-  const matches = dataURL.match(/^data:([A-Za-z-+\/]+);base64/);
-  return matches ? matches[1] : null;
+export function findModelByValue(value: string) {
+  const models = [...ChatModels, ...TTSModels, ...ImageModels];
+  return models.find(
+    model =>
+      model.value === value || (model.alias && model.alias.includes(value))
+  );
 }
 
-export function getBase64FromDataURL(dataURL: string): string | null {
-  const matches = dataURL.match(/^data:[A-Za-z-+\/]+;base64,(.*)$/);
-  return matches ? matches[1] : null;
+export function isAvailableModel(value: string): boolean {
+  const model = findModelByValue(value);
+  if (!model) return false;
+
+  switch (model.provider) {
+    case 'anthropic':
+      return env.ANTHROPIC_ENABLED;
+    case 'openai':
+      return env.OPENAI_ENABLED;
+    case 'google':
+      return env.GOOGLE_ENABLED;
+    case 'xai':
+      return env.XAI_ENABLED;
+    case 'deepseek':
+      return env.DEEPSEEK_ENABLED;
+    default:
+      return false;
+  }
 }
 
-export async function readFileAsBase64(file: File): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => {
-      if (typeof reader.result === 'string') {
-        resolve(reader.result);
-      } else {
-        reject(new Error('Failed to read file as base64'));
-      }
-    };
-    reader.onerror = () => reject(reader.error);
-    reader.readAsDataURL(file);
+export function systemPrompt(model: string, prompt: string) {
+  const provider = findModelByValue(model)?.provider;
+  const time = new Date().toLocaleString();
+  const system = formatString(prompt, {
+    ...(provider ? { provider: ServiceProvider[provider] } : {}),
+    model,
+    time
   });
+  return system;
 }
 
-export function formatSystemPrompt(model: string, prompt?: string) {
-  const provider = providerFromModel(model);
-  if (provider && prompt) {
-    const time = new Date().toLocaleString();
-    const systemPrompt = formatString(prompt, {
-      provider: ServiceProvider[provider],
-      model,
-      time
-    });
-    return systemPrompt;
-  }
+export function getAvailableModels() {
+  const availableModels = [
+    ...(env.OPENAI_ENABLED
+      ? ChatModels.filter(model => {
+          if (env.OPENAI_MODELS) {
+            const allowed = env.OPENAI_MODELS.split(',');
+            return (
+              allowed.includes(model.value) ||
+              (model.alias &&
+                model.alias.some(alias => allowed.includes(alias)))
+            );
+          }
+          return model.provider === 'openai';
+        })
+      : []),
+    ...(env.GOOGLE_ENABLED
+      ? ChatModels.filter(model => {
+          if (env.GOOGLE_MODELS) {
+            const allowed = env.GOOGLE_MODELS.split(',');
+            return (
+              allowed.includes(model.value) ||
+              (model.alias &&
+                model.alias.some(alias => allowed.includes(alias)))
+            );
+          }
+          return model.provider === 'google';
+        })
+      : []),
+    ...(env.ANTHROPIC_ENABLED
+      ? ChatModels.filter(model => {
+          if (env.ANTHROPIC_MODELS) {
+            const allowed = env.ANTHROPIC_MODELS.split(',');
+            return (
+              allowed.includes(model.value) ||
+              (model.alias &&
+                model.alias.some(alias => allowed.includes(alias)))
+            );
+          }
+          return model.provider === 'anthropic';
+        })
+      : []),
+    ...(env.XAI_ENABLED
+      ? ChatModels.filter(model => {
+          if (env.XAI_MODELS) {
+            const allowed = env.XAI_MODELS.split(',');
+            return (
+              allowed.includes(model.value) ||
+              (model.alias &&
+                model.alias.some(alias => allowed.includes(alias)))
+            );
+          }
+          return model.provider === 'xai';
+        })
+      : []),
+    ...(env.DEEPSEEK_ENABLED
+      ? ChatModels.filter(model => {
+          if (env.DEEPSEEK_MODELS) {
+            const allowed = env.DEEPSEEK_MODELS.split(',');
+            return (
+              allowed.includes(model.value) ||
+              (model.alias &&
+                model.alias.some(alias => allowed.includes(alias)))
+            );
+          }
+          return model.provider === 'deepseek';
+        })
+      : [])
+  ];
+
+  return availableModels;
 }
 
-export function getMessageContentText(content: MessageContent) {
-  const IMAGE_DATA_URL_REGEX = /!\[\]\(data:image\/png;base64,.*?\)/g;
-
-  if (Array.isArray(content)) {
-    return content
-      .map(c =>
-        c.type === 'text' ? c.text.replace(IMAGE_DATA_URL_REGEX, '') : ''
-      )
-      .filter(Boolean)
-      .join('\n\n');
-  }
-  return typeof content === 'string'
-    ? content.replace(IMAGE_DATA_URL_REGEX, '')
-    : '';
+export function getMostRecentUserMessage(messages: (UIMessage | Message)[]) {
+  const userMessage = messages
+    .filter(message => message.role === 'user')
+    .at(-1);
+  return userMessage as UIMessage;
 }

@@ -10,9 +10,6 @@ export const metadata: Metadata = {
   title: 'Sign in'
 };
 
-const AUTH_GITHUB_ENABLED = env.AUTH_GITHUB_ENABLED === 'true';
-const AUTH_GOOGLE_ENABLED = env.AUTH_GOOGLE_ENABLED === 'true';
-
 export default async function Page() {
   const session = await auth();
   // redirect to home if user is already logged in
@@ -30,8 +27,8 @@ export default async function Page() {
             </h1>
           </div>
           <LoginButton
-            github={AUTH_GITHUB_ENABLED}
-            google={AUTH_GOOGLE_ENABLED}
+            github={env.AUTH_GITHUB_ENABLED}
+            google={env.AUTH_GOOGLE_ENABLED}
           />
           <p className="text-center text-xs leading-relaxed text-muted-foreground">
             By signing in, you agree to our{' '}

@@ -1,7 +1,12 @@
 'use client';
 
 import * as React from 'react';
-import { CaretDown, CaretUp, CaretUpDown, Check } from '@phosphor-icons/react';
+import {
+  CaretDown,
+  CaretUp,
+  CaretUpDown,
+  CheckCircle
+} from '@phosphor-icons/react';
 import * as SelectPrimitive from '@radix-ui/react-select';
 
 import { cn } from '@/lib/utils';
@@ -19,7 +24,7 @@ const SelectTrigger = React.forwardRef<
   <SelectPrimitive.Trigger
     ref={ref}
     className={cn(
-      'flex h-9 w-full items-center justify-between whitespace-nowrap rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring disabled:cursor-not-allowed disabled:opacity-50 [&>span]:line-clamp-1',
+      'flex h-9 w-full items-center justify-between whitespace-nowrap rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm ring-offset-background focus:outline-none focus:ring-1 focus:ring-ring disabled:cursor-not-allowed disabled:opacity-50 data-[placeholder]:text-muted-foreground [&>span]:line-clamp-1',
       className
     )}
     {...props}
@@ -125,7 +130,7 @@ const SelectItem = React.forwardRef<
   >
     <span className="absolute right-2 flex size-3.5 items-center justify-center">
       <SelectPrimitive.ItemIndicator>
-        <Check />
+        <CheckCircle weight="fill" className="size-5" />
       </SelectPrimitive.ItemIndicator>
     </span>
     <SelectPrimitive.ItemText>{children}</SelectPrimitive.ItemText>

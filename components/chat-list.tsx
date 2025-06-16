@@ -1,32 +1,35 @@
 'use client';
 
 import * as React from 'react';
+import { UseChatHelpers } from '@ai-sdk/react';
 
-import { Message, Provider } from '@/lib/types';
+import { Provider } from '@/types';
 import { cn } from '@/lib/utils';
-import { Badge } from '@/components/ui/badge';
-import { IconTyping } from '@/components/ui/icons';
 import { ButtonScrollToBottom } from '@/components/button-scroll-to-bottom';
 import { ChatMessage } from '@/components/chat-message';
 import { ChatMessageActions } from '@/components/chat-message-actions';
+import { ChatMessageLoading } from '@/components/chat-message-loading';
 
-export interface ChatListProps extends React.ComponentProps<'div'> {
-  id: string;
-  reload?: () => void;
-  messages: Message[];
-  isLoading?: boolean;
+export interface ChatListProps
+  extends Partial<Pick<UseChatHelpers, 'status' | 'reload' | 'setMessages'>>,
+    Pick<UseChatHelpers, 'messages'> {
+  model: string;
   provider?: Provider;
-  readonly?: boolean;
+  isReasoning?: boolean;
+  isReadonly?: boolean;
+  className?: string;
 }
 
 export function ChatList({
-  id,
+  model,
+  provider,
+  status,
   reload,
   messages,
-  isLoading,
-  provider,
-  className,
-  readonly
+  setMessages,
+  isReasoning,
+  isReadonly,
+  className
 }: ChatListProps) {
   if (!messages.length) {
     return null;
@@ -37,25 +40,27 @@ export function ChatList({
       {messages.map((message, index) => {
         const isLastMessage = index === messages.length - 1;
         return (
-          <ChatMessage key={message.id} message={message} provider={provider}>
-            {(!isLoading || !isLastMessage) && (
-              <ChatMessageActions
-                chatId={id}
-                reload={reload}
-                message={message}
-                isLoading={isLoading}
-                isLastMessage={isLastMessage}
-                readonly={readonly}
-              />
-            )}
+          <ChatMessage
+            key={index}
+            status={status}
+            message={message}
+            provider={provider}
+            isReasoning={isReasoning}
+          >
+            <ChatMessageActions
+              model={model}
+              status={status}
+              reload={reload}
+              message={message}
+              setMessages={setMessages}
+              isLastMessage={isLastMessage}
+              isReadonly={isReadonly}
+            />
           </ChatMessage>
         );
       })}
-      {isLoading && (
-        <Badge variant="secondary" className="ml-11 rounded-full">
-          <IconTyping className="stroke-muted-foreground text-muted-foreground" />
-        </Badge>
-      )}
+
+      {status === 'submitted' && <ChatMessageLoading provider={provider} />}
       <ButtonScrollToBottom />
     </div>
   );
