@@ -1,3 +1,5 @@
+'use client';
+
 import { mutate } from 'swr';
 import useSWRInfinite, { unstable_serialize as serialize } from 'swr/infinite';
 
