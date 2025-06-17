@@ -4,7 +4,7 @@ import { api } from '@/trpc/server';
 import { ChatNotFound } from '@/components/chat-notfound';
 import { ChatUI } from '@/components/chat-ui';
 
-export const maxDuration = 120;
+export const maxDuration = 60;
 
 interface PageProps {
   params: Promise<{
