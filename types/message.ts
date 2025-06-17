@@ -13,7 +13,7 @@ import {
 
 declare module 'ai' {
   interface Message {
-    parentId?: string;
+    parentId?: string | null;
     updatedAt?: Date;
   }
 }

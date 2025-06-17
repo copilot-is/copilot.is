@@ -1,1 +1,0 @@
-CREATE INDEX IF NOT EXISTS "chat_shared_idx" ON "chat" USING btree ("shared");

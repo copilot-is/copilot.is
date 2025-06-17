@@ -4,6 +4,7 @@ import {
   index,
   integer,
   jsonb,
+  PgColumn,
   pgTableCreator,
   primaryKey,
   text,
@@ -47,7 +48,10 @@ export const messages = createTable(
   'message',
   {
     id: varchar('id', { length: 255 }).notNull().primaryKey(),
-    parentId: varchar('parent_id', { length: 255 }).notNull().default(''),
+    parentId: varchar('parent_id', { length: 255 }).references(
+      (): PgColumn => messages.id,
+      { onDelete: 'cascade' }
+    ),
     role: varchar('role', { length: 32 }).notNull().$type<UIMessage['role']>(),
     content: text('content').notNull(),
     parts: jsonb('parts').notNull().$type<UIMessage['parts']>(),

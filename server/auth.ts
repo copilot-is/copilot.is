@@ -50,10 +50,10 @@ export const {
     verificationTokensTable: verificationTokens
   }),
   callbacks: {
-    async signIn({ user, account }) {
-      if (user && user.id && account) {
+    async signIn({ user }) {
+      if (user && user.id) {
         const userCount = await db.select({ count: count() }).from(users);
-        const isFirstUser = userCount[0].count === 0;
+        const isFirstUser = userCount[0].count === 1;
 
         if (isFirstUser) {
           await db
