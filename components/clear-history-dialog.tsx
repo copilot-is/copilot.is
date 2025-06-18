@@ -1,11 +1,10 @@
 'use client';
 
 import * as React from 'react';
-import { useRouter } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import { CircleNotch } from '@phosphor-icons/react';
 import { toast } from 'sonner';
 
-import { useChatId } from '@/hooks/use-chat-id';
 import { clearChats } from '@/hooks/use-chats';
 import {
   AlertDialog,
@@ -28,7 +27,7 @@ export function ClearHistoryDialog({
   onOpenChange
 }: ClearHistoryDialogProps) {
   const router = useRouter();
-  const chatId = useChatId();
+  const params = useParams<{ id?: string }>();
   const [isPending, startTransition] = React.useTransition();
 
   return (
@@ -51,7 +50,7 @@ export function ClearHistoryDialog({
                 try {
                   await clearChats();
                   toast.success('All chat deleted', { duration: 2000 });
-                  chatId && router.push('/');
+                  params.id && router.push('/');
                   onOpenChange(false);
                 } catch (err: any) {
                   toast.error(err.message);

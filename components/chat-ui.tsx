@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { Message, useChat, UseChatOptions } from '@ai-sdk/react';
 import ScrollToBottom from 'react-scroll-to-bottom';
 import { toast } from 'sonner';
@@ -13,7 +14,6 @@ import {
   generateUUID,
   getMostRecentUserMessage
 } from '@/lib/utils';
-import { useChatId } from '@/hooks/use-chat-id';
 import { refreshChats, updateChatInCache } from '@/hooks/use-chats';
 import { useSettings } from '@/hooks/use-settings';
 import { ChatHeader } from '@/components/chat-header';
@@ -29,8 +29,7 @@ interface ChatUIProps {
 }
 
 export function ChatUI({ id, initialChat }: ChatUIProps) {
-  const chatId = useChatId();
-  const noChat = !initialChat && !chatId;
+  const router = useRouter();
 
   const { chatPreferences, setChatPreferences } = useSettings();
   const { isReasoning } = chatPreferences;
@@ -69,13 +68,15 @@ export function ChatUI({ id, initialChat }: ChatUIProps) {
           resetModel(initialModel);
           const json = await res.json();
           toast.error(json.error);
+        } else {
+          if (!initialChat) {
+            router.replace(`/chat/${id}`, { scroll: false });
+            refreshChats();
+          }
         }
       },
       onFinish: message => {
         setParentIdRef.current(message);
-        if (noChat) {
-          refreshChats();
-        }
       },
       onError: error => {
         resetModel(initialModel);
@@ -86,11 +87,12 @@ export function ChatUI({ id, initialChat }: ChatUIProps) {
     }),
     [
       id,
-      noChat,
+      initialChat,
       initialModel,
       initialMessages,
       selectedModel,
       chatPreferences,
+      router,
       resetModel
     ]
   );
@@ -107,6 +109,11 @@ export function ChatUI({ id, initialChat }: ChatUIProps) {
     handleInputChange,
     handleSubmit
   } = useChat(chatOptions);
+
+  const noChat = useMemo(
+    () => !initialChat && messages.length === 0,
+    [initialChat, messages.length]
+  );
 
   useEffect(() => {
     const generatedTitle = data?.[0]?.toString();
@@ -189,7 +196,6 @@ export function ChatUI({ id, initialChat }: ChatUIProps) {
             handleSubmit(e, {
               experimental_attachments: attachments
             });
-            window.history.replaceState({}, '', `/chat/${id}`);
           }}
         />
       </div>

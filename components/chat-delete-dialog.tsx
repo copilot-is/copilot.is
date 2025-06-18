@@ -1,12 +1,11 @@
 'use client';
 
 import * as React from 'react';
-import { useRouter } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import { CircleNotch } from '@phosphor-icons/react';
 import { toast } from 'sonner';
 
 import { Chat } from '@/types';
-import { useChatId } from '@/hooks/use-chat-id';
 import { deleteChat } from '@/hooks/use-chats';
 import {
   AlertDialog,
@@ -31,7 +30,7 @@ export function ChatDeleteDialog({
   onOpenChange
 }: ChatDeleteDialogProps) {
   const router = useRouter();
-  const chatId = useChatId();
+  const params = useParams<{ id?: string }>();
   const [isPending, startTransition] = React.useTransition();
 
   return (
@@ -54,7 +53,7 @@ export function ChatDeleteDialog({
                 try {
                   await deleteChat(chat.id);
                   toast.success('Chat deleted', { duration: 2000 });
-                  chatId === chat.id && router.push('/');
+                  params.id === chat.id && router.push('/');
                   onOpenChange(false);
                 } catch (err: any) {
                   toast.error(err.message);
