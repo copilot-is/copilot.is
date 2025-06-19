@@ -23,11 +23,11 @@ import { api } from '@/trpc/server';
 export const maxDuration = 60;
 
 type PostData = {
-  id: string;
+  id?: string;
   model: string;
   messages: UIMessage[];
   parentMessageId?: string;
-  isReasoning: boolean;
+  isReasoning?: boolean;
 };
 
 export async function POST(req: Request) {
@@ -38,13 +38,11 @@ export async function POST(req: Request) {
   }
 
   const json: PostData = await req.json();
-  const { id, model, messages, parentMessageId, isReasoning } = json;
+  const id = json.id || generateUUID();
+  const { model, messages, parentMessageId, isReasoning } = json;
 
-  if (!id || !model) {
-    return NextResponse.json(
-      { error: 'ID and model required' },
-      { status: 400 }
-    );
+  if (!model) {
+    return NextResponse.json({ error: 'model required' }, { status: 400 });
   }
 
   if (!isAvailableModel(model)) {
@@ -101,7 +99,7 @@ export async function POST(req: Request) {
   try {
     return createDataStreamResponse({
       execute: dataStream => {
-        dataStream.writeData(title);
+        dataStream.writeData({ id, title });
 
         const res = streamText({
           model: provider.languageModel(model),

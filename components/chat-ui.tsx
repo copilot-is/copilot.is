@@ -24,7 +24,7 @@ import { PromptForm } from '@/components/prompt-form';
 const PRODUCT_NAME = env.NEXT_PUBLIC_PRODUCT_NAME;
 
 interface ChatUIProps {
-  id: string;
+  id?: string;
   initialChat?: Chat;
 }
 
@@ -46,7 +46,7 @@ export function ChatUI({ id, initialChat }: ChatUIProps) {
 
   const resetModel = useCallback(
     (newModel: string) => {
-      if (model !== selectedModel) {
+      if (id && model !== selectedModel) {
         setModel(newModel);
         updateChatInCache(id, { model: newModel });
       }
@@ -68,11 +68,6 @@ export function ChatUI({ id, initialChat }: ChatUIProps) {
           resetModel(initialModel);
           const json = await res.json();
           toast.error(json.error);
-        } else {
-          if (!initialChat) {
-            router.replace(`/chat/${id}`, { scroll: false });
-            refreshChats();
-          }
         }
       },
       onFinish: message => {
@@ -87,12 +82,10 @@ export function ChatUI({ id, initialChat }: ChatUIProps) {
     }),
     [
       id,
-      initialChat,
       initialModel,
       initialMessages,
       selectedModel,
       chatPreferences,
-      router,
       resetModel
     ]
   );
@@ -111,22 +104,28 @@ export function ChatUI({ id, initialChat }: ChatUIProps) {
   } = useChat(chatOptions);
 
   const noChat = useMemo(
-    () => !initialChat && messages.length === 0,
+    () => !id && !initialChat && messages.length === 0,
     [initialChat, messages.length]
   );
 
   useEffect(() => {
-    const generatedTitle = data?.[0]?.toString();
-    if (generatedTitle) {
-      const documentTitle = `${generatedTitle} - ${PRODUCT_NAME}`;
-      if (documentTitle !== document.title) {
-        document.title = documentTitle;
-      }
-      setTitle(prev => (prev !== generatedTitle ? generatedTitle : prev));
-      return;
+    const chatData = data?.[0] as { id: string; title: string };
+    const chatId = chatData?.id;
+    const chatTitle = chatData?.title;
+
+    if (!id && chatId) {
+      router.replace(`/chat/${chatId}`, { scroll: false });
+      refreshChats();
     }
-    setTitle(prev => (prev !== initialTitle ? initialTitle : prev));
-  }, [initialTitle, data]);
+
+    const documentTitle = `${chatTitle} - ${PRODUCT_NAME}`;
+    if (chatTitle && documentTitle !== document.title) {
+      document.title = documentTitle;
+      setTitle(chatTitle);
+    } else if (!chatTitle && initialTitle !== title) {
+      setTitle(initialTitle);
+    }
+  }, [id, initialTitle, data, router]);
 
   useEffect(() => {
     setParentIdRef.current = (message: Message) => {

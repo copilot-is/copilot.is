@@ -40,7 +40,6 @@ export function PromptForm({
   const { formRef, onKeyDown } = useEnterSubmit();
   const [uploadQueue, setUploadQueue] = useState<Array<string>>([]);
   const [attachments, setAttachments] = useState<Attachment[]>([]);
-  const textareaRef = useRef<HTMLTextAreaElement>(null);
   const selectedModel = findModelByValue(model);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -65,7 +64,6 @@ export function PromptForm({
           <Textarea
             autoFocus
             required
-            ref={textareaRef}
             tabIndex={0}
             spellCheck={false}
             placeholder="Send a message."

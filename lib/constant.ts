@@ -142,17 +142,6 @@ export const ChatModels: Model[] = [
     provider: 'xai'
   },
   {
-    text: 'Grok',
-    value: 'grok-beta',
-    provider: 'xai'
-  },
-  {
-    text: 'Grok Vision',
-    value: 'grok-vision-beta',
-    vision: true,
-    provider: 'xai'
-  },
-  {
     text: 'DeepSeek',
     value: 'deepseek-chat',
     provider: 'deepseek'
