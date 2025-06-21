@@ -24,16 +24,16 @@ import { PromptForm } from '@/components/prompt-form';
 const PRODUCT_NAME = env.NEXT_PUBLIC_PRODUCT_NAME;
 
 interface ChatUIProps {
-  id?: string;
   initialChat?: Chat;
 }
 
-export function ChatUI({ id, initialChat }: ChatUIProps) {
+export function ChatUI({ initialChat }: ChatUIProps) {
   const router = useRouter();
 
   const { chatPreferences, setChatPreferences } = useSettings();
   const { isReasoning } = chatPreferences;
 
+  const id = initialChat?.id;
   const initialTitle = initialChat?.title;
   const initialModel = initialChat?.model || chatPreferences.model;
   const initialMessages = initialChat?.messages;
@@ -104,8 +104,8 @@ export function ChatUI({ id, initialChat }: ChatUIProps) {
   } = useChat(chatOptions);
 
   const noChat = useMemo(
-    () => !id && !initialChat && messages.length === 0,
-    [initialChat, messages.length]
+    () => !id && messages.length === 0,
+    [id, messages.length]
   );
 
   useEffect(() => {
@@ -125,7 +125,7 @@ export function ChatUI({ id, initialChat }: ChatUIProps) {
     } else if (!chatTitle && initialTitle !== title) {
       setTitle(initialTitle);
     }
-  }, [id, initialTitle, data, router]);
+  }, [id, initialTitle, title, data, router]);
 
   useEffect(() => {
     setParentIdRef.current = (message: Message) => {

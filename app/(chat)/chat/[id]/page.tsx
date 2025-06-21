@@ -31,5 +31,5 @@ export default async function Page(props: PageProps) {
     return <ChatNotFound />;
   }
 
-  return <ChatUI id={chat.id} initialChat={chat} />;
+  return <ChatUI initialChat={chat} />;
 }
