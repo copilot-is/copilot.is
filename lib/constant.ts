@@ -119,12 +119,22 @@ export const ChatModels: Model[] = [
   {
     text: 'Grok 3',
     value: 'grok-3',
-    reasoning: true,
+    provider: 'xai'
+  },
+  {
+    text: 'Grok 3 fast',
+    value: 'grok-3-fast',
     provider: 'xai'
   },
   {
     text: 'Grok 3 mini',
     value: 'grok-3-mini',
+    reasoning: true,
+    provider: 'xai'
+  },
+  {
+    text: 'Grok 3 mini fast',
+    value: 'grok-3-mini-fast',
     reasoning: true,
     provider: 'xai'
   },
