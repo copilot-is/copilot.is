@@ -51,7 +51,7 @@ Follow the steps outlined in the [quick start guide](https://vercel.com/docs/sto
 
 You will need to use the environment variables defined in [`.env.example`](.env.example) to run Next.js AI Chatbot. It's recommended you use [Vercel Environment Variables](https://vercel.com/docs/projects/environment-variables) for this, but a `.env` file is all that is necessary.
 
-For local development, it's recommended to use [Supabase database](https://supabase.com) as your database. Add `?workaround=supabase-pooler.vercel` in your  `POSTGRES_URL`.
+For local development, it's recommended to use [Supabase database](https://supabase.com) as your database. Add connection string in your  `DATABASE_URL`.
 
 > Note: You should not commit your `.env` file or it will expose secrets that will allow others to control access to your various OpenAI and authentication provider accounts.
 

@@ -16,11 +16,11 @@ export const env = createEnv({
     VERCEL_URL: z.string().optional(),
 
     // Database
-    POSTGRES_URL: z
+    DATABASE_URL: z
       .string()
       .refine(
         url => url.startsWith('postgres://') || url.startsWith('postgresql://'),
-        'POSTGRES_URL must start with postgres:// or postgresql://'
+        'DATABASE_URL must start with postgres:// or postgresql://'
       ),
 
     // Auth
@@ -117,7 +117,7 @@ export const env = createEnv({
     VERCEL_URL: process.env.VERCEL_URL,
 
     // Database
-    POSTGRES_URL: process.env.POSTGRES_URL,
+    DATABASE_URL: process.env.DATABASE_URL,
 
     // Auth
     AUTH_SECRET: process.env.AUTH_SECRET,
