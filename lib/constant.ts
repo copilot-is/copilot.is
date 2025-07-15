@@ -117,6 +117,14 @@ export const ChatModels: Model[] = [
     provider: 'anthropic'
   },
   {
+    text: 'Grok 4',
+    value: 'grok-4',
+    alias: ['grok-4-0709'],
+    vision: true,
+    reasoning: true,
+    provider: 'xai'
+  },
+  {
     text: 'Grok 3',
     value: 'grok-3',
     provider: 'xai'
