@@ -7,6 +7,9 @@ export type Model = {
   vision?: boolean;
   reasoning?: boolean;
   provider: Provider;
+  options?: {
+    isReasoning?: boolean;
+  };
 };
 
 export type ChatModelSettings = {

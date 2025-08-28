@@ -100,7 +100,7 @@ export function PromptForm({
         <div className="mt-5 flex items-center justify-between space-x-2">
           <div className="flex items-center space-x-2">
             <ModelMenu model={model} setModel={setModel} status={status} />
-            {selectedModel?.reasoning && (
+            {selectedModel?.options?.isReasoning && (
               <Button
                 type="button"
                 variant="outline"

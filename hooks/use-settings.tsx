@@ -60,8 +60,9 @@ export const SettingsProvider = ({
   function getChatPreferences(
     chatPreferences: ChatPreferences
   ): ChatPreferences {
-    const reasoning = findModelByValue(chatPreferences.model)?.reasoning;
-    if (!reasoning) {
+    const isReasoning = findModelByValue(chatPreferences.model)?.options
+      ?.isReasoning;
+    if (!isReasoning) {
       const { isReasoning, ...rest } = chatPreferences;
       return rest;
     }

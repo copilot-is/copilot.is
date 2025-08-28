@@ -1,4 +1,4 @@
-import { ChatModelSettings, Model, Provider, Voice } from '@/types';
+import { Model, Provider, Voice } from '@/types';
 
 export const ChatModels: Model[] = [
   {
@@ -83,7 +83,10 @@ export const ChatModels: Model[] = [
     value: 'claude-3-7-sonnet-20250219',
     vision: true,
     reasoning: true,
-    provider: 'anthropic'
+    provider: 'anthropic',
+    options: {
+      isReasoning: true
+    }
   },
   {
     text: 'Claude 3.5 Sonnet',
@@ -168,7 +171,10 @@ export const ChatModels: Model[] = [
     text: 'DeepSeek R1',
     value: 'deepseek-reasoner',
     reasoning: true,
-    provider: 'deepseek'
+    provider: 'deepseek',
+    options: {
+      isReasoning: true
+    }
   }
 ];
 
