@@ -65,7 +65,7 @@ export async function POST(req: Request) {
     const pathname = `generate-images/${session.user.id}/${generateUUID()}`;
     const data = await put(pathname, buffer, {
       access: 'public',
-      contentType: image.mimeType
+      contentType: image.mediaType
     });
 
     return NextResponse.json({

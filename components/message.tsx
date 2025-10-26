@@ -1,30 +1,31 @@
 import React from 'react';
 import { UseChatHelpers } from '@ai-sdk/react';
-import { UIMessage } from '@ai-sdk/ui-utils';
 import { CircleNotch, User } from '@phosphor-icons/react';
 
-import { Provider } from '@/types';
+import { ChatMessage, Provider } from '@/types';
 import { cn } from '@/lib/utils';
 import { IconTyping } from '@/components/ui/icons';
-import { ChatMessageMarkdown } from '@/components/chat-message-markdown';
-import { ChatMessageReasoning } from '@/components/chat-message-reasoning';
+import { MessageMarkdown } from '@/components/message-markdown';
+import { MessageReasoning } from '@/components/message-reasoning';
 import { ProviderIcon } from '@/components/provider-icon';
 
-export interface ChatMessageProps
-  extends Partial<Pick<UseChatHelpers, 'status'>> {
-  message: UIMessage;
+export interface MessageProps
+  extends Partial<Pick<UseChatHelpers<ChatMessage>, 'status'>> {
+  message: ChatMessage;
   provider?: Provider;
+  isLastMessage?: boolean;
   isReasoning?: boolean;
   children: React.ReactNode;
 }
 
-export function ChatMessage({
+export function Message({
   status,
   message,
   provider,
+  isLastMessage,
   isReasoning,
   children
-}: ChatMessageProps) {
+}: MessageProps) {
   return (
     <div
       tabIndex={0}
@@ -55,10 +56,11 @@ export function ChatMessage({
             {message.parts.map((part, index) => {
               if (part.type === 'reasoning') {
                 return (
-                  <ChatMessageReasoning
+                  <MessageReasoning
                     key={index}
                     part={part}
                     isLoading={
+                      isLastMessage === true &&
                       isReasoning === true &&
                       status === 'streaming' &&
                       index === message.parts.length - 1
@@ -78,59 +80,38 @@ export function ChatMessage({
                     ))}
                   </p>
                 ) : (
-                  <ChatMessageMarkdown key={index} content={part.text} />
+                  <MessageMarkdown key={index} content={part.text} />
                 );
               }
 
-              if (part.type === 'file' && part.mimeType.startsWith('image/')) {
+              if (part.type === 'file' && part.mediaType.startsWith('image/')) {
                 return (
                   <img
                     className="m-0 h-auto max-w-10 rounded-md sm:max-w-32"
                     key={index}
-                    src={`data:${part.mimeType};base64,${part.data}`}
-                    alt="Generated image"
+                    src={part.url}
+                    alt={part.filename}
                   />
                 );
               }
             })}
 
             {status === 'streaming' &&
-              isReasoning === true &&
-              !message.content &&
-              !message.parts.find(p => p.type === 'reasoning')?.reasoning && (
+              isLastMessage &&
+              isReasoning &&
+              !message.parts.find(p => p.type === 'reasoning')?.text && (
                 <div className="-ml-1 flex h-8 items-center gap-1 text-sm font-normal text-muted-foreground">
                   <CircleNotch className="size-4 animate-spin" />
                   <span>Thinking</span>
                 </div>
               )}
             {status === 'streaming' &&
+              isLastMessage &&
               !isReasoning &&
-              !message.content &&
-              !message.parts.find(p => p.type === 'reasoning')?.reasoning && (
+              !message.parts.find(p => p.type === 'reasoning')?.text && (
                 <IconTyping className="text-muted-foreground" />
               )}
           </div>
-          {message.experimental_attachments &&
-            message.experimental_attachments.length > 0 && (
-              <div className="mt-2 flex flex-row flex-wrap gap-2">
-                {message.experimental_attachments
-                  .filter(attachment =>
-                    attachment.contentType?.startsWith('image/')
-                  )
-                  .map((attachment, index) => (
-                    <figure
-                      key={`${message.id}-${index}`}
-                      className="size-12 overflow-hidden rounded-lg"
-                    >
-                      <img
-                        className="mx-auto size-full object-cover"
-                        src={attachment.url}
-                        alt={attachment.name}
-                      />
-                    </figure>
-                  ))}
-              </div>
-            )}
         </div>
       </div>
       {children}

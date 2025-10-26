@@ -2,7 +2,7 @@
 
 import { UseChatHelpers } from '@ai-sdk/react';
 
-import { Model, Provider } from '@/types';
+import { ChatMessage, Model, Provider } from '@/types';
 import { ServiceProvider } from '@/lib/constant';
 import { findModelByValue } from '@/lib/utils';
 import { useIsMobile } from '@/hooks/use-mobile';
@@ -18,7 +18,8 @@ import {
 } from '@/components/ui/select';
 import { ProviderIcon } from '@/components/provider-icon';
 
-export interface ModelMenuProps extends Pick<UseChatHelpers, 'status'> {
+export interface ModelMenuProps
+  extends Pick<UseChatHelpers<ChatMessage>, 'status'> {
   model: string;
   setModel: (value: string) => void;
 }

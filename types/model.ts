@@ -10,12 +10,15 @@ export type Model = {
   options?: {
     isReasoning?: boolean;
   };
+  maxOutputTokens?: number;
+  parameters?: ModelParameters;
 };
 
-export type ChatModelSettings = {
-  prompt: string;
-  temperature: number;
-  frequencyPenalty: number;
-  presencePenalty: number;
-  maxTokens: number;
+export type ModelParameters = {
+  temperature?: number;
+  topP?: number;
+  topK?: number;
+  minP?: number;
+  frequencyPenalty?: number;
+  presencePenalty?: number;
 };

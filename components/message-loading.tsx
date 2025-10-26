@@ -2,11 +2,11 @@ import { Provider } from '@/types';
 import { IconTyping } from '@/components/ui/icons';
 import { ProviderIcon } from '@/components/provider-icon';
 
-export interface ChatMessageLoadingProps {
+export interface MessageLoadingProps {
   provider?: Provider;
 }
 
-export function ChatMessageLoading({ provider }: ChatMessageLoadingProps) {
+export function MessageLoading({ provider }: MessageLoadingProps) {
   return (
     <div
       tabIndex={0}

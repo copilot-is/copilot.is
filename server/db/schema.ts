@@ -1,4 +1,3 @@
-import { UIMessage } from '@ai-sdk/ui-utils';
 import { relations, sql } from 'drizzle-orm';
 import {
   index,
@@ -12,6 +11,8 @@ import {
   varchar
 } from 'drizzle-orm/pg-core';
 import { type AdapterAccount } from 'next-auth/adapters';
+
+import { ChatMessage } from '@/types';
 
 /**
  * This is an example of how to use the multi-project schema feature of Drizzle ORM. Use the same
@@ -52,12 +53,10 @@ export const messages = createTable(
       (): PgColumn => messages.id,
       { onDelete: 'cascade' }
     ),
-    role: varchar('role', { length: 32 }).notNull().$type<UIMessage['role']>(),
-    content: text('content').notNull(),
-    parts: jsonb('parts').notNull().$type<UIMessage['parts']>(),
-    experimental_attachments: jsonb('attachments')
+    role: varchar('role', { length: 32 })
       .notNull()
-      .$type<UIMessage['experimental_attachments']>(),
+      .$type<'system' | 'user' | 'assistant'>(),
+    parts: jsonb('parts').notNull().$type<ChatMessage['parts']>(),
     userId: varchar('user_id', { length: 255 })
       .notNull()
       .references(() => users.id, { onDelete: 'cascade' }),

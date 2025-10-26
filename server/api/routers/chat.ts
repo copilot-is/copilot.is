@@ -1,7 +1,7 @@
 import { and, eq } from 'drizzle-orm';
 import { z } from 'zod';
 
-import { messageSchema } from '@/types';
+import { messageSchema, Usage } from '@/types';
 import { createTRPCRouter, protectedProcedure } from '@/server/api/trpc';
 import { chats, messages } from '@/server/db/schema';
 
@@ -26,12 +26,8 @@ export const chatRouter = createTRPCRouter({
       await ctx.db.insert(messages).values(
         input.messages.map(message => ({
           id: message.id,
-          parentId: message.parentId,
           role: message.role,
-          content: message.content,
           parts: message.parts,
-          experimental_attachments: message.experimental_attachments || [],
-          createdAt: message.createdAt,
           chatId: input.id,
           userId: ctx.session.user.id
         }))
@@ -51,7 +47,7 @@ export const chatRouter = createTRPCRouter({
       if (input.title) updates.title = input.title;
       if (input.model) updates.model = input.model;
 
-      if ('title' in updates || 'model' in updates) {
+      if (Object.keys(updates).length > 0) {
         await ctx.db
           .update(chats)
           .set({ ...updates, updatedAt: new Date() })

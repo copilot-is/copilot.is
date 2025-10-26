@@ -1,10 +1,10 @@
-import { UIMessage } from '@ai-sdk/ui-utils';
+import type { ChatMessage } from './message';
 
 export type Chat = {
   id: string;
   title: string;
   model: string;
-  messages: UIMessage[];
+  messages: ChatMessage[];
   createdAt: Date;
   updatedAt: Date;
 };

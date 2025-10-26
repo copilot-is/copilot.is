@@ -1,7 +1,7 @@
 import { Dispatch, SetStateAction, useCallback, useTransition } from 'react';
-import { Attachment } from '@ai-sdk/ui-utils';
 import { XCircle } from '@phosphor-icons/react';
 
+import { Attachment } from '@/types';
 import { api } from '@/lib/api';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';

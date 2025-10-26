@@ -1,19 +1,21 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { UIMessage } from '@ai-sdk/ui-utils';
 import {
-  appendResponseMessages,
-  createDataStreamResponse,
+  convertToModelMessages,
+  createUIMessageStream,
+  createUIMessageStreamResponse,
   generateText,
   smoothStream,
+  stepCountIs,
   streamText
 } from 'ai';
 
+import { ChatMessage, MessageMetadata, Usage } from '@/types';
 import { GenerateTitlePrompt, SystemPrompt } from '@/lib/constant';
 import { env } from '@/lib/env';
 import { provider } from '@/lib/provider';
 import {
+  convertToChatMessages,
   generateUUID,
-  getMostRecentUserMessage,
   isAvailableModel,
   systemPrompt
 } from '@/lib/utils';
@@ -23,9 +25,9 @@ import { api } from '@/trpc/server';
 export const maxDuration = 60;
 
 type PostData = {
-  id?: string;
+  id: string;
   model: string;
-  messages: UIMessage[];
+  message: Omit<ChatMessage, 'role'> & { role: 'user' };
   parentMessageId?: string;
   isReasoning?: boolean;
 };
@@ -39,7 +41,7 @@ export async function POST(req: Request) {
 
   const json: PostData = await req.json();
   const id = json.id || generateUUID();
-  const { model, messages, parentMessageId, isReasoning } = json;
+  const { model, message: userMessage, parentMessageId, isReasoning } = json;
 
   if (!model) {
     return NextResponse.json({ error: 'model required' }, { status: 400 });
@@ -52,7 +54,6 @@ export async function POST(req: Request) {
     );
   }
 
-  const userMessage = getMostRecentUserMessage(messages);
   if (!userMessage) {
     return NextResponse.json(
       { error: 'No user message found' },
@@ -61,8 +62,10 @@ export async function POST(req: Request) {
   }
 
   let title = 'Untitled';
+  let isNew = false;
   const chat = await api.chat.detail.query({ id, includeMessages: false });
   if (!chat) {
+    isNew = true;
     try {
       const { text } = await generateText({
         model: provider.languageModel(env.GENERATE_TITLE_MODEL),
@@ -97,26 +100,28 @@ export async function POST(req: Request) {
   }
 
   try {
-    return createDataStreamResponse({
-      execute: dataStream => {
-        dataStream.writeData({ id, title });
+    const historyMessages = await api.message.list.query({ chatId: id });
+    const chatMessages = [
+      ...convertToChatMessages(historyMessages),
+      userMessage
+    ];
+
+    const stream = createUIMessageStream<ChatMessage>({
+      execute: async ({ writer }) => {
+        writer.write({ type: 'data-chat', data: { title, isNew } });
 
         const res = streamText({
           model: provider.languageModel(model),
           system: systemPrompt(model, SystemPrompt),
-          messages,
-          maxSteps: 5,
-          experimental_generateMessageId: generateUUID,
-          experimental_transform: smoothStream({
-            chunking: 'word',
-            delayInMs: 15
-          }),
+          messages: convertToModelMessages(chatMessages),
+          stopWhen: stepCountIs(5),
+          experimental_transform: smoothStream({ chunking: 'word' }),
           onChunk: ({ chunk }) => {
             if (chunk.type === 'tool-call') {
               console.log('Called Tool: ', chunk.toolName);
             }
-            if (chunk.type === 'reasoning') {
-              console.log('Reasoning: ', chunk.textDelta);
+            if (chunk.type === 'reasoning-delta') {
+              console.log('Reasoning: ', chunk.text);
             }
           },
           onStepFinish: ({ warnings }) => {
@@ -124,43 +129,50 @@ export async function POST(req: Request) {
               console.log('Warnings: ', warnings);
             }
           },
-          onFinish: async ({ response }) => {
-            if (chat && chat.model !== model) {
-              await api.chat.update.mutate({ id, model });
+          onFinish: async ({ usage }) => {
+            if (usage) {
+              console.log('Usage: ', usage);
             }
-
-            const [, assistantMessage] = appendResponseMessages({
-              messages: [userMessage],
-              responseMessages: response.messages
-            });
-
-            await api.message.create.mutate({
-              chatId: id,
-              messages: [
-                {
-                  id: assistantMessage.id,
-                  parentId: userMessage.id,
-                  role: assistantMessage.role,
-                  content: assistantMessage.content,
-                  parts: isReasoning
-                    ? assistantMessage.parts || []
-                    : (assistantMessage.parts || []).filter(
-                        part => part.type !== 'reasoning'
-                      ),
-                  experimental_attachments:
-                    assistantMessage.experimental_attachments ?? []
-                }
-              ]
-            });
           }
         });
 
         res.consumeStream();
 
-        res.mergeIntoDataStream(dataStream, {
-          sendUsage: true,
-          sendReasoning: isReasoning
+        writer.merge(
+          res.toUIMessageStream({
+            sendReasoning: isReasoning,
+            messageMetadata: ({ part }) => {
+              if (part.type === 'start') {
+                const now = new Date();
+                const messageMetadata: MessageMetadata = {
+                  parentId: userMessage.id,
+                  createdAt: now,
+                  updatedAt: now
+                };
+                return messageMetadata;
+              }
+            }
+          })
+        );
+      },
+      generateId: generateUUID,
+      onFinish: async ({ responseMessage }) => {
+        await api.message.create.mutate({
+          chatId: id,
+          messages: [responseMessage]
         });
+
+        // Update chat model if changed
+        if (chat && chat.model !== model) {
+          try {
+            await api.chat.update.mutate({
+              id,
+              model
+            });
+          } catch (err) {
+            console.warn('Unable to update chat', id, err);
+          }
+        }
       },
       onError: error => {
         if (error == null) {
@@ -178,6 +190,8 @@ export async function POST(req: Request) {
         return JSON.stringify(error);
       }
     });
+
+    return createUIMessageStreamResponse({ stream });
   } catch (err: any) {
     return NextResponse.json({ error: err.message }, { status: 500 });
   }

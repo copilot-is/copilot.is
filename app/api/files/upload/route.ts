@@ -36,10 +36,7 @@ export async function POST(req: Request) {
   const validatedFile = FileSchema.safeParse({ file });
 
   if (!validatedFile.success) {
-    const errorMessage = validatedFile.error.errors
-      .map(error => error.message)
-      .join(', ');
-
+    const errorMessage = validatedFile.error.message;
     return NextResponse.json({ error: errorMessage }, { status: 400 });
   }
 

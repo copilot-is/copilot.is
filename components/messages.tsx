@@ -3,24 +3,25 @@
 import * as React from 'react';
 import { UseChatHelpers } from '@ai-sdk/react';
 
-import { Provider } from '@/types';
+import { ChatMessage, Provider } from '@/types';
 import { cn } from '@/lib/utils';
 import { ButtonScrollToBottom } from '@/components/button-scroll-to-bottom';
-import { ChatMessage } from '@/components/chat-message';
-import { ChatMessageActions } from '@/components/chat-message-actions';
-import { ChatMessageLoading } from '@/components/chat-message-loading';
+import { Message } from '@/components/message';
+import { MessageActions } from '@/components/message-actions';
+import { MessageLoading } from '@/components/message-loading';
 
-export interface ChatListProps
-  extends Partial<Pick<UseChatHelpers, 'status' | 'reload' | 'setMessages'>>,
-    Pick<UseChatHelpers, 'messages'> {
+export interface MessagesProps
+  extends Partial<Pick<UseChatHelpers<ChatMessage>, 'status' | 'setMessages'>>,
+    Pick<UseChatHelpers<ChatMessage>, 'messages'> {
   model: string;
   provider?: Provider;
+  reload?: () => void;
   isReasoning?: boolean;
   isReadonly?: boolean;
   className?: string;
 }
 
-export function ChatList({
+export function Messages({
   model,
   provider,
   status,
@@ -30,24 +31,25 @@ export function ChatList({
   isReasoning,
   isReadonly,
   className
-}: ChatListProps) {
+}: MessagesProps) {
   if (!messages.length) {
     return null;
   }
 
   return (
     <div className={cn('mx-auto w-full max-w-4xl flex-1 p-4', className)}>
-      {messages.map((message, index) => {
+      {messages.map((message: any, index: number) => {
         const isLastMessage = index === messages.length - 1;
         return (
-          <ChatMessage
+          <Message
             key={index}
             status={status}
             message={message}
             provider={provider}
+            isLastMessage={isLastMessage}
             isReasoning={isReasoning}
           >
-            <ChatMessageActions
+            <MessageActions
               model={model}
               status={status}
               reload={reload}
@@ -56,12 +58,12 @@ export function ChatList({
               isLastMessage={isLastMessage}
               isReadonly={isReadonly}
             />
-          </ChatMessage>
+          </Message>
         );
       })}
 
-      {status === 'submitted' && <ChatMessageLoading provider={provider} />}
-      <ButtonScrollToBottom />
+      {status === 'submitted' && <MessageLoading provider={provider} />}
+      <ButtonScrollToBottom status={status} messages={messages} />
     </div>
   );
 }

@@ -2,7 +2,6 @@
 
 import * as React from 'react';
 import { UseChatHelpers } from '@ai-sdk/react';
-import { UIMessage } from '@ai-sdk/ui-utils';
 import {
   ArrowsClockwise,
   CheckCircle,
@@ -15,6 +14,7 @@ import {
 } from '@phosphor-icons/react';
 import { toast } from 'sonner';
 
+import { ChatMessage } from '@/types';
 import { api } from '@/lib/api';
 import { cn } from '@/lib/utils';
 import { useCopyToClipboard } from '@/hooks/use-copy-to-clipboard';
@@ -40,15 +40,16 @@ import {
 } from '@/components/ui/dialog';
 import { Textarea } from '@/components/ui/textarea';
 
-interface ChatMessageActionsProps
-  extends Partial<Pick<UseChatHelpers, 'status' | 'reload' | 'setMessages'>> {
+interface MessageActionsProps
+  extends Partial<Pick<UseChatHelpers<ChatMessage>, 'status' | 'setMessages'>> {
   model: string;
-  message: UIMessage;
+  message: ChatMessage;
+  reload?: () => void;
   isReadonly?: boolean;
   isLastMessage?: boolean;
 }
 
-export function ChatMessageActions({
+export function MessageActions({
   model,
   status,
   reload,
@@ -56,7 +57,7 @@ export function ChatMessageActions({
   setMessages,
   isReadonly,
   isLastMessage
-}: ChatMessageActionsProps) {
+}: MessageActionsProps) {
   const { systemSettings, userSettings } = useSettings();
   const { speechEnabled } = systemSettings;
   const { speechModel, speechVoice } = userSettings;
@@ -70,13 +71,25 @@ export function ChatMessageActions({
   const [isLoadingAudio, setIsLoadingAudio] = React.useState(false);
   const audioRef = React.useRef<HTMLAudioElement | null>(null);
 
+  const textFromParts = message.parts
+    ?.filter(part => part.type === 'text')
+    .map(part => part.text)
+    .join('\n')
+    .trim();
+
   React.useEffect(() => {
-    setDraftContent(message.content);
-  }, [message.content]);
+    setDraftContent(textFromParts);
+  }, [textFromParts]);
 
   const onCopy = async () => {
     if (isCopied) return;
-    await copyToClipboard(message.content);
+
+    if (!textFromParts) {
+      toast.error("There's no text to copy!");
+      return;
+    }
+
+    await copyToClipboard(textFromParts);
   };
 
   const onRead = async () => {
@@ -85,7 +98,7 @@ export function ChatMessageActions({
       const result = await api.createSpeech(
         speechModel,
         speechVoice,
-        message.content
+        textFromParts
       );
       setIsLoadingAudio(false);
 
@@ -212,7 +225,7 @@ export function ChatMessageActions({
               />
               <DialogFooter>
                 <Button
-                  disabled={isEditPending || message.content === draftContent}
+                  disabled={isEditPending || textFromParts === draftContent}
                   onClick={() => {
                     startEditTransition(async () => {
                       if (draftContent) {
@@ -233,8 +246,8 @@ export function ChatMessageActions({
                         }
                         toast.success('Message saved', { duration: 2000 });
 
-                        setMessages(messages => {
-                          return messages.map(m =>
+                        setMessages((messages: any) => {
+                          return messages.map((m: any) =>
                             m.id === message.id ? updated : m
                           );
                         });
@@ -303,9 +316,10 @@ export function ChatMessageActions({
                         return;
                       }
                       toast.success('Message deleted', { duration: 2000 });
-                      setMessages(messages =>
+                      setMessages((messages: any) =>
                         messages.filter(
-                          m => m.id !== message.id && m.parentId !== message.id
+                          (m: any) =>
+                            m.id !== message.id && m.parentId !== message.id
                         )
                       );
                       setDeleteDialogOpen(false);

@@ -1,5 +1,6 @@
 import { Metadata } from 'next';
 
+import { convertToChatMessages } from '@/lib/utils';
 import { api } from '@/trpc/server';
 import { ChatNotFound } from '@/components/chat-notfound';
 import { ChatUI } from '@/components/chat-ui';
@@ -31,5 +32,16 @@ export default async function Page(props: PageProps) {
     return <ChatNotFound />;
   }
 
-  return <ChatUI initialChat={chat} />;
+  const chatMessages = convertToChatMessages(chat.messages);
+
+  return (
+    <ChatUI
+      id={chat.id}
+      initialChat={{
+        title: chat.title,
+        model: chat.model
+      }}
+      initialMessages={chatMessages}
+    />
+  );
 }

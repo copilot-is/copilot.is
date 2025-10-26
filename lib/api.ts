@@ -1,14 +1,19 @@
-import { Attachment, UIMessage } from '@ai-sdk/ui-utils';
+import {
+  Attachment,
+  Chat,
+  ChatMessage,
+  Result,
+  SharedLink,
+  Voice
+} from '@/types';
 
-import { Chat, Result, SharedLink, Voice } from '@/types';
-
-const createSpeech = async (model: string, voice: Voice, input: string) => {
+const createSpeech = async (model: string, voice: Voice, text: string) => {
   const res = await fetch('/api/audio', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json'
     },
-    body: JSON.stringify({ model, voice, input })
+    body: JSON.stringify({ model, voice, text })
   });
 
   if (!res.ok) {
@@ -67,7 +72,7 @@ const removeChat = async (id: string) => {
   }
 };
 
-const updateMessage = async (message: UIMessage) => {
+const updateMessage = async (message: ChatMessage) => {
   const res = await fetch(`/api/messages/${message.id}`, {
     method: 'PUT',
     headers: {
@@ -82,7 +87,7 @@ const updateMessage = async (message: UIMessage) => {
   }
 
   const json = await res.json();
-  return json as UIMessage;
+  return json as ChatMessage;
 };
 
 const removeMessage = async (id: string) => {

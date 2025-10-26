@@ -1,9 +1,9 @@
 import { useRef, useState } from 'react';
 import { UseChatHelpers } from '@ai-sdk/react';
-import { Attachment } from '@ai-sdk/ui-utils';
 import { ArrowUp, CircleNotch, Lightbulb, Stop } from '@phosphor-icons/react';
 import Textarea from 'react-textarea-autosize';
 
+import { Attachment, ChatMessage } from '@/types';
 import { cn, findModelByValue } from '@/lib/utils';
 import { useEnterSubmit } from '@/hooks/use-enter-submit';
 import { useSettings } from '@/hooks/use-settings';
@@ -13,16 +13,13 @@ import { AttachmentsPreview } from '@/components/attachments-preview';
 import { ModelMenu } from '@/components/model-menu';
 
 export interface PromptFormProps
-  extends Pick<UseChatHelpers, 'status' | 'stop' | 'input' | 'setInput'> {
+  extends Pick<UseChatHelpers<ChatMessage>, 'status' | 'stop'> {
   model: string;
   setModel: (value: string) => void;
+  input: string;
+  setInput: (value: string) => void;
   onInputChange: (e: React.ChangeEvent<HTMLTextAreaElement>) => void;
-  onSubmit: (
-    event?: {
-      preventDefault?: () => void;
-    },
-    attachments?: Attachment[]
-  ) => void;
+  onSubmit: (attachments?: Attachment[]) => void;
 }
 
 export function PromptForm({
@@ -44,7 +41,7 @@ export function PromptForm({
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    onSubmit(e, attachments);
+    onSubmit(attachments);
     setInput('');
     setAttachments([]);
   };

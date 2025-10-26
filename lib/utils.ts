@@ -1,9 +1,10 @@
-import { Message, UIMessage } from '@ai-sdk/ui-utils';
+import { UIMessagePart, UITools } from 'ai';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 import { v4 as uuidv4 } from 'uuid';
 
-import { Result } from '@/types';
+import { ChatMessage, CustomUIDataTypes, Result } from '@/types';
+import { DBMessage } from '@/types/message';
 import {
   ChatModels,
   ImageModels,
@@ -159,9 +160,22 @@ export function getAvailableModels() {
   return availableModels;
 }
 
-export function getMostRecentUserMessage(messages: (UIMessage | Message)[]) {
+export function getMostRecentUserMessage(messages: ChatMessage[]) {
   const userMessage = messages
     .filter(message => message.role === 'user')
     .at(-1);
-  return userMessage as UIMessage;
+  return userMessage;
+}
+
+export function convertToChatMessages(messages: DBMessage[]): ChatMessage[] {
+  return messages.map(message => ({
+    id: message.id,
+    role: message.role as 'user' | 'assistant' | 'system',
+    parts: message.parts as UIMessagePart<CustomUIDataTypes, UITools>[],
+    metadata: {
+      parentId: message.parentId,
+      createdAt: message.createdAt,
+      updatedAt: message.updatedAt
+    }
+  }));
 }

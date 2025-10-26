@@ -6,6 +6,22 @@ import { createTRPCRouter, protectedProcedure } from '@/server/api/trpc';
 import { messages } from '@/server/db/schema';
 
 export const messageRouter = createTRPCRouter({
+  list: protectedProcedure
+    .input(z.object({ chatId: z.string().min(1) }))
+    .query(async ({ ctx, input }) => {
+      return await ctx.db.query.messages.findMany({
+        where: and(
+          eq(messages.chatId, input.chatId),
+          eq(messages.userId, ctx.session.user.id)
+        ),
+        orderBy: (messages, { asc }) => [asc(messages.createdAt)],
+        columns: {
+          userId: false,
+          chatId: false
+        }
+      });
+    }),
+
   create: protectedProcedure
     .input(
       z.object({
@@ -19,23 +35,20 @@ export const messageRouter = createTRPCRouter({
         .values(
           input.messages.map(message => ({
             id: message.id,
-            parentId: message.parentId,
+            parentId: message.metadata?.parentId,
             role: message.role,
-            content: message.content,
             parts: message.parts,
-            experimental_attachments: message.experimental_attachments || [],
-            createdAt: message.createdAt,
             chatId: input.chatId,
-            userId: ctx.session.user.id
+            userId: ctx.session.user.id,
+            createdAt: message.metadata?.createdAt,
+            updatedAt: message.metadata?.updatedAt
           }))
         )
         .returning({
           id: messages.id,
           parentId: messages.parentId,
           role: messages.role,
-          content: messages.content,
           parts: messages.parts,
-          experimental_attachments: messages.experimental_attachments || [],
           createdAt: messages.createdAt,
           updatedAt: messages.updatedAt
         });
@@ -54,8 +67,7 @@ export const messageRouter = createTRPCRouter({
       const result = await ctx.db
         .update(messages)
         .set({
-          ...input.message,
-          createdAt: undefined,
+          parts: input.message.parts,
           updatedAt: new Date()
         })
         .where(
@@ -68,9 +80,7 @@ export const messageRouter = createTRPCRouter({
           id: messages.id,
           parentId: messages.parentId,
           role: messages.role,
-          content: messages.content,
           parts: messages.parts,
-          experimental_attachments: messages.experimental_attachments || [],
           createdAt: messages.createdAt,
           updatedAt: messages.updatedAt
         });

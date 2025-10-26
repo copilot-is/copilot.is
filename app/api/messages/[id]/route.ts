@@ -1,11 +1,11 @@
 import { NextResponse, type NextRequest } from 'next/server';
-import { UIMessage } from '@ai-sdk/ui-utils';
 
+import { ChatMessage } from '@/types';
 import { auth } from '@/server/auth';
 import { api } from '@/trpc/server';
 
 type PutData = {
-  message: UIMessage;
+  message: ChatMessage;
 };
 
 export async function PUT(

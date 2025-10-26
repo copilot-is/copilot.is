@@ -1,38 +1,52 @@
-import { UIMessage } from '@ai-sdk/ui-utils';
+import { UIMessage } from 'ai';
+import { InferSelectModel } from 'drizzle-orm';
 import { z } from 'zod';
 
-import { attachmentSchema } from './attachment';
+import { messages } from '@/server/db/schema';
+
 import {
+  dataUIPartSchema,
+  dynamicToolUIPartSchema,
   fileUIPartSchema,
   reasoningUIPartSchema,
-  sourceUIPartSchema,
+  sourceDocumentUIPartSchema,
+  sourceUrlUIPartSchema,
   stepStartUIPartSchema,
   textUIPartSchema,
-  toolInvocationUIPartSchema
+  toolUIPartSchema
 } from './content-part';
+import type { CustomUIDataTypes } from './ui-data';
 
-declare module 'ai' {
-  interface Message {
-    parentId?: string | null;
-    updatedAt?: Date;
-  }
-}
+export type DBMessage = Omit<
+  InferSelectModel<typeof messages>,
+  'userId' | 'chatId'
+>;
 
-export const messageSchema: z.ZodType<UIMessage> = z.object({
+export const messageMetadataSchema = z.object({
+  parentId: z.string().nullable().optional(),
+  createdAt: z.coerce.date().optional(),
+  updatedAt: z.coerce.date().optional()
+});
+
+export type MessageMetadata = z.infer<typeof messageMetadataSchema>;
+
+export type ChatMessage = UIMessage<MessageMetadata, CustomUIDataTypes>;
+
+export const messageSchema = z.object({
   id: z.string().min(1),
-  parentId: z.string().optional(),
   role: z.enum(['system', 'user', 'assistant']),
-  content: z.string(),
   parts: z.array(
     z.union([
       textUIPartSchema,
       reasoningUIPartSchema,
-      toolInvocationUIPartSchema,
-      sourceUIPartSchema,
+      toolUIPartSchema,
+      dynamicToolUIPartSchema,
+      sourceUrlUIPartSchema,
+      sourceDocumentUIPartSchema,
       fileUIPartSchema,
+      dataUIPartSchema,
       stepStartUIPartSchema
     ])
   ),
-  experimental_attachments: z.array(attachmentSchema).optional(),
-  createdAt: z.coerce.date().optional()
+  metadata: messageMetadataSchema.optional()
 });

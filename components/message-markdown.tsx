@@ -4,11 +4,11 @@ import remarkGfm from 'remark-gfm';
 import { CodeBlock } from '@/components/ui/codeblock';
 import { MemoizedReactMarkdown } from '@/components/markdown';
 
-interface ChatMessageMarkdownProps {
+interface MessageMarkdownProps {
   content: string;
 }
 
-export function ChatMessageMarkdown({ content }: ChatMessageMarkdownProps) {
+export function MessageMarkdown({ content }: MessageMarkdownProps) {
   return (
     <div className="prose break-words dark:prose-invert prose-p:leading-relaxed prose-pre:bg-transparent prose-pre:p-0 prose-hr:my-3 [&_li_p]:!my-0">
       <MemoizedReactMarkdown

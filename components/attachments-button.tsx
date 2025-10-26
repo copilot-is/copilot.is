@@ -5,10 +5,10 @@ import {
   useCallback,
   useRef
 } from 'react';
-import { Attachment } from '@ai-sdk/ui-utils';
 import { CircleNotch, Paperclip } from '@phosphor-icons/react';
 import { toast } from 'sonner';
 
+import { Attachment } from '@/types';
 import { api } from '@/lib/api';
 import { Button } from '@/components/ui/button';
 import {

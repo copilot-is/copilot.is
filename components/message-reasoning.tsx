@@ -1,21 +1,21 @@
 import { useState } from 'react';
-import { ReasoningUIPart } from '@ai-sdk/ui-utils';
 import { CaretDown, CircleNotch, Lightbulb } from '@phosphor-icons/react';
+import { ReasoningUIPart } from 'ai';
 import { AnimatePresence, motion } from 'framer-motion';
 
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { MemoizedReactMarkdown } from '@/components/markdown';
 
-export interface ChatMessageReasoningProps {
+export interface MessageReasoningProps {
   isLoading: boolean;
   part: ReasoningUIPart;
 }
 
-export function ChatMessageReasoning({
+export function MessageReasoning({
   isLoading,
   part
-}: ChatMessageReasoningProps) {
+}: MessageReasoningProps) {
   const [isExpanded, setIsExpanded] = useState(true);
 
   const variants = {
@@ -67,15 +67,7 @@ export function ChatMessageReasoning({
             variants={variants}
             transition={{ duration: 0.2, ease: 'easeInOut' }}
           >
-            {part.details.map((detail, index) =>
-              detail.type === 'text' ? (
-                <MemoizedReactMarkdown key={index}>
-                  {detail.text}
-                </MemoizedReactMarkdown>
-              ) : (
-                '<redacted>'
-              )
-            )}
+            <MemoizedReactMarkdown>{part.text}</MemoizedReactMarkdown>
           </motion.div>
         )}
       </AnimatePresence>
