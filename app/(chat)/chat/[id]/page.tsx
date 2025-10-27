@@ -36,6 +36,7 @@ export default async function Page(props: PageProps) {
 
   return (
     <ChatUI
+      key={chat.id}
       id={chat.id}
       initialChat={{
         title: chat.title,

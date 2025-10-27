@@ -6,5 +6,5 @@ export const maxDuration = 60;
 export default function Page() {
   const id = generateUUID();
 
-  return <ChatUI id={id} key={id} />;
+  return <ChatUI key={id} id={id} />;
 }
