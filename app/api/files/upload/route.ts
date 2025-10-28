@@ -45,8 +45,13 @@ export async function POST(req: Request) {
   const fileBuffer = await file.arrayBuffer();
 
   try {
-    const uploadPath = env.UPLOAD_PATH || 'attachments';
-    const pathname = path.join(uploadPath, session.user.id, filename);
+    const uploadPath = env.UPLOAD_PATH;
+    const pathname = path.join(
+      uploadPath,
+      'attachments',
+      session.user.id,
+      filename
+    );
     const data = await put(pathname, fileBuffer, {
       access: 'public'
     });
