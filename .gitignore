@@ -16,6 +16,9 @@ build
 # typescript
 *.tsbuildinfo
 
+# claude code
+.claude/
+
 # misc
 .DS_Store
 *.pem
