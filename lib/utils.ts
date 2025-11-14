@@ -3,13 +3,14 @@ import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 import { v4 as uuidv4 } from 'uuid';
 
-import { ChatMessage, CustomUIDataTypes, Result } from '@/types';
+import { ChatMessage, ChatType, CustomUIDataTypes, Result } from '@/types';
 import { DBMessage } from '@/types/message';
 import {
   ChatModels,
   ImageModels,
   ServiceProvider,
-  TTSModels
+  TTSModels,
+  VideoModels
 } from '@/lib/constant';
 
 import { env } from './env';
@@ -49,16 +50,30 @@ export function formatString(
   return formattedString;
 }
 
-export function findModelByValue(value: string) {
-  const models = [...ChatModels, ...TTSModels, ...ImageModels];
+export function findModelByValue(type: ChatType, value: string) {
+  let models;
+  switch (type) {
+    case 'chat':
+      models = ChatModels;
+      break;
+    case 'image':
+      models = ImageModels;
+      break;
+    case 'video':
+      models = VideoModels;
+      break;
+    case 'voice':
+      models = TTSModels;
+      break;
+  }
   return models.find(
     model =>
       model.value === value || (model.alias && model.alias.includes(value))
   );
 }
 
-export function isAvailableModel(value: string): boolean {
-  const model = findModelByValue(value);
+export function isAvailableModel(type: ChatType, value: string): boolean {
+  const model = findModelByValue(type, value);
   if (!model) return false;
 
   switch (model.provider) {
@@ -78,7 +93,7 @@ export function isAvailableModel(value: string): boolean {
 }
 
 export function systemPrompt(model: string, prompt: string) {
-  const provider = findModelByValue(model)?.provider;
+  const provider = findModelByValue('chat', model)?.provider;
   const time = new Date().toLocaleString();
   const system = formatString(prompt, {
     ...(provider ? { provider: ServiceProvider[provider] } : {}),

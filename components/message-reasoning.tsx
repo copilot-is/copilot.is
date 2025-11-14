@@ -26,6 +26,11 @@ export function MessageReasoning({ isLoading, part }: MessageReasoningProps) {
     }
   };
 
+  const showReasoning = isLoading || (part.text && part.text.trim().length > 0);
+  if (!showReasoning) {
+    return null;
+  }
+
   return (
     <div className="mb-2">
       <Button

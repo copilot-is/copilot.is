@@ -5,16 +5,17 @@ import { CircleNotch, User } from '@phosphor-icons/react';
 import { ChatMessage, Provider } from '@/types';
 import { cn } from '@/lib/utils';
 import { IconTyping } from '@/components/ui/icons';
+import { AudioPlayer } from '@/components/audio-player';
 import { MessageMarkdown } from '@/components/message-markdown';
 import { MessageReasoning } from '@/components/message-reasoning';
 import { ProviderIcon } from '@/components/provider-icon';
+import { VideoPlayer } from '@/components/video-player';
 
 export interface MessageProps
   extends Partial<Pick<UseChatHelpers<ChatMessage>, 'status'>> {
   message: ChatMessage;
   provider?: Provider;
   isLastMessage?: boolean;
-  isReasoning?: boolean;
   children: React.ReactNode;
 }
 
@@ -23,7 +24,6 @@ export function Message({
   message,
   provider,
   isLastMessage,
-  isReasoning,
   children
 }: MessageProps) {
   return (
@@ -61,8 +61,6 @@ export function Message({
                     part={part}
                     isLoading={
                       isLastMessage === true &&
-                      isReasoning === true &&
-                      status === 'streaming' &&
                       index === message.parts.length - 1
                     }
                   />
@@ -84,33 +82,59 @@ export function Message({
                 );
               }
 
-              if (part.type === 'file' && part.mediaType.startsWith('image/')) {
+              if (part.type === 'file') {
+                // Render image
+                if (part.mediaType.startsWith('image/')) {
+                  return (
+                    <div key={index} className="my-2">
+                      <img
+                        className="h-auto max-w-full rounded-lg border"
+                        src={part.url}
+                        alt={part.filename || 'Generated image'}
+                      />
+                    </div>
+                  );
+                }
+
+                // Render audio
+                if (part.mediaType.startsWith('audio/')) {
+                  return (
+                    <div key={index} className="my-2">
+                      <AudioPlayer src={part.url} />
+                    </div>
+                  );
+                }
+
+                // Render video
+                if (part.mediaType.startsWith('video/')) {
+                  return (
+                    <div key={index} className="my-2">
+                      <VideoPlayer src={part.url} />
+                    </div>
+                  );
+                }
+
+                // Display download link for other file types
                 return (
-                  <img
-                    className="m-0 h-auto max-w-10 rounded-md sm:max-w-32"
+                  <a
                     key={index}
-                    src={part.url}
-                    alt={part.filename}
-                  />
+                    href={part.url}
+                    title={part.filename}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-sm text-primary underline hover:no-underline"
+                  >
+                    Download file
+                  </a>
                 );
               }
             })}
-
             {status === 'streaming' &&
               isLastMessage &&
-              isReasoning &&
-              !message.parts.find(p => p.type === 'reasoning')?.text && (
-                <div className="-ml-1 flex h-8 items-center gap-1 text-sm font-normal text-muted-foreground">
-                  <CircleNotch className="size-4 animate-spin" />
-                  <span>Thinking</span>
-                </div>
-              )}
-            {status === 'streaming' &&
-              isLastMessage &&
-              !isReasoning &&
-              !message.parts.find(p => p.type === 'reasoning')?.text && (
-                <IconTyping className="text-muted-foreground" />
-              )}
+              (message.parts.length <= 1 ||
+                message.parts.some(
+                  part => part.type === 'text' && part.state === 'streaming'
+                )) && <IconTyping className="my-1 text-muted-foreground" />}
           </div>
         </div>
       </div>

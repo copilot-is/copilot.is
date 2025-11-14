@@ -7,6 +7,7 @@ import {
   CheckCircle,
   CircleNotch,
   Copy,
+  DownloadSimple,
   PauseCircle,
   PencilSimple,
   SpeakerHigh,
@@ -71,25 +72,84 @@ export function MessageActions({
   const [isLoadingAudio, setIsLoadingAudio] = React.useState(false);
   const audioRef = React.useRef<HTMLAudioElement | null>(null);
 
-  const textFromParts = message.parts
+  const textParts = message.parts
     ?.filter(part => part.type === 'text')
     .map(part => part.text)
     .join('\n')
     .trim();
 
+  // Check if message contains file content (image, audio, video)
+  const hasFileContent = message.parts?.some(
+    part =>
+      part.type === 'file' &&
+      (part.mediaType.startsWith('image/') ||
+        part.mediaType.startsWith('audio/') ||
+        part.mediaType.startsWith('video/'))
+  );
+
   React.useEffect(() => {
-    setDraftContent(textFromParts);
-  }, [textFromParts]);
+    setDraftContent(textParts);
+  }, [textParts]);
 
   const onCopy = async () => {
     if (isCopied) return;
 
-    if (!textFromParts) {
+    // If message contains file, copy file URL
+    if (hasFileContent) {
+      const filePart = message.parts?.find(
+        part =>
+          part.type === 'file' &&
+          (part.mediaType.startsWith('image/') ||
+            part.mediaType.startsWith('audio/') ||
+            part.mediaType.startsWith('video/'))
+      );
+
+      if (filePart && filePart.type === 'file') {
+        await copyToClipboard(filePart.url);
+        return;
+      }
+    }
+
+    // Otherwise copy text
+    if (!textParts) {
       toast.error("There's no text to copy!");
       return;
     }
 
-    await copyToClipboard(textFromParts);
+    await copyToClipboard(textParts);
+  };
+
+  const onDownload = async () => {
+    if (!hasFileContent) return;
+
+    const filePart = message.parts?.find(
+      part =>
+        part.type === 'file' &&
+        (part.mediaType.startsWith('image/') ||
+          part.mediaType.startsWith('audio/') ||
+          part.mediaType.startsWith('video/'))
+    );
+
+    if (filePart && filePart.type === 'file') {
+      try {
+        // Get file extension
+        const extension = filePart.mediaType.split('/')[1];
+        const fileName = `${message.id}.${extension}`;
+
+        // Create temporary link and trigger download
+        const link = document.createElement('a');
+        link.href = filePart.url;
+        link.download = fileName;
+        link.target = '_blank';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+
+        toast.success('Download started');
+      } catch (error) {
+        toast.error('Failed to download file');
+      }
+    }
   };
 
   const onRead = async () => {
@@ -98,7 +158,7 @@ export function MessageActions({
       const result = await api.createSpeech(
         speechModel,
         speechVoice,
-        textFromParts
+        textParts
       );
       setIsLoadingAudio(false);
 
@@ -146,7 +206,7 @@ export function MessageActions({
         isLastMessage ? 'lg:visible' : 'lg:invisible'
       )}
     >
-      {speechEnabled && (
+      {speechEnabled && !hasFileContent && (
         <Button
           variant="ghost"
           size="icon"
@@ -180,6 +240,17 @@ export function MessageActions({
         )}
         <span className="sr-only">Copy</span>
       </Button>
+      {hasFileContent && (
+        <Button
+          variant="ghost"
+          size="icon"
+          className="size-7 text-muted-foreground"
+          onClick={onDownload}
+        >
+          <DownloadSimple className="size-4" />
+          <span className="sr-only">Download</span>
+        </Button>
+      )}
       {!isReadonly && setMessages && reload && (
         <>
           {isLastMessage && (
@@ -197,81 +268,90 @@ export function MessageActions({
               </span>
             </Button>
           )}
-          <Button
-            variant="ghost"
-            size="icon"
-            className="size-7 text-muted-foreground"
-            disabled={
-              status === 'submitted' || status === 'streaming' || isEditPending
-            }
-            onClick={() => setEditDialogOpen(true)}
-          >
-            <PencilSimple className="size-4" />
-            <span className="sr-only">Edit</span>
-          </Button>
-          <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Edit message</DialogTitle>
-                <DialogDescription>
-                  Edit chat message content.
-                </DialogDescription>
-              </DialogHeader>
-              <Textarea
-                className="min-h-32"
-                defaultValue={draftContent}
-                onChange={e => setDraftContent(e.target.value)}
-                required
-              />
-              <DialogFooter>
-                <Button
-                  disabled={isEditPending || textFromParts === draftContent}
-                  onClick={() => {
-                    startEditTransition(async () => {
-                      if (draftContent) {
-                        const updated = {
-                          ...message,
-                          content: draftContent,
-                          parts: message.parts.map(part =>
-                            part.type === 'text'
-                              ? { type: 'text' as const, text: draftContent }
-                              : part
-                          )
-                        };
+          {!hasFileContent && (
+            <>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="size-7 text-muted-foreground"
+                disabled={
+                  status === 'submitted' ||
+                  status === 'streaming' ||
+                  isEditPending
+                }
+                onClick={() => setEditDialogOpen(true)}
+              >
+                <PencilSimple className="size-4" />
+                <span className="sr-only">Edit</span>
+              </Button>
+              <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>Edit message</DialogTitle>
+                    <DialogDescription>
+                      Edit chat message content.
+                    </DialogDescription>
+                  </DialogHeader>
+                  <Textarea
+                    className="min-h-32"
+                    defaultValue={draftContent}
+                    onChange={e => setDraftContent(e.target.value)}
+                    required
+                  />
+                  <DialogFooter>
+                    <Button
+                      disabled={isEditPending || textParts === draftContent}
+                      onClick={() => {
+                        startEditTransition(async () => {
+                          if (draftContent) {
+                            const updated = {
+                              ...message,
+                              content: draftContent,
+                              parts: message.parts.map(part =>
+                                part.type === 'text'
+                                  ? {
+                                      type: 'text' as const,
+                                      text: draftContent
+                                    }
+                                  : part
+                              )
+                            };
 
-                        const result = await api.updateMessage(updated);
-                        if (result && 'error' in result) {
-                          toast.error(result.error);
-                          return;
-                        }
-                        toast.success('Message saved', { duration: 2000 });
+                            const result = await api.updateMessage(updated);
+                            if (result && 'error' in result) {
+                              toast.error(result.error);
+                              return;
+                            }
+                            toast.success('Message saved', { duration: 2000 });
 
-                        setMessages((messages: any) => {
-                          return messages.map((m: any) =>
-                            m.id === message.id ? updated : m
-                          );
+                            setMessages((messages: any) => {
+                              return messages.map((m: any) =>
+                                m.id === message.id ? updated : m
+                              );
+                            });
+                            setEditDialogOpen(false);
+
+                            if (message.role === 'user') {
+                              reload();
+                            }
+                          }
                         });
-                        setEditDialogOpen(false);
-
-                        if (message.role === 'user') {
-                          reload();
-                        }
-                      }
-                    });
-                  }}
-                >
-                  {isEditPending ? (
-                    <>
-                      <CircleNotch className="animate-spin" />
-                      Saving...
-                    </>
-                  ) : (
-                    <>Save</>
-                  )}
-                </Button>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
+                      }}
+                    >
+                      {isEditPending ? (
+                        <>
+                          <CircleNotch className="animate-spin" />
+                          Saving...
+                        </>
+                      ) : (
+                        <>Save</>
+                      )}
+                    </Button>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
+            </>
+          )}
           <Button
             variant="ghost"
             size="icon"
@@ -316,12 +396,19 @@ export function MessageActions({
                         return;
                       }
                       toast.success('Message deleted', { duration: 2000 });
-                      setMessages((messages: any) =>
-                        messages.filter(
-                          (m: any) =>
-                            m.id !== message.id && m.parentId !== message.id
-                        )
-                      );
+                      setMessages((messages: any) => {
+                        // If deleting user message, also delete all AI messages with it as parentId
+                        if (message.role === 'user') {
+                          return messages.filter(
+                            (m: any) =>
+                              m.id !== message.id &&
+                              m.metadata?.parentId !== message.id
+                          );
+                        }
+
+                        // If deleting AI message, only delete itself
+                        return messages.filter((m: any) => m.id !== message.id);
+                      });
                       setDeleteDialogOpen(false);
                     });
                   }}

@@ -62,15 +62,27 @@ export default function RootLayout({ children }: RootLayoutProps) {
             <SettingsProvider
               defaultSystemSettings={{
                 availableModels: getAvailableModels(),
-                speechEnabled: env.TTS_ENABLED
+                speechEnabled: env.SPEECH_ENABLED
               }}
               defaultUserSettings={{
-                speechModel: env.TTS_MODEL,
-                speechVoice: env.TTS_VOICE
+                speechModel: env.DEFAULT_SPEECH_MODEL,
+                speechVoice: env.DEFAULT_SPEECH_VOICE
               }}
               defaultChatPreferences={{
                 model: env.DEFAULT_CHAT_MODEL,
                 isReasoning: true
+              }}
+              defaultVideoPreferences={{
+                model: env.DEFAULT_VIDEO_MODEL
+              }}
+              defaultVoicePreferences={{
+                model: env.DEFAULT_VOICE_MODEL,
+                voice: 'alloy'
+              }}
+              defaultImagePreferences={{
+                model: env.DEFAULT_IMAGE_MODEL,
+                size: '1024x1024',
+                aspectRatio: '16:9'
               }}
             >
               {children}

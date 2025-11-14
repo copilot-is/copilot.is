@@ -160,7 +160,7 @@ function IconTyping({ className, ...props }: React.ComponentProps<'svg'>) {
       xmlns="http://www.w3.org/2000/svg"
       viewBox="0 0 220 50"
       fill="currentColor"
-      className={cn('h-3 w-8', className)}
+      className={cn('h-6 w-10', className)}
       {...props}
     >
       <circle strokeWidth="15" r="15" cx="30" cy="25">

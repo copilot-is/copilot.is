@@ -8,7 +8,7 @@ import {
 } from '@/types';
 
 const createSpeech = async (model: string, voice: Voice, text: string) => {
-  const res = await fetch('/api/audio', {
+  const res = await fetch('/api/speech', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json'
@@ -151,6 +151,82 @@ const createShare = async (chatId: string) => {
   return json as SharedLink;
 };
 
+const generateVoice = async (params: {
+  id: string;
+  model: string;
+  userMessage: ChatMessage;
+  parentMessageId?: string;
+  voice: Voice;
+}) => {
+  const res = await fetch('/api/audio', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(params)
+  });
+
+  if (!res.ok) {
+    const result = await res.json();
+    return { error: result.error } as Result;
+  }
+
+  const json = await res.json();
+  return json as {
+    title: string;
+    assistantMessage: ChatMessage;
+  };
+};
+
+const generateImage = async (params: {
+  id: string;
+  model: string;
+  userMessage: ChatMessage;
+  parentMessageId?: string;
+  size?: string;
+  aspectRatio?: string;
+  n: number;
+}) => {
+  const res = await fetch('/api/images', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(params)
+  });
+
+  if (!res.ok) {
+    const result = await res.json();
+    return { error: result.error } as Result;
+  }
+
+  const json = await res.json();
+  return json as {
+    title: string;
+    assistantMessage: ChatMessage;
+  };
+};
+
+const generateVideo = async (params: {
+  id: string;
+  model: string;
+  userMessage: ChatMessage;
+  parentMessageId?: string;
+}) => {
+  const res = await fetch('/api/video', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(params)
+  });
+
+  if (!res.ok) {
+    const result = await res.json();
+    return { error: result.error } as Result;
+  }
+
+  const json = await res.json();
+  return json as {
+    title: string;
+    assistantMessage: ChatMessage;
+  };
+};
+
 export const api = {
   createSpeech,
   updateChat,
@@ -160,5 +236,8 @@ export const api = {
   removeMessage,
   uploadFile,
   deleteFile,
-  createShare
+  createShare,
+  generateVoice,
+  generateImage,
+  generateVideo
 };

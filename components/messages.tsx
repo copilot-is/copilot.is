@@ -16,7 +16,6 @@ export interface MessagesProps
   model: string;
   provider?: Provider;
   reload?: () => void;
-  isReasoning?: boolean;
   isReadonly?: boolean;
   className?: string;
 }
@@ -28,7 +27,6 @@ export function Messages({
   reload,
   messages,
   setMessages,
-  isReasoning,
   isReadonly,
   className
 }: MessagesProps) {
@@ -47,7 +45,6 @@ export function Messages({
             message={message}
             provider={provider}
             isLastMessage={isLastMessage}
-            isReasoning={isReasoning}
           >
             <MessageActions
               model={model}

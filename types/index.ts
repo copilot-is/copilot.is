@@ -7,11 +7,22 @@ export { attachmentSchema } from './attachment';
 export type { Attachment } from './attachment';
 
 export type User = Session['user'];
-export type { Chat } from './chat';
+export { chatTypeSchema } from './chat';
+export type { Chat, ChatType } from './chat';
 export type { ChatPreferences } from './chat-preferences';
+export type { VideoPreferences } from './video-preferences';
+export type { VoicePreferences } from './voice-preferences';
+export type { ImagePreferences, ImageSize, ImageAspectRatio } from './image-preferences';
 export type { UserSettings } from './user-settings';
 export type { SystemSettings } from './system-settings';
-export type { Model } from './model';
+export type {
+  Model,
+  ModelOptions,
+  ChatModelOptions,
+  ImageModelOptions,
+  VideoModelOptions,
+  VoiceModelOptions
+} from './model';
 export type { Provider, APIProvider } from './provider';
 export type { Result } from './result';
 export type { Voice, OpenAISpeechParams } from './speech';

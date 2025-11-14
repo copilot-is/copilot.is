@@ -141,13 +141,19 @@ export const ChatModels: Model[] = [
     text: 'Grok 3 mini',
     value: 'grok-3-mini',
     reasoning: true,
-    provider: 'xai'
+    provider: 'xai',
+    options: {
+      isReasoning: true
+    }
   },
   {
     text: 'Grok 3 mini fast',
     value: 'grok-3-mini-fast',
     reasoning: true,
-    provider: 'xai'
+    provider: 'xai',
+    options: {
+      isReasoning: true
+    }
   },
   {
     text: 'Grok 2',
@@ -175,21 +181,109 @@ export const ChatModels: Model[] = [
     options: {
       isReasoning: true
     }
-  }
+  },
 ];
 
 export const ImageModels: Model[] = [
   {
+    text: 'GPT Image 1',
+    value: 'gpt-image-1',
+    provider: 'openai',
+    options: {
+      size: ['1024x1024', '1536x1024', '1024x1536']
+    }
+  },
+  {
     text: 'DALL·E 3',
     value: 'dall-e-3',
-    provider: 'openai'
+    provider: 'openai',
+    options: {
+      size: ['1024x1024', '1792x1024', '1024x1792']
+    }
   },
   {
     text: 'DALL·E 2',
     value: 'dall-e-2',
+    provider: 'openai',
+    options: {
+      size: ['256x256', '512x512', '1024x1024']
+    }
+  },
+  {
+    text: 'Grok 2 Image',
+    value: 'grok-2-image',
+    provider: 'xai'
+  },
+  {
+    text: 'Imagen 3',
+    value: 'imagen-3.0-generate-002',
+    provider: 'google',
+    options: {
+      aspectRatio: ['1:1', '3:4', '4:3', '9:16', '16:9']
+    }
+  },
+  {
+    text: 'Imagen 4',
+    value: 'imagen-4.0-generate-001',
+    provider: 'google',
+    options: {
+      aspectRatio: ['1:1', '3:4', '4:3', '9:16', '16:9']
+    }
+  },
+  {
+    text: 'Imagen 4 Ultra',
+    value: 'imagen-4.0-ultra-generate-001',
+    provider: 'google',
+    options: {
+      aspectRatio: ['1:1', '3:4', '4:3', '9:16', '16:9']
+    }
+  },
+  {
+    text: 'Imagen 4 Fast',
+    value: 'imagen-4.0-fast-generate-001',
+    provider: 'google',
+    options: {
+      aspectRatio: ['1:1', '3:4', '4:3', '9:16', '16:9']
+    }
+  }
+];
+
+export const VideoModels: Model[] = [
+  {
+    text: 'Sora 2',
+    value: 'sora-2',
     provider: 'openai'
   },
-  { text: 'Grok 2 Image', value: 'grok-2-image', provider: 'xai' }
+  {
+    text: 'Sora 2 Pro',
+    value: 'sora-2-pro',
+    provider: 'openai'
+  },
+  {
+    text: 'Veo 3.1',
+    value: 'veo-3.1-generate-preview',
+    provider: 'google'
+  },
+  {
+    text: 'Veo 3.1 Fast',
+    value: 'veo-3.1-fast-generate-preview',
+    provider: 'google'
+  },
+  {
+    text: 'Veo 3',
+    value: 'veo-3.0-generate-001',
+    provider: 'google'
+  },
+  {
+    text: 'Veo 3 Fast',
+    value: 'veo-3.0-fast-generate-001',
+    provider: 'google'
+  },
+  {
+    text: 'Veo 2',
+    value: 'veo-2.0-generate-001',
+    provider: 'google'
+  }
 ];
 
 export const TTSModels: Model[] = [

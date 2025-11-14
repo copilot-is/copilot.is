@@ -18,7 +18,7 @@ export function SidebarItem({ chat }: SidebarItemProps) {
   const params = useParams<{ id?: string }>();
   const [isOpen, setIsOpen] = React.useState(false);
 
-  const provider = findModelByValue(chat.model)?.provider;
+  const provider = findModelByValue(chat.type, chat.model)?.provider;
 
   return (
     <div
@@ -30,11 +30,11 @@ export function SidebarItem({ chat }: SidebarItemProps) {
         }
       )}
     >
-      <div className="flex size-6 items-center justify-center rounded-full border bg-background">
+      <div className="flex size-5 items-center justify-center rounded-full border bg-background">
         <ProviderIcon provider={provider} />
       </div>
       <Link
-        href={`/chat/${chat.id}`}
+        href={`/${chat.type || 'chat'}/${chat.id}`}
         className={cn(
           'w-full flex-1 items-center justify-start truncate p-1.5 text-sm',
           { 'font-medium': chat.id === params.id }

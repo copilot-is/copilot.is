@@ -1,7 +1,7 @@
 import { and, eq } from 'drizzle-orm';
 import { z } from 'zod';
 
-import { messageSchema, Usage } from '@/types';
+import { chatTypeSchema, messageSchema } from '@/types';
 import { createTRPCRouter, protectedProcedure } from '@/server/api/trpc';
 import { chats, messages } from '@/server/db/schema';
 
@@ -11,6 +11,7 @@ export const chatRouter = createTRPCRouter({
       z.object({
         id: z.string().min(1),
         title: z.string().trim().min(1).max(255),
+        type: chatTypeSchema.default('chat'),
         model: z.string().trim().min(1).max(255),
         messages: z.array(messageSchema)
       })
@@ -19,6 +20,7 @@ export const chatRouter = createTRPCRouter({
       await ctx.db.insert(chats).values({
         id: input.id,
         title: input.title,
+        type: input.type,
         model: input.model,
         userId: ctx.session.user.id
       });
@@ -61,12 +63,14 @@ export const chatRouter = createTRPCRouter({
     .input(
       z
         .object({
+          type: chatTypeSchema.optional(),
           limit: z.number().min(1).default(50).optional(),
           offset: z.number().min(0).default(0).optional()
         })
         .optional()
     )
     .query(async ({ ctx, input }) => {
+      const type = input?.type;
       const limit = input?.limit ?? 50;
       const offset = input?.offset ?? 0;
 
@@ -74,7 +78,10 @@ export const chatRouter = createTRPCRouter({
         orderBy: (chats, { desc }) => [desc(chats.createdAt)],
         limit: limit,
         offset: offset,
-        where: eq(chats.userId, ctx.session.user.id),
+        where: and(
+          eq(chats.userId, ctx.session.user.id),
+          type ? eq(chats.type, type) : undefined
+        ),
         columns: {
           userId: false
         }
@@ -85,6 +92,7 @@ export const chatRouter = createTRPCRouter({
     .input(
       z.object({
         id: z.string().min(1),
+        type: chatTypeSchema.optional(),
         includeMessages: z.boolean().default(true)
       })
     )
@@ -92,7 +100,8 @@ export const chatRouter = createTRPCRouter({
       const chat = await ctx.db.query.chats.findFirst({
         where: and(
           eq(chats.id, input.id),
-          eq(chats.userId, ctx.session.user.id)
+          eq(chats.userId, ctx.session.user.id),
+          input.type ? eq(chats.type, input.type) : undefined
         ),
         with: {
           messages: input.includeMessages

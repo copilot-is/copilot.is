@@ -79,9 +79,9 @@ export const env = createEnv({
     DEEPSEEK_MODELS: z.string().optional(),
 
     // TTS
-    TTS_ENABLED: z.coerce.boolean().default(false),
-    TTS_MODEL: z.enum(['tts-1', 'tts-1-hd']).default('tts-1'),
-    TTS_VOICE: z
+    SPEECH_ENABLED: z.coerce.boolean().default(false),
+    DEFAULT_SPEECH_MODEL: z.enum(['tts-1', 'tts-1-hd']).default('tts-1'),
+    DEFAULT_SPEECH_VOICE: z
       .enum([
         'alloy',
         'ash',
@@ -98,6 +98,9 @@ export const env = createEnv({
     // Default Model
     DEFAULT_CHAT_MODEL: z.string().default('gpt-4o'),
     GENERATE_TITLE_MODEL: z.string().default('gpt-4o-mini'),
+    DEFAULT_VIDEO_MODEL: z.string().default('sora-2'),
+    DEFAULT_VOICE_MODEL: z.string().default('tts-1'),
+    DEFAULT_IMAGE_MODEL: z.string().default('dall-e-3'),
 
     // Upload Path
     UPLOAD_PATH: z.string().default('attachments'),
@@ -175,14 +178,17 @@ export const env = createEnv({
     DEEPSEEK_MODELS: process.env.XAI_MODELS,
 
     // TTS
-    TTS_ENABLED: process.env.TTS_ENABLED === 'true',
-    TTS_MODEL: process.env.TTS_MODEL,
-    TTS_VOICE: process.env.TTS_VOICE,
+    SPEECH_ENABLED: process.env.SPEECH_ENABLED === 'true',
+    DEFAULT_SPEECH_MODEL: process.env.DEFAULT_SPEECH_MODEL,
+    DEFAULT_SPEECH_VOICE: process.env.DEFAULT_SPEECH_VOICE,
 
     // Default Model
     DEFAULT_CHAT_MODEL:
       process.env.DEFAULT_CHAT_MODEL || process.env.DEFAULT_MODEL,
     GENERATE_TITLE_MODEL: process.env.GENERATE_TITLE_MODEL,
+    DEFAULT_VIDEO_MODEL: process.env.DEFAULT_VIDEO_MODEL,
+    DEFAULT_VOICE_MODEL: process.env.DEFAULT_VOICE_MODEL,
+    DEFAULT_IMAGE_MODEL: process.env.DEFAULT_IMAGE_MODEL,
 
     UPLOAD_PATH: process.env.UPLOAD_PATH,
 

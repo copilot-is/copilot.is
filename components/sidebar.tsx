@@ -5,7 +5,8 @@ import * as React from 'react';
 import { cn } from '@/lib/utils';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useSidebar } from '@/hooks/use-sidebar';
-import { NewChat } from '@/components/new-chat';
+import { SidebarHeader } from '@/components/sidebar-header';
+import { NewContent } from '@/components/new-content';
 import { SidebarList } from '@/components/sidebar-list';
 import { UserMenu } from '@/components/user-menu';
 
@@ -29,7 +30,8 @@ export function Sidebar() {
         )}
         onClick={isMobile ? closeSidebar : undefined}
       >
-        <NewChat />
+        <SidebarHeader />
+        <NewContent />
         <SidebarList />
         <UserMenu />
       </section>

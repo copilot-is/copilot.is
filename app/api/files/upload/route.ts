@@ -45,9 +45,8 @@ export async function POST(req: Request) {
   const fileBuffer = await file.arrayBuffer();
 
   try {
-    const uploadPath = env.UPLOAD_PATH;
     const pathname = path.join(
-      uploadPath,
+      env.UPLOAD_PATH,
       'attachments',
       session.user.id,
       filename

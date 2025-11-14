@@ -1,0 +1,113 @@
+import React from 'react';
+import { ArrowUp, CircleNotch } from '@phosphor-icons/react';
+import Textarea from 'react-textarea-autosize';
+
+import { VideoModels } from '@/lib/constant';
+import { findModelByValue } from '@/lib/utils';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue
+} from '@/components/ui/select';
+import { Button } from '@/components/ui/button';
+import { ProviderIcon } from '@/components/provider-icon';
+
+export interface VideoPromptFormProps {
+  model: string;
+  setModel: (value: string) => void;
+  input: string;
+  setInput: (value: string) => void;
+  isLoading: boolean;
+  onSubmit: () => void;
+}
+
+export function VideoPromptForm({
+  model,
+  setModel,
+  input,
+  setInput,
+  isLoading,
+  onSubmit
+}: VideoPromptFormProps) {
+  const selectedModel = findModelByValue('video', model);
+
+  return (
+    <div className="w-full rounded-2xl border bg-background p-4 shadow-md">
+      <div className="relative flex w-full items-start space-x-2">
+        <Textarea
+          autoFocus
+          required
+          tabIndex={0}
+          spellCheck={false}
+          placeholder="Describe the video you want to generate..."
+          className="flex-1 resize-none bg-transparent p-1 focus-within:outline-none"
+          rows={1}
+          minRows={1}
+          maxRows={8}
+          disabled={isLoading}
+          value={input}
+          onChange={e => setInput(e.target.value)}
+          onKeyDown={e => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+              if (!input.trim()) {
+                e.preventDefault();
+                return;
+              }
+              e.preventDefault();
+              onSubmit();
+            }
+          }}
+        />
+      </div>
+      <div className="mt-5 flex items-center justify-between space-x-2">
+        <div className="flex items-center space-x-2">
+          <Select value={model} onValueChange={setModel} disabled={isLoading}>
+            <SelectTrigger className="h-9 rounded-full border shadow-none hover:bg-accent">
+              <SelectValue placeholder="Select model">
+                <div className="flex items-center">
+                  <ProviderIcon provider={selectedModel?.provider} />
+                  <span className="ml-2 text-sm font-medium">
+                    {selectedModel?.text}
+                  </span>
+                </div>
+              </SelectValue>
+            </SelectTrigger>
+            <SelectContent>
+              {VideoModels.map(m => (
+                <SelectItem key={m.value} value={m.value}>
+                  <div className="flex items-center">
+                    <ProviderIcon provider={m.provider} />
+                    <div className="ml-2">
+                      <div className="font-medium">{m.text}</div>
+                      <div className="text-xs text-muted-foreground">
+                        {m.value}
+                      </div>
+                    </div>
+                  </div>
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="flex items-center space-x-2">
+          <Button
+            type="button"
+            size="icon"
+            className="size-9 rounded-full shadow-none"
+            onClick={onSubmit}
+            disabled={isLoading || !input.trim()}
+          >
+            {isLoading ? (
+              <CircleNotch className="size-4 animate-spin" />
+            ) : (
+              <ArrowUp className="size-4" />
+            )}
+            <span className="sr-only">Generate Video</span>
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
+}

@@ -31,7 +31,7 @@ export default async function Page(props: PageProps) {
     notFound();
   }
 
-  const provider = findModelByValue(chat.model)?.provider;
+  const provider = findModelByValue(chat.type, chat.model)?.provider;
   const chatMessages = convertToChatMessages(chat.messages);
 
   return (

@@ -27,7 +27,7 @@ export const maxDuration = 60;
 type PostData = {
   id: string;
   model: string;
-  message: Omit<ChatMessage, 'role'> & { role: 'user' };
+  userMessage: Omit<ChatMessage, 'role'> & { role: 'user' };
   parentMessageId?: string;
   isReasoning?: boolean;
 };
@@ -41,31 +41,29 @@ export async function POST(req: Request) {
 
   const json: PostData = await req.json();
   const id = json.id || generateUUID();
-  const { model, message: userMessage, parentMessageId, isReasoning } = json;
+  const { model, userMessage, parentMessageId, isReasoning } = json;
 
-  if (!model) {
-    return NextResponse.json({ error: 'model required' }, { status: 400 });
+  if (!model || !userMessage) {
+    return NextResponse.json(
+      { error: 'Invalid model and userMessage parameters' },
+      { status: 400 }
+    );
   }
 
-  if (!isAvailableModel(model)) {
+  if (!isAvailableModel('chat', model)) {
     return NextResponse.json(
       { error: `Model ${model} is not available` },
       { status: 403 }
     );
   }
 
-  if (!userMessage) {
-    return NextResponse.json(
-      { error: 'No user message found' },
-      { status: 400 }
-    );
-  }
-
   let title = 'Untitled';
-  let isNew = false;
-  const chat = await api.chat.detail.query({ id, includeMessages: false });
+  const chat = await api.chat.detail.query({
+    id,
+    type: 'chat',
+    includeMessages: false
+  });
   if (!chat) {
-    isNew = true;
     try {
       const { text } = await generateText({
         model: provider.languageModel(env.GENERATE_TITLE_MODEL),
@@ -108,7 +106,7 @@ export async function POST(req: Request) {
 
     const stream = createUIMessageStream<ChatMessage>({
       execute: async ({ writer }) => {
-        writer.write({ type: 'data-chat', data: { title, isNew } });
+        writer.write({ type: 'data-chat', data: { title } });
 
         const res = streamText({
           model: provider.languageModel(model),

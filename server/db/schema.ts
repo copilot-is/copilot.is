@@ -12,7 +12,7 @@ import {
 } from 'drizzle-orm/pg-core';
 import { type AdapterAccount } from 'next-auth/adapters';
 
-import { ChatMessage } from '@/types';
+import { ChatMessage, ChatType } from '@/types';
 
 /**
  * This is an example of how to use the multi-project schema feature of Drizzle ORM. Use the same
@@ -27,6 +27,10 @@ export const chats = createTable(
   {
     id: varchar('id', { length: 255 }).notNull().primaryKey(),
     title: varchar('title', { length: 255 }).notNull(),
+    type: varchar('type', { length: 32 })
+      .notNull()
+      .default('chat')
+      .$type<ChatType>(),
     model: varchar('model', { length: 255 }).notNull(),
     userId: varchar('user_id', { length: 255 })
       .notNull()
@@ -36,7 +40,14 @@ export const chats = createTable(
   },
   chat => [
     index('chat_userId_idx').on(chat.userId),
-    index('chat_createdAt_idx').on(chat.createdAt)
+    index('chat_type_idx').on(chat.type),
+    index('chat_createdAt_idx').on(chat.createdAt),
+    index('chat_userId_createdAt_idx').on(chat.userId, chat.createdAt),
+    index('chat_userId_type_createdAt_idx').on(
+      chat.userId,
+      chat.type,
+      chat.createdAt
+    )
   ]
 );
 

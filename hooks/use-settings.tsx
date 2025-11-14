@@ -2,8 +2,14 @@
 
 import * as React from 'react';
 
-import { ChatPreferences, SystemSettings, UserSettings } from '@/types';
-import { findModelByValue } from '@/lib/utils';
+import {
+  ChatPreferences,
+  ImagePreferences,
+  SystemSettings,
+  UserSettings,
+  VideoPreferences,
+  VoicePreferences
+} from '@/types';
 import { useLocalStorage } from '@/hooks/use-local-storage';
 
 type SettingsContextProps = {
@@ -17,6 +23,21 @@ type SettingsContextProps = {
   setChatPreferences: (
     key: keyof ChatPreferences,
     value?: ChatPreferences[keyof ChatPreferences] | null
+  ) => void;
+  videoPreferences: VideoPreferences;
+  setVideoPreferences: (
+    key: keyof VideoPreferences,
+    value?: VideoPreferences[keyof VideoPreferences] | null
+  ) => void;
+  voicePreferences: VoicePreferences;
+  setVoicePreferences: (
+    key: keyof VoicePreferences,
+    value?: VoicePreferences[keyof VoicePreferences] | null
+  ) => void;
+  imagePreferences: ImagePreferences;
+  setImagePreferences: (
+    key: keyof ImagePreferences,
+    value?: ImagePreferences[keyof ImagePreferences] | null
   ) => void;
 };
 
@@ -36,37 +57,51 @@ export const SettingsProvider = ({
   defaultSystemSettings,
   defaultUserSettings,
   defaultChatPreferences,
+  defaultVideoPreferences,
+  defaultVoicePreferences,
+  defaultImagePreferences,
   children
 }: {
   defaultSystemSettings: SystemSettings;
   defaultUserSettings: UserSettings;
   defaultChatPreferences: ChatPreferences;
+  defaultVideoPreferences: VideoPreferences;
+  defaultVoicePreferences: VoicePreferences;
+  defaultImagePreferences: ImagePreferences;
   children: React.ReactNode;
 }) => {
   const [userSettings, setUserSettings, userSettingsLoading] =
     useLocalStorage<UserSettings>('user-settings', defaultUserSettings);
-  const [chatPreferences, setChatPreferences, userChatPreferences] =
+  const [chatPreferences, setChatPreferences, chatPreferencesLoading] =
     useLocalStorage<ChatPreferences>(
       'chat-preferences',
       defaultChatPreferences
     );
+  const [videoPreferences, setVideoPreferences, videoPreferencesLoading] =
+    useLocalStorage<VideoPreferences>(
+      'video-preferences',
+      defaultVideoPreferences
+    );
+  const [voicePreferences, setVoicePreferences, voicePreferencesLoading] =
+    useLocalStorage<VoicePreferences>(
+      'voice-preferences',
+      defaultVoicePreferences
+    );
+  const [imagePreferences, setImagePreferences, imagePreferencesLoading] =
+    useLocalStorage<ImagePreferences>(
+      'image-preferences',
+      defaultImagePreferences
+    );
 
-  const isLoading = userSettingsLoading && userChatPreferences;
+  const isLoading =
+    userSettingsLoading ||
+    chatPreferencesLoading ||
+    videoPreferencesLoading ||
+    voicePreferencesLoading ||
+    imagePreferencesLoading;
 
   if (isLoading) {
     return null;
-  }
-
-  function getChatPreferences(
-    chatPreferences: ChatPreferences
-  ): ChatPreferences {
-    const isReasoning = findModelByValue(chatPreferences.model)?.options
-      ?.isReasoning;
-    if (!isReasoning) {
-      const { isReasoning, ...rest } = chatPreferences;
-      return rest;
-    }
-    return chatPreferences;
   }
 
   return (
@@ -92,7 +127,7 @@ export const SettingsProvider = ({
             });
           }
         },
-        chatPreferences: getChatPreferences(chatPreferences),
+        chatPreferences,
         setChatPreferences: (
           key: keyof ChatPreferences,
           value?: ChatPreferences[keyof ChatPreferences] | null
@@ -107,6 +142,63 @@ export const SettingsProvider = ({
           } else {
             setChatPreferences({
               ...chatPreferences,
+              [key]: value
+            });
+          }
+        },
+        videoPreferences,
+        setVideoPreferences: (
+          key: keyof VideoPreferences,
+          value?: VideoPreferences[keyof VideoPreferences] | null
+        ) => {
+          if (value === null || value === undefined) {
+            if (videoPreferences[key] !== defaultVideoPreferences[key]) {
+              setVideoPreferences({
+                ...videoPreferences,
+                [key]: defaultVideoPreferences[key]
+              });
+            }
+          } else {
+            setVideoPreferences({
+              ...videoPreferences,
+              [key]: value
+            });
+          }
+        },
+        voicePreferences,
+        setVoicePreferences: (
+          key: keyof VoicePreferences,
+          value?: VoicePreferences[keyof VoicePreferences] | null
+        ) => {
+          if (value === null || value === undefined) {
+            if (voicePreferences[key] !== defaultVoicePreferences[key]) {
+              setVoicePreferences({
+                ...voicePreferences,
+                [key]: defaultVoicePreferences[key]
+              });
+            }
+          } else {
+            setVoicePreferences({
+              ...voicePreferences,
+              [key]: value
+            });
+          }
+        },
+        imagePreferences,
+        setImagePreferences: (
+          key: keyof ImagePreferences,
+          value?: ImagePreferences[keyof ImagePreferences] | null
+        ) => {
+          if (value === null || value === undefined) {
+            if (imagePreferences[key] !== defaultImagePreferences[key]) {
+              setImagePreferences({
+                ...imagePreferences,
+                [key]: defaultImagePreferences[key]
+              });
+            }
+          } else {
+            setImagePreferences({
+              ...imagePreferences,
               [key]: value
             });
           }

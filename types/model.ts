@@ -1,4 +1,27 @@
+import { ImageSize } from './image-preferences';
 import { Provider } from './provider';
+
+export type ChatModelOptions = {
+  isReasoning?: boolean;
+};
+
+export type ImageModelOptions = {
+  size?: ImageSize[];
+  aspectRatio?: string[];
+};
+
+export type VideoModelOptions = {
+  // Reserved for future video-specific options
+};
+
+export type VoiceModelOptions = {
+  // Reserved for future voice-specific options
+};
+
+export type ModelOptions = ChatModelOptions &
+  ImageModelOptions &
+  VideoModelOptions &
+  VoiceModelOptions;
 
 export type Model = {
   text: string;
@@ -7,9 +30,7 @@ export type Model = {
   vision?: boolean;
   reasoning?: boolean;
   provider: Provider;
-  options?: {
-    isReasoning?: boolean;
-  };
+  options?: ModelOptions;
   maxOutputTokens?: number;
   parameters?: ModelParameters;
 };

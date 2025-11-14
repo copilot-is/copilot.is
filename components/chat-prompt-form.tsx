@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react';
+import { useState } from 'react';
 import { UseChatHelpers } from '@ai-sdk/react';
 import { ArrowUp, CircleNotch, Lightbulb, Stop } from '@phosphor-icons/react';
 import Textarea from 'react-textarea-autosize';
@@ -10,9 +10,9 @@ import { useSettings } from '@/hooks/use-settings';
 import { Button } from '@/components/ui/button';
 import { AttachmentsButton } from '@/components/attachments-button';
 import { AttachmentsPreview } from '@/components/attachments-preview';
-import { ModelMenu } from '@/components/model-menu';
+import { ChatModelMenu } from '@/components/chat-model-menu';
 
-export interface PromptFormProps
+export interface ChatPromptFormProps
   extends Pick<UseChatHelpers<ChatMessage>, 'status' | 'stop'> {
   model: string;
   setModel: (value: string) => void;
@@ -22,7 +22,7 @@ export interface PromptFormProps
   onSubmit: (attachments?: Attachment[]) => void;
 }
 
-export function PromptForm({
+export function ChatPromptForm({
   model,
   setModel,
   status,
@@ -31,13 +31,13 @@ export function PromptForm({
   setInput,
   onInputChange,
   onSubmit
-}: PromptFormProps) {
+}: ChatPromptFormProps) {
   const { chatPreferences, setChatPreferences } = useSettings();
   const { isReasoning } = chatPreferences;
   const { formRef, onKeyDown } = useEnterSubmit();
   const [uploadQueue, setUploadQueue] = useState<Array<string>>([]);
   const [attachments, setAttachments] = useState<Attachment[]>([]);
-  const selectedModel = findModelByValue(model);
+  const selectedModel = findModelByValue('chat', model);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -96,15 +96,19 @@ export function PromptForm({
         </div>
         <div className="mt-5 flex items-center justify-between space-x-2">
           <div className="flex items-center space-x-2">
-            <ModelMenu model={model} setModel={setModel} status={status} />
+            <ChatModelMenu model={model} setModel={setModel} status={status} />
             {selectedModel?.options?.isReasoning && (
               <Button
                 type="button"
                 variant="outline"
                 disabled={status === 'submitted' || status === 'streaming'}
-                className={cn('h-9 rounded-full px-3 shadow-none', {
-                  'border-muted-foreground/30 bg-muted': isReasoning
-                })}
+                className={cn(
+                  'h-9 rounded-full px-3 font-normal text-muted-foreground shadow-none hover:text-muted-foreground',
+                  {
+                    'border-muted-foreground/30 bg-muted text-foreground hover:text-foreground':
+                      isReasoning
+                  }
+                )}
                 onClick={async () => {
                   setChatPreferences('isReasoning', !isReasoning);
                 }}

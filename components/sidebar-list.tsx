@@ -1,6 +1,6 @@
 'use client';
 
-import { Fragment, useCallback, useEffect, useRef, useState } from 'react';
+import { Fragment, useCallback, useEffect, useRef } from 'react';
 import { CircleNotch } from '@phosphor-icons/react';
 import { compareDesc, isToday, isYesterday, subDays } from 'date-fns';
 
@@ -60,7 +60,7 @@ export function SidebarList() {
   };
 
   return (
-    <div className="flex-1 overflow-auto" ref={listRef}>
+    <div className="mt-3 flex-1 overflow-auto" ref={listRef}>
       {isLoading && chats.length === 0 && (
         <div className="flex size-full items-center justify-center">
           <CircleNotch className="size-8 animate-spin text-muted-foreground" />
@@ -72,7 +72,7 @@ export function SidebarList() {
         </div>
       )}
       {!isLoading && chats.length > 0 && (
-        <div className="space-y-2 px-3">
+        <div className="space-y-1 px-3">
           {Categories.map((category, index) => {
             const groupedChats = getSortedChats(chats, category.value);
             return (

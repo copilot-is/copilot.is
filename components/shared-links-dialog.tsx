@@ -88,7 +88,7 @@ export function SharedLinksDialog({
                   <thead>
                     <tr>
                       <th className="p-2 pl-px text-left">Name</th>
-                      <th className="w-40 p-2 text-left">Date shared</th>
+                      <th className="w-60 p-2 text-left">Date shared</th>
                       <th className="w-8 text-right">
                         <Button
                           variant="ghost"

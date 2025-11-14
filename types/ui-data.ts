@@ -5,7 +5,7 @@ import type { UsageData } from 'tokenlens/helpers';
 export type Usage = LanguageModelUsage & UsageData & { modelId?: string };
 
 export type CustomUIDataTypes = {
-  chat: { title: string; isNew: boolean };
+  chat: { title: string };
   usage: Usage;
   appendMessage: string;
 };

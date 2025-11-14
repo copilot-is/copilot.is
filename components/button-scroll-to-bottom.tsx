@@ -20,7 +20,7 @@ export function ButtonScrollToBottom({
   const scrollToBottom = useScrollToBottom();
 
   useEffect(() => {
-    if (status === 'streaming') {
+    if (status === 'submitted' || status === 'streaming') {
       scrollToBottom({ behavior: 'smooth' });
     }
   }, [status, messages, scrollToBottom]);

@@ -2,12 +2,13 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useChat } from '@ai-sdk/react';
+import { ChatDots } from '@phosphor-icons/react';
 import { DefaultChatTransport } from 'ai';
 import ScrollToBottom from 'react-scroll-to-bottom';
 import { toast } from 'sonner';
 
 import { Attachment, Chat, ChatMessage } from '@/types';
-import { env } from '@/lib/env';
+import { CustomUIDataTypes } from '@/types/ui-data';
 import {
   cn,
   findModelByValue,
@@ -17,11 +18,9 @@ import {
 import { refreshChats, updateChatInCache } from '@/hooks/use-chats';
 import { useSettings } from '@/hooks/use-settings';
 import { ChatHeader } from '@/components/chat-header';
+import { ChatPromptForm } from '@/components/chat-prompt-form';
 import { EmptyScreen } from '@/components/empty-screen';
 import { Messages } from '@/components/messages';
-import { PromptForm } from '@/components/prompt-form';
-
-const PRODUCT_NAME = env.NEXT_PUBLIC_PRODUCT_NAME;
 
 interface ChatUIProps {
   id: string;
@@ -29,23 +28,31 @@ interface ChatUIProps {
   initialMessages?: ChatMessage[];
 }
 
-export function ChatUI({ id, initialChat, initialMessages }: ChatUIProps) {
+export function ChatUI({ id, initialChat, initialMessages = [] }: ChatUIProps) {
   const { chatPreferences, setChatPreferences } = useSettings();
-  const { isReasoning } = chatPreferences;
 
   const initialTitle = initialChat?.title;
   const initialModel = initialChat?.model || chatPreferences.model;
 
-  const [title, setTitle] = useState(initialTitle);
-  const [model, setModel] = useState(initialModel);
   const [input, setInput] = useState('');
+  const [title, setTitle] = useState(initialTitle);
+  const [chatModel, setChatModel] = useState(initialModel);
   const [selectedModel, setSelectedModel] = useState(initialModel);
-  const provider = findModelByValue(model)?.provider;
+
+  const provider = useMemo(
+    () => findModelByValue('chat', chatModel)?.provider,
+    [chatModel]
+  );
+
+  const isReasoning = useMemo(
+    () => findModelByValue('chat', selectedModel)?.options?.isReasoning,
+    [selectedModel]
+  );
 
   const chatRequestBody = useMemo(
     () => ({
       model: selectedModel || chatPreferences.model,
-      isReasoning: chatPreferences.isReasoning
+      isReasoning: isReasoning ? chatPreferences.isReasoning : undefined
     }),
     [selectedModel, chatPreferences]
   );
@@ -57,18 +64,18 @@ export function ChatUI({ id, initialChat, initialMessages }: ChatUIProps) {
 
   const resetModel = useCallback(
     (newModel: string) => {
-      if (model !== selectedModel) {
-        setModel(newModel);
+      if (chatModel !== selectedModel) {
+        setChatModel(newModel);
         updateChatInCache(id, { model: newModel });
       }
     },
-    [id, model, selectedModel]
+    [id, chatModel, selectedModel]
   );
 
   const { status, messages, stop, regenerate, setMessages, sendMessage } =
     useChat<ChatMessage>({
       id,
-      messages: initialMessages || [],
+      messages: initialMessages,
       experimental_throttle: 100,
       generateId: generateUUID,
       transport: new DefaultChatTransport({
@@ -78,7 +85,7 @@ export function ChatUI({ id, initialChat, initialMessages }: ChatUIProps) {
           return {
             body: {
               id,
-              message: userMessage,
+              userMessage,
               timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
               ...chatRequestBodyRef.current,
               ...body
@@ -89,23 +96,13 @@ export function ChatUI({ id, initialChat, initialMessages }: ChatUIProps) {
       onData: dataPart => {
         console.log('onData<Client>', dataPart);
         if (dataPart.type === 'data-chat' && dataPart.data) {
-          const chatData = dataPart.data;
-          const chatTitle = chatData.title;
-          const isNewChat = chatData.isNew;
-
-          if (isNewChat) {
-            window.history.replaceState({}, '', `/chat/${id}`);
-            refreshChats();
-          }
-
-          const documentTitle = chatTitle
-            ? `${chatTitle} - ${PRODUCT_NAME}`
-            : `${initialTitle || 'Untitled'} - ${PRODUCT_NAME}`;
-          if (chatTitle && documentTitle !== document.title) {
-            document.title = documentTitle;
-            setTitle(chatTitle);
-          } else if (!chatTitle && initialTitle !== title) {
-            setTitle(initialTitle);
+          const chatData = dataPart.data as CustomUIDataTypes['chat'];
+          if (chatData.title) {
+            if (!title) {
+              window.history.replaceState({}, '', `/chat/${id}`);
+              refreshChats();
+            }
+            setTitle(chatData.title);
           }
         }
       },
@@ -122,7 +119,7 @@ export function ChatUI({ id, initialChat, initialMessages }: ChatUIProps) {
 
   const noChat = useMemo(
     () => !title && status === 'ready' && messages.length === 0,
-    [title, status, messages]
+    [title, status, messages.length]
   );
 
   const handleReload = useCallback(() => {
@@ -170,7 +167,6 @@ export function ChatUI({ id, initialChat, initialMessages }: ChatUIProps) {
             messages={messages}
             setMessages={setMessages}
             reload={handleReload}
-            isReasoning={isReasoning}
           />
         </ScrollToBottom>
       </div>
@@ -179,8 +175,13 @@ export function ChatUI({ id, initialChat, initialMessages }: ChatUIProps) {
           'mb-20 flex h-full flex-col items-center justify-center': noChat
         })}
       >
-        {noChat && <EmptyScreen />}
-        <PromptForm
+        {noChat && (
+          <EmptyScreen
+            icon={<ChatDots className="mx-auto mb-4 h-12 w-12 opacity-50" />}
+            text="How can I help you today?"
+          />
+        )}
+        <ChatPromptForm
           model={selectedModel}
           setModel={value => {
             setSelectedModel(value);

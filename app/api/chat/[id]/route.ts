@@ -4,39 +4,6 @@ import { Chat } from '@/types';
 import { auth } from '@/server/auth';
 import { api } from '@/trpc/server';
 
-export async function GET(
-  req: NextRequest,
-  props: { params: Promise<{ id: string }> }
-) {
-  const session = await auth();
-
-  if (!session?.user) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
-
-  try {
-    const params = await props.params;
-    const id = params.id;
-    const searchParams = req.nextUrl.searchParams;
-    const includeMessages = searchParams.get('includeMessages');
-    const data = await api.chat.detail.query({
-      id,
-      includeMessages: includeMessages === 'false' ? false : undefined
-    });
-
-    if (!data) {
-      return NextResponse.json({ error: 'Chat not found' }, { status: 404 });
-    }
-
-    return NextResponse.json(data);
-  } catch (err) {
-    return NextResponse.json(
-      { error: 'Oops, an error occured!' },
-      { status: 500 }
-    );
-  }
-}
-
 type PutData = Partial<Pick<Chat, 'id' | 'title' | 'model'>>;
 
 export async function PUT(
