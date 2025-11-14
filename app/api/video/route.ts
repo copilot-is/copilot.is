@@ -12,7 +12,7 @@ import { generateVideo } from '@/lib/video-generation';
 import { auth } from '@/server/auth';
 import { api } from '@/trpc/server';
 
-export const maxDuration = 120;
+export const maxDuration = 60;
 
 type PostData = {
   id: string;
