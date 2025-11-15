@@ -8,9 +8,5 @@ export default defineConfig({
   dialect: 'postgresql',
   dbCredentials: {
     url: env.DATABASE_URL
-  },
-  migrations: {
-    table: 'drizzle_migrations',
-    schema: 'public'
   }
 });
