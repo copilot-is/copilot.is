@@ -62,3 +62,11 @@ pnpm dev
 ```
 
 Your app should now be running on [localhost:3000](http://localhost:3000/).
+
+## Support
+
+If you find this project helpful, consider supporting the development:
+
+<a href="https://buymeacoffee.com/debugging" target="_blank">
+  <img src="https://cdn.buymeacoffee.com/buttons/v2/default-yellow.png" alt="Buy Me A Coffee" style="height: 60px !important;width: 217px !important;" >
+</a>
