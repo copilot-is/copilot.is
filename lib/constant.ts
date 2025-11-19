@@ -2,6 +2,45 @@ import { Model, Provider, Voice } from '@/types';
 
 export const ChatModels: Model[] = [
   {
+    text: 'GPT-5.1 Thinking',
+    value: 'gpt-5.1-thinking-2025-11-12',
+    reasoning: true,
+    provider: 'openai'
+  },
+  {
+    text: 'GPT-5.1 Instant',
+    value: 'gpt-5.1-instant-2025-11-12',
+    provider: 'openai'
+  },
+  {
+    text: 'GPT-5',
+    value: 'gpt-5',
+    reasoning: true,
+    provider: 'openai'
+  },
+  {
+    text: 'GPT-5 Mini',
+    value: 'gpt-5-mini',
+    provider: 'openai'
+  },
+  {
+    text: 'GPT-5 Nano',
+    value: 'gpt-5-nano',
+    provider: 'openai'
+  },
+  {
+    text: 'OpenAI o3',
+    value: 'o3',
+    reasoning: true,
+    provider: 'openai'
+  },
+  {
+    text: 'OpenAI o3 Pro',
+    value: 'o3-pro',
+    reasoning: true,
+    provider: 'openai'
+  },
+  {
     text: 'OpenAI o3 mini',
     value: 'o3-mini',
     reasoning: true,
@@ -45,8 +84,20 @@ export const ChatModels: Model[] = [
     vision: true,
     provider: 'openai'
   },
-  { text: 'GPT-4', value: 'gpt-4', provider: 'openai' },
-  { text: 'GPT-3.5 Turbo', value: 'gpt-3.5-turbo', provider: 'openai' },
+  { text: 'GPT-4', value: 'gpt-4', provider: 'openai', deprecated: true },
+  { text: 'GPT-3.5 Turbo', value: 'gpt-3.5-turbo', provider: 'openai', deprecated: true },
+  {
+    text: 'Gemini 3 Pro',
+    value: 'gemini-3-pro-preview',
+    vision: true,
+    provider: 'google'
+  },
+  {
+    text: 'Gemini 2.0 Pro',
+    value: 'gemini-2.0-pro-exp-02-05',
+    vision: true,
+    provider: 'google'
+  },
   {
     text: 'Gemini 2.0 Flash',
     value: 'gemini-2.0-flash',
@@ -79,6 +130,24 @@ export const ChatModels: Model[] = [
     provider: 'google'
   },
   {
+    text: 'Gemini 2.5 Flash Image',
+    value: 'gemini-2.5-flash-image-preview',
+    vision: true,
+    provider: 'google'
+  },
+  {
+    text: 'Claude 4.5 Sonnet',
+    value: 'claude-sonnet-4-5-20250929',
+    vision: true,
+    provider: 'anthropic'
+  },
+  {
+    text: 'Claude 4.5 Haiku',
+    value: 'claude-haiku-4-5',
+    vision: true,
+    provider: 'anthropic'
+  },
+  {
     text: 'Claude 3.7 Sonnet',
     value: 'claude-3-7-sonnet-20250219',
     vision: true,
@@ -105,19 +174,22 @@ export const ChatModels: Model[] = [
     text: 'Claude 3 Opus',
     value: 'claude-3-opus-20240229',
     vision: true,
-    provider: 'anthropic'
+    provider: 'anthropic',
+    deprecated: true
   },
   {
     text: 'Claude 3 Sonnet',
     value: 'claude-3-sonnet-20240229',
     vision: true,
-    provider: 'anthropic'
+    provider: 'anthropic',
+    deprecated: true
   },
   {
     text: 'Claude 3 Haiku',
     value: 'claude-3-haiku-20240307',
     vision: true,
-    provider: 'anthropic'
+    provider: 'anthropic',
+    deprecated: true
   },
   {
     text: 'Grok 4',
@@ -125,6 +197,22 @@ export const ChatModels: Model[] = [
     alias: ['grok-4-0709'],
     vision: true,
     reasoning: true,
+    provider: 'xai'
+  },
+  {
+    text: 'Grok 4 Fast (Reasoning)',
+    value: 'grok-4-fast-reasoning',
+    vision: true,
+    reasoning: true,
+    provider: 'xai',
+    options: {
+      isReasoning: true
+    }
+  },
+  {
+    text: 'Grok 4 Fast',
+    value: 'grok-4-fast-non-reasoning',
+    vision: true,
     provider: 'xai'
   },
   {
@@ -159,14 +247,16 @@ export const ChatModels: Model[] = [
     text: 'Grok 2',
     value: 'grok-2',
     alias: ['grok-2-1212', 'grok-2-latest'],
-    provider: 'xai'
+    provider: 'xai',
+    deprecated: true
   },
   {
     text: 'Grok 2 Vision',
     value: 'grok-2-vision',
     alias: ['grok-2-vision-1212', 'grok-2-vision-latest'],
     vision: true,
-    provider: 'xai'
+    provider: 'xai',
+    deprecated: true
   },
   {
     text: 'DeepSeek',
@@ -181,7 +271,7 @@ export const ChatModels: Model[] = [
     options: {
       isReasoning: true
     }
-  },
+  }
 ];
 
 export const ImageModels: Model[] = [
@@ -205,6 +295,7 @@ export const ImageModels: Model[] = [
     text: 'DALL·E 2',
     value: 'dall-e-2',
     provider: 'openai',
+    deprecated: true,
     options: {
       size: ['256x256', '512x512', '1024x1024']
     }
@@ -340,6 +431,8 @@ export const Categories: { text: string; value: string }[] = [
 ];
 
 export const VertexAIModels: Record<string, string> = {
+  'claude-3-7-sonnet-20250219': 'claude-3-7-sonnet@20250219',
+  'claude-3-5-haiku-20241022': 'claude-3-5-haiku@20241022',
   'claude-3-5-sonnet-20241022': 'claude-3-5-sonnet-v2@20241022',
   'claude-3-5-sonnet-20240620': 'claude-3-5-sonnet@20240620',
   'claude-3-opus-20240229': 'claude-3-opus@20240229',

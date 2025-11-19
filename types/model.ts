@@ -29,6 +29,7 @@ export type Model = {
   alias?: string[];
   vision?: boolean;
   reasoning?: boolean;
+  deprecated?: boolean;
   provider: Provider;
   options?: ModelOptions;
   maxOutputTokens?: number;
