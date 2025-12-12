@@ -136,19 +136,28 @@ export const ChatModels: Model[] = [
     provider: 'google'
   },
   {
-    text: 'Claude 4.5 Sonnet',
-    value: 'claude-sonnet-4-5-20250929',
+    text: 'Claude Sonnet 4.5',
+    value: 'claude-sonnet-4-5',
+    alias: ['claude-sonnet-4-5-20250929'],
     vision: true,
     provider: 'anthropic'
   },
   {
-    text: 'Claude 4.5 Haiku',
+    text: 'Claude Haiku 4.5',
     value: 'claude-haiku-4-5',
+    alias: ['claude-haiku-4-5-20250929'],
     vision: true,
     provider: 'anthropic'
   },
   {
-    text: 'Claude 3.7 Sonnet',
+    text: 'Claude Opus 4.5',
+    value: 'claude-opus-4-5',
+    alias: ['claude-opus-4-5-20250929'],
+    vision: true,
+    provider: 'anthropic'
+  },
+  {
+    text: 'Claude Sonnet 3.7',
     value: 'claude-3-7-sonnet-20250219',
     vision: true,
     reasoning: true,
@@ -158,38 +167,49 @@ export const ChatModels: Model[] = [
     }
   },
   {
-    text: 'Claude 3.5 Sonnet',
+    text: 'Claude Sonnet 3.5',
     value: 'claude-3-5-sonnet-20241022',
     alias: ['claude-3-5-sonnet-20240620'],
     vision: true,
     provider: 'anthropic'
   },
   {
-    text: 'Claude 3.5 Haiku',
+    text: 'Claude Haiku 3.5',
     value: 'claude-3-5-haiku-20241022',
     vision: true,
     provider: 'anthropic'
   },
   {
-    text: 'Claude 3 Opus',
+    text: 'Claude Opus 3',
     value: 'claude-3-opus-20240229',
     vision: true,
     provider: 'anthropic',
     deprecated: true
   },
   {
-    text: 'Claude 3 Sonnet',
+    text: 'Claude Sonnet 3',
     value: 'claude-3-sonnet-20240229',
     vision: true,
     provider: 'anthropic',
     deprecated: true
   },
   {
-    text: 'Claude 3 Haiku',
+    text: 'Claude Haiku 3',
     value: 'claude-3-haiku-20240307',
     vision: true,
     provider: 'anthropic',
     deprecated: true
+  },
+  {
+    text: 'Grok 4.1 Fast',
+    value: 'grok-4-1-fast',
+    alias: ['grok-4-1-fast-reasoning', 'grok-4-1-fast-reasoning-latest'],
+    vision: true,
+    reasoning: true,
+    provider: 'xai',
+    options: {
+      isReasoning: true
+    }
   },
   {
     text: 'Grok 4',
@@ -431,6 +451,9 @@ export const Categories: { text: string; value: string }[] = [
 ];
 
 export const VertexAIModels: Record<string, string> = {
+  'claude-sonnet-4-5@20250929': 'claude-sonnet-4-5@20250929',
+  'claude-haiku-4-5@20250929': 'claude-haiku-4-5@20250929',
+  'claude-opus-4-5@20250929': 'claude-opus-4-5@20250929',
   'claude-3-7-sonnet-20250219': 'claude-3-7-sonnet@20250219',
   'claude-3-5-haiku-20241022': 'claude-3-5-haiku@20241022',
   'claude-3-5-sonnet-20241022': 'claude-3-5-sonnet-v2@20241022',
