@@ -16,7 +16,7 @@ interface PageProps {
 export async function generateMetadata(props: PageProps): Promise<Metadata> {
   const params = await props.params;
   const id = params.id;
-  const chat = await api.chat.detail.query({ id, type: 'video' });
+  const chat = await api.chat.detail({ id, type: 'video' });
 
   return {
     title: chat?.title || 'Video Generation'
@@ -27,7 +27,7 @@ export default async function VideoDetailPage(props: PageProps) {
   const params = await props.params;
   const id = params.id;
 
-  const chat = await api.chat.detail.query({ id, type: 'video' });
+  const chat = await api.chat.detail({ id, type: 'video' });
   if (!chat) {
     return <ChatNotFound />;
   }

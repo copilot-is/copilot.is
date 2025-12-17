@@ -85,7 +85,12 @@ export const ChatModels: Model[] = [
     provider: 'openai'
   },
   { text: 'GPT-4', value: 'gpt-4', provider: 'openai', deprecated: true },
-  { text: 'GPT-3.5 Turbo', value: 'gpt-3.5-turbo', provider: 'openai', deprecated: true },
+  {
+    text: 'GPT-3.5 Turbo',
+    value: 'gpt-3.5-turbo',
+    provider: 'openai',
+    deprecated: true
+  },
   {
     text: 'Gemini 3 Pro',
     value: 'gemini-3-pro-preview',

@@ -31,7 +31,7 @@ export async function PUT(
   }
 
   try {
-    const data = await api.message.update.mutate({
+    const data = await api.message.update({
       id,
       message
     });
@@ -58,7 +58,7 @@ export async function DELETE(
 
   try {
     const id = params.id;
-    await api.message.delete.mutate({ id });
+    await api.message.delete({ id });
 
     return new Response(null, { status: 204 });
   } catch (err) {

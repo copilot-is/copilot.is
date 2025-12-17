@@ -15,15 +15,13 @@ interface ChatHeaderProps {
 
 export function ChatHeader({ title }: ChatHeaderProps) {
   useEffect(() => {
-    const documentTitle = title
-      ? `${title} - ${PRODUCT_NAME}`
-      : PRODUCT_NAME;
+    const documentTitle = title ? `${title} - ${PRODUCT_NAME}` : PRODUCT_NAME;
 
     if (documentTitle !== document.title) {
       document.title = documentTitle;
     }
   }, [title]);
-  
+
   return (
     <div className="sticky top-0 z-10 flex w-full items-center bg-background p-3">
       <SidebarToggle />

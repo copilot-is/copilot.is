@@ -58,7 +58,7 @@ export async function POST(req: Request) {
   }
 
   let title = 'Untitled';
-  const chat = await api.chat.detail.query({
+  const chat = await api.chat.detail({
     id,
     type: 'chat',
     includeMessages: false
@@ -79,7 +79,7 @@ export async function POST(req: Request) {
       );
     }
 
-    await api.chat.create.mutate({
+    await api.chat.create({
       id,
       title,
       model,
@@ -88,9 +88,9 @@ export async function POST(req: Request) {
   } else {
     title = chat.title;
     if (parentMessageId && parentMessageId === userMessage.id) {
-      await api.message.delete.mutate({ parentId: parentMessageId });
+      await api.message.delete({ parentId: parentMessageId });
     } else {
-      await api.message.create.mutate({
+      await api.message.create({
         chatId: id,
         messages: [userMessage]
       });
@@ -98,7 +98,7 @@ export async function POST(req: Request) {
   }
 
   try {
-    const historyMessages = await api.message.list.query({ chatId: id });
+    const historyMessages = await api.message.list({ chatId: id });
     const chatMessages = [
       ...convertToChatMessages(historyMessages),
       userMessage
@@ -155,7 +155,7 @@ export async function POST(req: Request) {
       },
       generateId: generateUUID,
       onFinish: async ({ responseMessage }) => {
-        await api.message.create.mutate({
+        await api.message.create({
           chatId: id,
           messages: [responseMessage]
         });
@@ -163,7 +163,7 @@ export async function POST(req: Request) {
         // Update chat model if changed
         if (chat && chat.model !== model) {
           try {
-            await api.chat.update.mutate({
+            await api.chat.update({
               id,
               model
             });
@@ -207,7 +207,7 @@ export async function GET(req: NextRequest) {
   const offset = parseInt(searchParams.get('offset') || '0');
 
   try {
-    const data = await api.chat.list.query({ limit, offset });
+    const data = await api.chat.list({ limit, offset });
 
     if (!data) {
       return NextResponse.json(
@@ -233,7 +233,7 @@ export async function DELETE() {
   }
 
   try {
-    await api.chat.deleteAll.mutate();
+    await api.chat.deleteAll();
     return new Response(null, { status: 204 });
   } catch (err) {
     return NextResponse.json(

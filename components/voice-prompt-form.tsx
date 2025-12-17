@@ -5,6 +5,7 @@ import Textarea from 'react-textarea-autosize';
 import { Voice } from '@/types';
 import { TTSModels, Voices } from '@/lib/constant';
 import { findModelByValue } from '@/lib/utils';
+import { Button } from '@/components/ui/button';
 import {
   Select,
   SelectContent,
@@ -12,7 +13,6 @@ import {
   SelectTrigger,
   SelectValue
 } from '@/components/ui/select';
-import { Button } from '@/components/ui/button';
 import { ProviderIcon } from '@/components/provider-icon';
 
 export interface VoicePromptFormProps {

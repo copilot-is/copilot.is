@@ -16,7 +16,7 @@ interface PageProps {
 export async function generateMetadata(props: PageProps): Promise<Metadata> {
   const params = await props.params;
   const id = params.id;
-  const chat = await api.chat.detail.query({ id, type: 'voice' });
+  const chat = await api.chat.detail({ id, type: 'voice' });
 
   return {
     title: chat?.title || 'Voice Generation'
@@ -27,7 +27,7 @@ export default async function VoiceDetailPage(props: PageProps) {
   const params = await props.params;
   const id = params.id;
 
-  const chat = await api.chat.detail.query({ id, type: 'voice' });
+  const chat = await api.chat.detail({ id, type: 'voice' });
   if (!chat) {
     return <ChatNotFound />;
   }

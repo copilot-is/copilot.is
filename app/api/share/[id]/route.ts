@@ -16,7 +16,7 @@ export async function DELETE(
 
   try {
     const id = params.id;
-    await api.share.delete.mutate({ id });
+    await api.share.delete({ id });
     return new Response(null, { status: 204 });
   } catch (err) {
     return NextResponse.json(

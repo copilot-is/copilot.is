@@ -15,7 +15,7 @@ interface PageProps {
 export async function generateMetadata(props: PageProps): Promise<Metadata> {
   const params = await props.params;
   const id = params.id;
-  const chat = await api.share.detail.query({ id });
+  const chat = await api.share.detail({ id });
 
   return {
     title: chat?.title
@@ -25,7 +25,7 @@ export async function generateMetadata(props: PageProps): Promise<Metadata> {
 export default async function Page(props: PageProps) {
   const params = await props.params;
   const id = params.id;
-  const chat = await api.share.detail.query({ id });
+  const chat = await api.share.detail({ id });
 
   if (!chat) {
     notFound();

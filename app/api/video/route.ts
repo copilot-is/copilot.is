@@ -55,7 +55,7 @@ export async function POST(req: Request) {
   }
 
   let title = 'Untitled';
-  const chat = await api.chat.detail.query({
+  const chat = await api.chat.detail({
     id,
     type: 'video',
     includeMessages: false
@@ -76,7 +76,7 @@ export async function POST(req: Request) {
       );
     }
 
-    await api.chat.create.mutate({
+    await api.chat.create({
       id,
       title,
       type: 'video',
@@ -86,9 +86,9 @@ export async function POST(req: Request) {
   } else {
     title = chat.title;
     if (parentMessageId && parentMessageId === userMessage.id) {
-      await api.message.delete.mutate({ parentId: parentMessageId });
+      await api.message.delete({ parentId: parentMessageId });
     } else {
-      await api.message.create.mutate({
+      await api.message.create({
         chatId: id,
         messages: [userMessage]
       });
@@ -141,7 +141,7 @@ export async function POST(req: Request) {
       }
     };
 
-    await api.message.create.mutate({
+    await api.message.create({
       chatId: id,
       messages: [assistantMessage]
     });

@@ -12,7 +12,11 @@ export type { Chat, ChatType } from './chat';
 export type { ChatPreferences } from './chat-preferences';
 export type { VideoPreferences } from './video-preferences';
 export type { VoicePreferences } from './voice-preferences';
-export type { ImagePreferences, ImageSize, ImageAspectRatio } from './image-preferences';
+export type {
+  ImagePreferences,
+  ImageSize,
+  ImageAspectRatio
+} from './image-preferences';
 export type { UserSettings } from './user-settings';
 export type { SystemSettings } from './system-settings';
 export type {

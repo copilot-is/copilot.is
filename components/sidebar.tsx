@@ -5,8 +5,8 @@ import * as React from 'react';
 import { cn } from '@/lib/utils';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useSidebar } from '@/hooks/use-sidebar';
-import { SidebarHeader } from '@/components/sidebar-header';
 import { NewContent } from '@/components/new-content';
+import { SidebarHeader } from '@/components/sidebar-header';
 import { SidebarList } from '@/components/sidebar-list';
 import { UserMenu } from '@/components/user-menu';
 

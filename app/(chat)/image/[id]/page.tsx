@@ -16,7 +16,7 @@ interface PageProps {
 export async function generateMetadata(props: PageProps): Promise<Metadata> {
   const params = await props.params;
   const id = params.id;
-  const chat = await api.chat.detail.query({ id, type: 'image' });
+  const chat = await api.chat.detail({ id, type: 'image' });
 
   return {
     title: chat?.title || 'Image Generation'
@@ -27,7 +27,7 @@ export default async function ImageDetailPage(props: PageProps) {
   const params = await props.params;
   const id = params.id;
 
-  const chat = await api.chat.detail.query({ id, type: 'image' });
+  const chat = await api.chat.detail({ id, type: 'image' });
   if (!chat) {
     return <ChatNotFound />;
   }

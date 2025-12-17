@@ -22,7 +22,7 @@ export async function POST(req: Request) {
   }
 
   try {
-    const data = await api.share.create.mutate({ chatId });
+    const data = await api.share.create({ chatId });
 
     return NextResponse.json(data);
   } catch (err) {
@@ -45,7 +45,7 @@ export async function GET(req: NextRequest) {
   const offset = parseInt(searchParams.get('offset') || '0');
 
   try {
-    const data = await api.share.list.query({ limit, offset });
+    const data = await api.share.list({ limit, offset });
 
     if (!data) {
       return NextResponse.json(
@@ -71,7 +71,7 @@ export async function DELETE() {
   }
 
   try {
-    await api.share.deleteAll.mutate();
+    await api.share.deleteAll();
     return new Response(null, { status: 204 });
   } catch (err) {
     return NextResponse.json(

@@ -1,5 +1,5 @@
-import OpenAI from 'openai';
 import { GoogleGenAI } from '@google/genai';
+import OpenAI from 'openai';
 
 import { env } from './env';
 
@@ -53,7 +53,12 @@ async function generateWithSora(
   const seconds: '4' | '8' | '12' =
     duration && duration <= 4 ? '4' : duration && duration <= 8 ? '8' : '12';
 
-  console.log('Starting Sora video generation:', { model, prompt, size, seconds });
+  console.log('Starting Sora video generation:', {
+    model,
+    prompt,
+    size,
+    seconds
+  });
 
   // Create video generation request
   const video = await openai.videos.create({
@@ -94,7 +99,11 @@ async function pollSoraJob(
     // Retrieve video status
     const video = await openai.videos.retrieve(jobId);
 
-    console.log(`Poll attempt ${attempt + 1}/${maxAttempts}, status:`, video.status, `progress: ${video.progress}%`);
+    console.log(
+      `Poll attempt ${attempt + 1}/${maxAttempts}, status:`,
+      video.status,
+      `progress: ${video.progress}%`
+    );
 
     if (video.status === 'completed') {
       console.log('Video generation completed');
@@ -137,7 +146,12 @@ async function generateWithVeo(
 
   const ai = new GoogleGenAI({ apiKey });
 
-  console.log('Starting Veo video generation:', { model, prompt, aspectRatio, duration });
+  console.log('Starting Veo video generation:', {
+    model,
+    prompt,
+    aspectRatio,
+    duration
+  });
 
   // Create video generation request
   let operation = await ai.models.generateVideos({
@@ -152,11 +166,13 @@ async function generateWithVeo(
   const maxAttempts = 60; // 10 minutes max (60 * 10s)
 
   while (!operation.done && attempts < maxAttempts) {
-    console.log(`Waiting for video generation to complete... (attempt ${attempts + 1}/${maxAttempts})`);
-    await new Promise((resolve) => setTimeout(resolve, 10000)); // Wait 10 seconds
+    console.log(
+      `Waiting for video generation to complete... (attempt ${attempts + 1}/${maxAttempts})`
+    );
+    await new Promise(resolve => setTimeout(resolve, 10000)); // Wait 10 seconds
 
     operation = await ai.operations.getVideosOperation({
-      operation: operation,
+      operation: operation
     });
 
     attempts++;
@@ -204,7 +220,12 @@ export async function generateVideo(
 
   // Check if model is a Sora variant
   if (model === 'sora-2' || model === 'sora-2-pro' || model === 'sora') {
-    return generateWithSora(model === 'sora' ? 'sora-2' : model, prompt, aspectRatio, duration);
+    return generateWithSora(
+      model === 'sora' ? 'sora-2' : model,
+      prompt,
+      aspectRatio,
+      duration
+    );
   }
 
   // Check if model is Veo

@@ -28,7 +28,7 @@ export async function PUT(
   }
 
   try {
-    await api.chat.update.mutate({ id, ...chat });
+    await api.chat.update({ id, ...chat });
     return new Response(null, { status: 204 });
   } catch (err) {
     return NextResponse.json(
@@ -51,7 +51,7 @@ export async function DELETE(
 
   try {
     const id = params.id;
-    await api.chat.delete.mutate({ id });
+    await api.chat.delete({ id });
     return new Response(null, { status: 204 });
   } catch (err) {
     return NextResponse.json(
