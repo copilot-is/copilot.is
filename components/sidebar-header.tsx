@@ -11,7 +11,7 @@ export function SidebarHeader() {
       href="/"
       className="flex items-center gap-2 px-4 py-3 text-lg font-medium"
     >
-      <img src="/favicon.svg" alt="Logo" className="h-7 w-7" />
+      <img src="/favicon.svg" alt="Logo" className="size-7" />
       <span>{productName}</span>
     </Link>
   );

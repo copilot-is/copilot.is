@@ -222,7 +222,7 @@ export function VideoUI({
       >
         {noChat && (
           <EmptyScreen
-            icon={<VideoIcon className="mx-auto mb-4 h-12 w-12 opacity-50" />}
+            icon={<VideoIcon className="mx-auto mb-4 size-12 opacity-50" />}
             text="Describe the video you want to generate"
           />
         )}

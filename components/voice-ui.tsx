@@ -230,7 +230,7 @@ export function VoiceUI({
       >
         {noChat && (
           <EmptyScreen
-            icon={<Microphone className="mx-auto mb-4 h-12 w-12 opacity-50" />}
+            icon={<Microphone className="mx-auto mb-4 size-12 opacity-50" />}
             text="Enter text to convert to speech"
           />
         )}

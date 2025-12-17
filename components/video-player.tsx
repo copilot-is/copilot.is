@@ -132,19 +132,19 @@ export function VideoPlayer({ src }: VideoPlayerProps) {
       />
 
       {/* Control bar */}
-      <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-4 opacity-0 transition-opacity group-hover:opacity-100">
+      <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 to-transparent p-4 opacity-0 transition-opacity group-hover:opacity-100">
         <div className="flex items-center gap-3">
           {/* Play/Pause Button */}
           <Button
             variant="ghost"
             size="icon"
             onClick={togglePlay}
-            className="h-8 w-8 shrink-0 text-white hover:bg-white/20 hover:text-white"
+            className="size-8 shrink-0 text-white hover:bg-white/20 hover:text-white"
           >
             {isPlaying ? (
-              <Pause className="h-6 w-6" weight="fill" />
+              <Pause className="size-6" weight="fill" />
             ) : (
-              <Play className="h-6 w-6" weight="fill" />
+              <Play className="size-6" weight="fill" />
             )}
           </Button>
 
@@ -166,7 +166,7 @@ export function VideoPlayer({ src }: VideoPlayerProps) {
                 step="0.01"
                 value={currentTime}
                 onChange={handleSeek}
-                className="absolute inset-0 h-full w-full cursor-pointer appearance-none bg-transparent outline-none [&::-moz-range-thumb]:h-3 [&::-moz-range-thumb]:w-3 [&::-moz-range-thumb]:appearance-none [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:border-0 [&::-moz-range-thumb]:bg-white [&::-moz-range-thumb]:shadow-lg [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-white [&::-webkit-slider-thumb]:shadow-lg"
+                className="absolute inset-0 size-full cursor-pointer appearance-none bg-transparent outline-none [&::-moz-range-thumb]:size-3 [&::-moz-range-thumb]:appearance-none [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:border-0 [&::-moz-range-thumb]:bg-white [&::-moz-range-thumb]:shadow-lg [&::-webkit-slider-thumb]:size-3 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-white [&::-webkit-slider-thumb]:shadow-lg"
               />
             </div>
             <div className="flex justify-between text-xs text-white">
@@ -180,12 +180,12 @@ export function VideoPlayer({ src }: VideoPlayerProps) {
             variant="ghost"
             size="icon"
             onClick={toggleMute}
-            className="h-8 w-8 shrink-0 text-white hover:bg-white/20 hover:text-white"
+            className="size-8 shrink-0 text-white hover:bg-white/20 hover:text-white"
           >
             {isMuted ? (
-              <SpeakerSlash className="h-6 w-6" />
+              <SpeakerSlash className="size-6" />
             ) : (
-              <SpeakerHigh className="h-6 w-6" />
+              <SpeakerHigh className="size-6" />
             )}
           </Button>
 
@@ -194,12 +194,12 @@ export function VideoPlayer({ src }: VideoPlayerProps) {
             variant="ghost"
             size="icon"
             onClick={toggleFullscreen}
-            className="h-8 w-8 shrink-0 text-white hover:bg-white/20 hover:text-white"
+            className="size-8 shrink-0 text-white hover:bg-white/20 hover:text-white"
           >
             {isFullscreen ? (
-              <ArrowsIn className="h-6 w-6" />
+              <ArrowsIn className="size-6" />
             ) : (
-              <ArrowsOut className="h-6 w-6" />
+              <ArrowsOut className="size-6" />
             )}
           </Button>
         </div>

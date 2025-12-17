@@ -54,7 +54,7 @@ export function ChatUI({ id, initialChat, initialMessages = [] }: ChatUIProps) {
       model: selectedModel || chatPreferences.model,
       isReasoning: isReasoning ? chatPreferences.isReasoning : undefined
     }),
-    [selectedModel, chatPreferences]
+    [selectedModel, isReasoning, chatPreferences]
   );
   const chatRequestBodyRef = useRef(chatRequestBody);
 
@@ -177,7 +177,7 @@ export function ChatUI({ id, initialChat, initialMessages = [] }: ChatUIProps) {
       >
         {noChat && (
           <EmptyScreen
-            icon={<ChatDots className="mx-auto mb-4 h-12 w-12 opacity-50" />}
+            icon={<ChatDots className="mx-auto mb-4 size-12 opacity-50" />}
             text="How can I help you today?"
           />
         )}

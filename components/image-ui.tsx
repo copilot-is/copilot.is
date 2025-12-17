@@ -276,7 +276,7 @@ export function ImageUI({
       >
         {noChat && (
           <EmptyScreen
-            icon={<ImageIcon className="mx-auto mb-4 h-12 w-12 opacity-50" />}
+            icon={<ImageIcon className="mx-auto mb-4 size-12 opacity-50" />}
             text="Describe the image you want to generate"
           />
         )}

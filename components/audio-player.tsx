@@ -89,12 +89,12 @@ export function AudioPlayer({ src }: AudioPlayerProps) {
           variant="outline"
           size="icon"
           onClick={togglePlay}
-          className="h-10 w-10 shrink-0 rounded-full"
+          className="size-10 shrink-0 rounded-full"
         >
           {isPlaying ? (
-            <Pause className="h-5 w-5" weight="fill" />
+            <Pause className="size-5" weight="fill" />
           ) : (
-            <Play className="h-5 w-5" weight="fill" />
+            <Play className="size-5" weight="fill" />
           )}
         </Button>
 
@@ -110,7 +110,7 @@ export function AudioPlayer({ src }: AudioPlayerProps) {
             style={{
               background: `linear-gradient(to right, hsl(var(--primary)) 0%, hsl(var(--primary)) ${progress}%, hsl(var(--secondary)) ${progress}%, hsl(var(--secondary)) 100%)`
             }}
-            className="h-2 w-full cursor-pointer appearance-none rounded-full outline-none [&::-moz-range-thumb]:h-3 [&::-moz-range-thumb]:w-3 [&::-moz-range-thumb]:appearance-none [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:border-0 [&::-moz-range-thumb]:bg-primary [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-primary"
+            className="h-2 w-full cursor-pointer appearance-none rounded-full outline-none [&::-moz-range-thumb]:size-3 [&::-moz-range-thumb]:appearance-none [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:border-0 [&::-moz-range-thumb]:bg-primary [&::-webkit-slider-thumb]:size-3 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-primary"
           />
           <div className="flex justify-between text-xs text-muted-foreground">
             <span>{formatTime(currentTime)}</span>
@@ -123,12 +123,12 @@ export function AudioPlayer({ src }: AudioPlayerProps) {
           variant="ghost"
           size="icon"
           onClick={toggleMute}
-          className="h-8 w-8 shrink-0"
+          className="size-8 shrink-0"
         >
           {isMuted ? (
-            <SpeakerSlash className="h-5 w-5" />
+            <SpeakerSlash className="size-5" />
           ) : (
-            <SpeakerHigh className="h-5 w-5" />
+            <SpeakerHigh className="size-5" />
           )}
         </Button>
       </div>
