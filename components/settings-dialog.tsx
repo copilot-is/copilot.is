@@ -1,4 +1,4 @@
-import { Gear, SpeakerHigh } from '@phosphor-icons/react';
+import { Gear, SpeakerHigh, User } from '@phosphor-icons/react';
 
 import { useSettings } from '@/hooks/use-settings';
 import {
@@ -8,9 +8,9 @@ import {
   DialogTitle
 } from '@/components/ui/dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { SettingsGeneral } from '@/components/settings-general';
+import { SettingsProfile } from '@/components/settings-profile';
 import { SettingsSpeech } from '@/components/settings-speech';
-
-import { SettingsGeneral } from './settings-general';
 
 interface SettingsDialogProps {
   open: boolean;
@@ -49,6 +49,13 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
                 Speech
               </TabsTrigger>
             )}
+            <TabsTrigger
+              value="profile"
+              className="w-full justify-start text-wrap py-2 shadow-none hover:bg-muted focus-visible:ring-1 focus-visible:ring-offset-1 data-[state=active]:bg-muted data-[state=active]:shadow-none"
+            >
+              <User className="mr-2 size-4" />
+              Profile
+            </TabsTrigger>
           </TabsList>
           <TabsContent tabIndex={-1} value="general" className="mt-0 w-full">
             <SettingsGeneral />
@@ -58,6 +65,9 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
               <SettingsSpeech />
             </TabsContent>
           )}
+          <TabsContent tabIndex={-1} value="profile" className="mt-0 w-full">
+            <SettingsProfile />
+          </TabsContent>
         </Tabs>
       </DialogContent>
     </Dialog>

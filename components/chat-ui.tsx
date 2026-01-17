@@ -172,7 +172,7 @@ export function ChatUI({ id, initialChat, initialMessages = [] }: ChatUIProps) {
       </div>
       <div
         className={cn('w-full max-w-4xl bg-background px-2 pb-4', {
-          'mb-20 flex h-full flex-col items-center justify-center': noChat
+          'mb-60 flex h-full flex-col items-center justify-center': noChat
         })}
       >
         {noChat && (

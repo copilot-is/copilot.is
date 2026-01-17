@@ -111,7 +111,7 @@ export async function POST(req: Request) {
         const res = streamText({
           model: provider.languageModel(model),
           system: systemPrompt(model, SystemPrompt),
-          messages: convertToModelMessages(chatMessages),
+          messages: await convertToModelMessages(chatMessages),
           stopWhen: stepCountIs(5),
           experimental_transform: smoothStream({ chunking: 'word' }),
           onChunk: ({ chunk }) => {

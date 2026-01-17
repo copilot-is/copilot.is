@@ -29,6 +29,20 @@
       "when": 1762729822618,
       "tag": "0003_loving_bastion",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1768531493043,
+      "tag": "0004_low_slipstream",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1768568161158,
+      "tag": "0005_rainy_the_call",
+      "breakpoints": true
     }
   ]
 }

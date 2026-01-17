@@ -36,6 +36,11 @@ export const env = createEnv({
     AUTH_GOOGLE_ID: z.string().optional(),
     AUTH_GOOGLE_SECRET: z.string().optional(),
 
+    // Email Auth
+    AUTH_EMAIL_ENABLED: z.coerce.boolean().default(false),
+    RESEND_API_KEY: z.string().optional(),
+    EMAIL_FROM: z.string().email().optional(),
+
     // OpenAI
     OPENAI_ENABLED: z.coerce.boolean().default(false),
     OPENAI_BASE_URL: z.string().optional(),
@@ -103,7 +108,7 @@ export const env = createEnv({
     DEFAULT_IMAGE_MODEL: z.string().default('dall-e-3'),
 
     // Upload Path
-    UPLOAD_PATH: z.string().default('attachments'),
+    UPLOAD_PATH: z.string().default('uploads'),
 
     // Analytics
     UMAMI_SCRIPT_URL: z.string().optional(),
@@ -134,6 +139,11 @@ export const env = createEnv({
     AUTH_GOOGLE_ENABLED: process.env.AUTH_GOOGLE_ENABLED === 'true',
     AUTH_GOOGLE_ID: process.env.AUTH_GOOGLE_ID,
     AUTH_GOOGLE_SECRET: process.env.AUTH_GOOGLE_SECRET,
+
+    // Email Auth
+    AUTH_EMAIL_ENABLED: process.env.AUTH_EMAIL_ENABLED === 'true',
+    RESEND_API_KEY: process.env.RESEND_API_KEY,
+    EMAIL_FROM: process.env.EMAIL_FROM,
 
     // OpenAI
     OPENAI_ENABLED: process.env.OPENAI_ENABLED === 'true',

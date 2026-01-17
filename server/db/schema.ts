@@ -200,3 +200,22 @@ export const verificationTokens = createTable(
   },
   vt => [primaryKey({ columns: [vt.identifier, vt.token] })]
 );
+
+export const emailVerificationCodes = createTable(
+  'email_verification_code',
+  {
+    id: varchar('id', { length: 255 }).notNull().primaryKey(),
+    email: varchar('email', { length: 255 }).notNull(),
+    code: varchar('code', { length: 6 }).notNull(),
+    expires: timestamp('expires', {
+      mode: 'date',
+      withTimezone: true
+    }).notNull(),
+    attempts: integer('attempts').notNull().default(0),
+    createdAt: timestamp('created_at').notNull().defaultNow()
+  },
+  evc => [
+    index('evc_email_idx').on(evc.email),
+    index('evc_expires_idx').on(evc.expires)
+  ]
+);

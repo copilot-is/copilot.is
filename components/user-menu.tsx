@@ -47,13 +47,26 @@ export function UserMenu() {
                 className="flex w-full cursor-pointer items-center rounded-md border bg-background p-2 text-sm font-medium shadow-sm transition-colors hover:bg-accent focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
               >
                 <div className="size-8 overflow-hidden rounded-full border">
-                  <Image
-                    className="size-full object-cover"
-                    src={user.image ? `${user.image}` : ''}
-                    alt={user.name ?? ''}
-                    height={32}
-                    width={32}
-                  />
+                  {user.image ? (
+                    <Image
+                      className="size-full object-cover"
+                      src={user.image}
+                      alt={user.name ?? ''}
+                      height={32}
+                      width={32}
+                    />
+                  ) : (
+                    <div className="flex size-full items-center justify-center bg-primary/10 text-sm font-medium text-primary">
+                      {user.name
+                        ? user.name
+                            .split(' ')
+                            .map(word => word[0])
+                            .join('')
+                            .toUpperCase()
+                            .slice(0, 2)
+                        : (user.email?.[0] || '?').toUpperCase()}
+                    </div>
+                  )}
                 </div>
                 <div className="mx-2 flex flex-1 flex-col items-start text-xs">
                   <span className="font-medium">{user.name}</span>
