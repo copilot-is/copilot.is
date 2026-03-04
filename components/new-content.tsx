@@ -2,22 +2,22 @@
 
 import * as React from 'react';
 import { usePathname, useRouter } from 'next/navigation';
-import { ChatDots, Image, Microphone, Video } from '@phosphor-icons/react';
+import { Image, MessageSquare, Mic, Video } from 'lucide-react';
 
-import { ChatType } from '@/types';
-import { cn } from '@/lib/utils';
+import {
+  SidebarGroup,
+  SidebarGroupContent,
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem
+} from '@/components/ui/sidebar';
 
 const contentTypes = [
-  { type: 'chat' as ChatType, label: 'Chat', icon: ChatDots, path: '/' },
-  {
-    type: 'voice' as ChatType,
-    label: 'Voice',
-    icon: Microphone,
-    path: '/voice'
-  },
-  { type: 'image' as ChatType, label: 'Image', icon: Image, path: '/image' },
-  { type: 'video' as ChatType, label: 'Video', icon: Video, path: '/video' }
-];
+  { type: 'chat', label: 'Chat', icon: MessageSquare, path: '/' },
+  { type: 'audio', label: 'Audio', icon: Mic, path: '/audio' },
+  { type: 'image', label: 'Image', icon: Image, path: '/image' },
+  { type: 'video', label: 'Video', icon: Video, path: '/video' }
+] as const;
 
 export function NewContent() {
   const router = useRouter();
@@ -34,23 +34,27 @@ export function NewContent() {
   };
 
   return (
-    <div className="space-y-1 px-3">
-      {contentTypes.map(({ type, label, icon: Icon, path }) => {
-        const active = isActive(path);
-        return (
-          <button
-            key={type}
-            className={cn(
-              'group relative flex h-9 w-full items-center gap-2 rounded-md p-2 hover:bg-background hover:shadow-sm dark:hover:bg-accent',
-              active && 'bg-background shadow-sm dark:bg-accent'
-            )}
-            onClick={() => handleNewContent(path)}
-          >
-            <Icon className="size-5" />
-            <span className="text-sm font-medium">{label}</span>
-          </button>
-        );
-      })}
-    </div>
+    <SidebarGroup className="mt-2">
+      <SidebarGroupContent>
+        <SidebarMenu>
+          {contentTypes.map(({ type, label, icon: Icon, path }) => {
+            const active = isActive(path);
+            return (
+              <SidebarMenuItem key={type}>
+                <SidebarMenuButton
+                  isActive={active}
+                  tooltip={label}
+                  onClick={() => handleNewContent(path)}
+                  className="hover:bg-background hover:shadow-sm data-[active=true]:bg-background data-[active=true]:shadow-sm dark:hover:bg-accent dark:data-[active=true]:bg-accent"
+                >
+                  <Icon />
+                  <span>{label}</span>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            );
+          })}
+        </SidebarMenu>
+      </SidebarGroupContent>
+    </SidebarGroup>
   );
 }

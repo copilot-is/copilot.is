@@ -2,7 +2,7 @@ import { type Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { format } from 'date-fns';
 
-import { convertToChatMessages, findModelByValue } from '@/lib/utils';
+import { convertToChatMessages } from '@/lib/utils';
 import { api } from '@/trpc/server';
 import { Messages } from '@/components/messages';
 
@@ -31,7 +31,6 @@ export default async function Page(props: PageProps) {
     notFound();
   }
 
-  const provider = findModelByValue(chat.type, chat.model)?.provider;
   const chatMessages = convertToChatMessages(chat.messages);
 
   return (
@@ -47,9 +46,8 @@ export default async function Page(props: PageProps) {
       </div>
       <Messages
         className="pb-5"
-        model={chat.model}
+        modelId={chat.modelId}
         messages={chatMessages}
-        provider={provider}
         isReadonly={true}
       />
     </div>

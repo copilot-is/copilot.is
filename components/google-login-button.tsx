@@ -1,7 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import { CircleNotch } from '@phosphor-icons/react';
+import { Loader2 } from 'lucide-react';
 import { signIn } from 'next-auth/react';
 
 import { Button, type ButtonProps } from '@/components/ui/button';
@@ -9,19 +9,19 @@ import { IconGoogle } from '@/components/ui/icons';
 
 interface GoogleLoginButtonProps
   extends Omit<ButtonProps, 'children' | 'disabled' | 'onClick'> {
-  loading?: string | null;
-  setLoading?: (provider: string | null) => void;
+  isLoading?: string | null;
+  setIsLoading?: (provider: string | null) => void;
 }
 
 export function GoogleLoginButton({
-  loading = null,
-  setLoading,
+  isLoading = null,
+  setIsLoading,
   ...buttonProps
 }: GoogleLoginButtonProps) {
-  const disabled = loading !== null;
+  const disabled = isLoading !== null;
 
   const handleSignIn = () => {
-    setLoading?.('google');
+    setIsLoading?.('google');
     signIn('google', { callbackUrl: '/' });
   };
 
@@ -34,8 +34,8 @@ export function GoogleLoginButton({
       disabled={disabled}
       className="w-full"
     >
-      {loading === 'google' ? (
-        <CircleNotch className="size-4 animate-spin" />
+      {isLoading === 'google' ? (
+        <Loader2 className="size-4 animate-spin" />
       ) : (
         <IconGoogle className="size-4" />
       )}

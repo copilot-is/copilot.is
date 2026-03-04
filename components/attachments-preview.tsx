@@ -1,8 +1,8 @@
 import { Dispatch, SetStateAction, useCallback, useTransition } from 'react';
-import { XCircle } from '@phosphor-icons/react';
+import { XCircle } from 'lucide-react';
 
 import { Attachment } from '@/types';
-import { api } from '@/lib/api';
+import { deleteFile } from '@/lib/api';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 
@@ -25,7 +25,7 @@ export const AttachmentsPreview = ({
 
   const removeAttachment = useCallback(
     async (url: string, index: number) => {
-      await api.deleteFile(url);
+      await deleteFile(url);
       setAttachments(prevAttachments =>
         prevAttachments.filter((_, i) => i !== index)
       );

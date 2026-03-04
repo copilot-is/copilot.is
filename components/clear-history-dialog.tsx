@@ -2,10 +2,10 @@
 
 import * as React from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { CircleNotch } from '@phosphor-icons/react';
+import { Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 
-import { clearChats } from '@/hooks/use-chats';
+import { useChats } from '@/hooks/use-chats';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -26,6 +26,7 @@ export function ClearHistoryDialog({
   open,
   onOpenChange
 }: ClearHistoryDialogProps) {
+  const { clearChats } = useChats();
   const router = useRouter();
   const params = useParams<{ id?: string }>();
   const [isPending, startTransition] = React.useTransition();
@@ -50,7 +51,9 @@ export function ClearHistoryDialog({
                 try {
                   await clearChats();
                   toast.success('All chat deleted', { duration: 2000 });
-                  params.id && router.push('/');
+                  if (params.id) {
+                    router.push('/');
+                  }
                   onOpenChange(false);
                 } catch (err: any) {
                   toast.error(err.message);
@@ -60,7 +63,7 @@ export function ClearHistoryDialog({
           >
             {isPending ? (
               <>
-                <CircleNotch className="animate-spin" />
+                <Loader2 className="animate-spin" />
                 Deleting...
               </>
             ) : (

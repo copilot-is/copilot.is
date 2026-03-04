@@ -9,25 +9,14 @@ export type { Attachment } from './attachment';
 export type User = Session['user'];
 export { chatTypeSchema } from './chat';
 export type { Chat, ChatType } from './chat';
-export type { ChatPreferences } from './chat-preferences';
-export type { VideoPreferences } from './video-preferences';
-export type { VoicePreferences } from './voice-preferences';
-export type {
-  ImagePreferences,
-  ImageSize,
-  ImageAspectRatio
-} from './image-preferences';
-export type { UserSettings } from './user-settings';
-export type { SystemSettings } from './system-settings';
+export type { SystemSettings, SystemDefaults } from './system-settings';
 export type {
   Model,
-  ModelOptions,
-  ChatModelOptions,
-  ImageModelOptions,
-  VideoModelOptions,
-  VoiceModelOptions
+  ModelCapability,
+  ModelUIOptions,
+  ModelAPIParams,
+  ModelProvider
 } from './model';
-export type { Provider, APIProvider } from './provider';
+export type { ProviderConfig } from './provider';
 export type { Result } from './result';
-export type { Voice, OpenAISpeechParams } from './speech';
 export type { SharedLink } from './shared-link';

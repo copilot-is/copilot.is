@@ -3,9 +3,8 @@
 import * as React from 'react';
 import { UseChatHelpers } from '@ai-sdk/react';
 
-import { ChatMessage, Provider } from '@/types';
+import { ChatMessage } from '@/types';
 import { cn } from '@/lib/utils';
-import { ButtonScrollToBottom } from '@/components/button-scroll-to-bottom';
 import { Message } from '@/components/message';
 import { MessageActions } from '@/components/message-actions';
 import { MessageLoading } from '@/components/message-loading';
@@ -13,21 +12,31 @@ import { MessageLoading } from '@/components/message-loading';
 export interface MessagesProps
   extends Partial<Pick<UseChatHelpers<ChatMessage>, 'status' | 'setMessages'>>,
     Pick<UseChatHelpers<ChatMessage>, 'messages'> {
-  model: string;
-  provider?: Provider;
+  /** Display model (for existing messages) */
+  modelId: string;
+  /** Display image (for existing messages) */
+  image?: string | null;
+  /** Current selected model (for regenerate) */
+  currentModelId?: string;
+  /** Current image (for loading) */
+  currentImage?: string | null;
   reload?: () => void;
   isReadonly?: boolean;
+  supportsReasoning?: boolean | null;
   className?: string;
 }
 
 export function Messages({
-  model,
-  provider,
+  modelId,
+  image,
+  currentModelId,
+  currentImage,
   status,
   reload,
   messages,
   setMessages,
   isReadonly,
+  supportsReasoning,
   className
 }: MessagesProps) {
   if (!messages.length) {
@@ -35,19 +44,20 @@ export function Messages({
   }
 
   return (
-    <div className={cn('mx-auto w-full max-w-4xl flex-1 p-4', className)}>
-      {messages.map((message: any, index: number) => {
+    <div className={cn('mx-auto w-full max-w-4xl flex-1 px-4 py-6', className)}>
+      {messages.map((message: ChatMessage, index: number) => {
         const isLastMessage = index === messages.length - 1;
         return (
           <Message
             key={index}
             status={status}
             message={message}
-            provider={provider}
+            image={image}
             isLastMessage={isLastMessage}
+            supportsReasoning={supportsReasoning}
           >
             <MessageActions
-              model={model}
+              modelId={currentModelId || modelId}
               status={status}
               reload={reload}
               message={message}
@@ -59,8 +69,9 @@ export function Messages({
         );
       })}
 
-      {status === 'submitted' && <MessageLoading provider={provider} />}
-      <ButtonScrollToBottom status={status} messages={messages} />
+      {status === 'submitted' && (
+        <MessageLoading image={currentImage || image} />
+      )}
     </div>
   );
 }

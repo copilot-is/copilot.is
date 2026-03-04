@@ -1,12 +1,12 @@
 import React, { useEffect, useRef, useState } from 'react';
 import {
-  ArrowsIn,
-  ArrowsOut,
+  Maximize,
+  Minimize,
   Pause,
   Play,
-  SpeakerHigh,
-  SpeakerSlash
-} from '@phosphor-icons/react';
+  Volume2,
+  VolumeX
+} from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 
@@ -142,9 +142,9 @@ export function VideoPlayer({ src }: VideoPlayerProps) {
             className="size-8 shrink-0 text-white hover:bg-white/20 hover:text-white"
           >
             {isPlaying ? (
-              <Pause className="size-6" weight="fill" />
+              <Pause className="size-6" />
             ) : (
-              <Play className="size-6" weight="fill" />
+              <Play className="size-6" />
             )}
           </Button>
 
@@ -183,9 +183,9 @@ export function VideoPlayer({ src }: VideoPlayerProps) {
             className="size-8 shrink-0 text-white hover:bg-white/20 hover:text-white"
           >
             {isMuted ? (
-              <SpeakerSlash className="size-6" />
+              <VolumeX className="size-6" />
             ) : (
-              <SpeakerHigh className="size-6" />
+              <Volume2 className="size-6" />
             )}
           </Button>
 
@@ -197,9 +197,9 @@ export function VideoPlayer({ src }: VideoPlayerProps) {
             className="size-8 shrink-0 text-white hover:bg-white/20 hover:text-white"
           >
             {isFullscreen ? (
-              <ArrowsIn className="size-6" />
+              <Minimize className="size-6" />
             ) : (
-              <ArrowsOut className="size-6" />
+              <Maximize className="size-6" />
             )}
           </Button>
         </div>

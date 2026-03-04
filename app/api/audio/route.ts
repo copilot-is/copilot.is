@@ -7,11 +7,11 @@ import {
   NoSpeechGeneratedError
 } from 'ai';
 
-import { ChatMessage, Voice } from '@/types';
-import { GenerateTitlePrompt, Voices } from '@/lib/constant';
+import { ChatMessage } from '@/types';
 import { env } from '@/lib/env';
-import { provider } from '@/lib/provider';
-import { generateUUID, isAvailableModel } from '@/lib/utils';
+import { getLanguageModel, getSpeechModel } from '@/lib/provider';
+import { findModelByModelId, getTitleSettings } from '@/lib/queries';
+import { generateUUID } from '@/lib/utils';
 import { auth } from '@/server/auth';
 import { api } from '@/trpc/server';
 
@@ -19,10 +19,10 @@ export const maxDuration = 60;
 
 type PostData = {
   id: string;
-  model: string;
+  modelId: string;
   userMessage: Omit<ChatMessage, 'role'> & { role: 'user' };
   parentMessageId?: string;
-  voice?: Voice;
+  voice?: string;
 };
 
 export async function POST(req: Request) {
@@ -34,23 +34,27 @@ export async function POST(req: Request) {
 
   const json: PostData = await req.json();
   const id = json.id || generateUUID();
-  const { model, userMessage, parentMessageId, voice } = json;
+  const { modelId, userMessage, parentMessageId, voice } = json;
 
-  if (!model || !userMessage) {
+  if (!modelId || !userMessage) {
     return NextResponse.json(
-      { error: 'Invalid model and userMessage parameters' },
+      { error: 'Invalid modelId and userMessage parameters' },
       { status: 400 }
     );
   }
 
-  if (!isAvailableModel('voice', model)) {
+  // Fetch model from database to validate
+  const dbModel = await findModelByModelId(modelId, 'audio');
+  if (!dbModel?.provider) {
     return NextResponse.json(
-      { error: `Model ${model} is not available` },
+      { error: `Model ${modelId} is not available` },
       { status: 403 }
     );
   }
 
-  if (voice && !Voices.includes(voice)) {
+  // Validate voice against model's available voices
+  const availableVoices = (dbModel.uiOptions?.voices as string[]) || [];
+  if (voice && availableVoices.length > 0 && !availableVoices.includes(voice)) {
     return NextResponse.json(
       { error: 'Invalid voice parameters' },
       { status: 400 }
@@ -60,35 +64,45 @@ export async function POST(req: Request) {
   let title = 'Untitled';
   const chat = await api.chat.detail({
     id,
-    type: 'voice',
+    type: 'audio',
     includeMessages: false
   });
 
   if (!chat) {
     try {
-      const { text } = await generateText({
-        model: provider.languageModel(env.GENERATE_TITLE_MODEL),
-        system: GenerateTitlePrompt,
-        prompt: JSON.stringify(userMessage)
-      });
+      const {
+        prompt: titlePrompt,
+        modelId: titleModelId,
+        provider: titleProvider
+      } = await getTitleSettings();
 
-      title = text ?? title;
+      // Only generate title if all settings are configured
+      if (titlePrompt && titleModelId && titleProvider) {
+        const { text } = await generateText({
+          model: getLanguageModel(titleProvider, titleModelId),
+          system: titlePrompt,
+          prompt: JSON.stringify(userMessage)
+        });
+
+        title = text ?? title;
+      }
     } catch (err: any) {
-      console.error(
-        `Generate title ${env.GENERATE_TITLE_MODEL} error:`,
-        err.message
-      );
+      console.error(`Generate title error:`, err.message);
     }
 
     await api.chat.create({
       id,
       title,
-      type: 'voice',
-      model,
+      type: 'audio',
+      modelId,
       messages: [userMessage]
     });
   } else {
     title = chat.title;
+    // Update modelId if it has changed
+    if (chat.modelId !== modelId) {
+      await api.chat.update({ id, modelId });
+    }
     if (parentMessageId && parentMessageId === userMessage.id) {
       await api.message.delete({ parentId: parentMessageId });
     } else {
@@ -106,17 +120,22 @@ export async function POST(req: Request) {
       .join('\n')
       .trim();
     const { audio } = await generateSpeech({
-      model: provider.speechModel('tts-1'),
+      model: getSpeechModel(dbModel.provider, modelId),
       text: textParts,
-      voice: voice || 'alloy',
-      outputFormat: 'mp3'
+      voice,
+      outputFormat: 'mp3',
+      ...(dbModel.provider.apiOptions && {
+        providerOptions: {
+          [dbModel.provider.type]: dbModel.provider.apiOptions
+        } as any
+      })
     });
 
     const buffer = Buffer.from(audio.base64, 'base64');
     const filename = `${generateUUID()}.mp3`;
     const pathname = path.join(
       env.UPLOAD_PATH,
-      'generate-audio',
+      'generate-audios',
       session.user.id,
       filename
     );
@@ -153,8 +172,8 @@ export async function POST(req: Request) {
     return NextResponse.json({
       id,
       title,
-      type: 'voice',
-      model,
+      type: 'audio',
+      modelId,
       assistantMessage
     });
   } catch (err) {
@@ -163,7 +182,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: err.message }, { status: 500 });
     } else {
       return NextResponse.json(
-        { error: 'Oops, an error occured!' },
+        { error: 'Oops, an error occurred!' },
         { status: 500 }
       );
     }

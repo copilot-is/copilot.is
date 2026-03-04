@@ -40,7 +40,7 @@ export default async function Page(props: PageProps) {
       id={chat.id}
       initialChat={{
         title: chat.title,
-        model: chat.model
+        modelId: chat.modelId ?? undefined
       }}
       initialMessages={chatMessages}
     />

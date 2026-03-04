@@ -1,10 +1,10 @@
 'use client';
 
-import { useForm } from 'react-hook-form';
+import { useEffect, useMemo } from 'react';
+import { usePreferences } from '@/contexts/preferences-context';
+import { useSystemSettings } from '@/contexts/system-settings-context';
 
-import { TTSModels, Voices } from '@/lib/constant';
-import { useSettings } from '@/hooks/use-settings';
-import { Form, FormControl, FormItem, FormLabel } from '@/components/ui/form';
+import { Label as UiLabel } from '@/components/ui/label';
 import {
   Select,
   SelectContent,
@@ -12,73 +12,99 @@ import {
   SelectTrigger,
   SelectValue
 } from '@/components/ui/select';
-import { ProviderIcon } from '@/components/provider-icon';
+import { ModelIcon } from '@/components/model-icon';
 
 export const SettingsSpeech = () => {
-  const form = useForm();
-  const { userSettings, setUserSettings } = useSettings();
-  const { speechModel, speechVoice } = userSettings;
-  const selectedModel = TTSModels.find(m => m.value === speechModel);
+  const { ttsModels } = useSystemSettings();
+  const { preferences, setPreference } = usePreferences();
+
+  const speechModel = preferences.speechModelId;
+  const speechVoice = preferences.speechVoice;
+
+  const selectedModel = useMemo(
+    () => ttsModels?.find(m => m.modelId === speechModel),
+    [ttsModels, speechModel]
+  );
+
+  // Get available voices from current model's uiOptions
+  const availableVoices = useMemo(() => {
+    const voices = selectedModel?.uiOptions?.voices as string[] | undefined;
+    return voices || [];
+  }, [selectedModel]);
+
+  // Reset voice if current voice is not available in new model
+  useEffect(() => {
+    if (availableVoices.length > 0 && !availableVoices.includes(speechVoice)) {
+      const defaultVoice = availableVoices[0];
+      setPreference('speechVoice', defaultVoice);
+    }
+  }, [availableVoices, speechVoice, setPreference]);
+
+  const handleModelChange = (value: string) => {
+    setPreference('speechModelId', value);
+  };
+
+  const handleVoiceChange = (value: string) => {
+    setPreference('speechVoice', value);
+  };
 
   return (
-    <Form {...form}>
-      <div className="space-y-4">
-        <FormItem className="flex items-center justify-between space-y-0">
-          <FormLabel>Model</FormLabel>
-          <Select
-            onValueChange={value => setUserSettings('speechModel', value)}
-            value={speechModel}
-          >
-            <FormControl>
-              <SelectTrigger className="w-auto rounded-full">
-                <SelectValue placeholder="Select a model">
-                  <div className="flex items-center">
-                    <ProviderIcon provider={selectedModel?.provider} />
-                    <span className="ml-2">{selectedModel?.text}</span>
-                  </div>
-                </SelectValue>
-              </SelectTrigger>
-            </FormControl>
-            <SelectContent>
-              {TTSModels.map(model => (
-                <SelectItem key={model.value} value={model.value}>
-                  <div className="flex items-center">
-                    <ProviderIcon provider={model.provider} />
-                    <div className="ml-2">
-                      <div>{model.text}</div>
-                      <div className="text-xs text-muted-foreground">
-                        {model.value}
-                      </div>
+    <div className="space-y-4">
+      <div className="flex items-center justify-between space-y-0">
+        <UiLabel>Model</UiLabel>
+        <Select onValueChange={handleModelChange} value={speechModel}>
+          <SelectTrigger className="w-auto rounded-full">
+            <SelectValue placeholder="Select a model">
+              <div className="flex items-center">
+                <ModelIcon
+                  image={selectedModel?.image || selectedModel?.provider?.image}
+                  className="mr-2 size-4"
+                />
+                <span>{selectedModel?.name}</span>
+              </div>
+            </SelectValue>
+          </SelectTrigger>
+          <SelectContent>
+            {ttsModels?.map(model => (
+              <SelectItem key={model.id} value={model.modelId}>
+                <div className="flex items-center">
+                  <ModelIcon
+                    image={model.image || model.provider?.image}
+                    className="mr-2 size-4"
+                  />
+                  <div>
+                    <div>{model.name}</div>
+                    <div className="text-xs text-muted-foreground">
+                      {model.modelId}
                     </div>
                   </div>
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </FormItem>
-        <FormItem className="flex items-center justify-between space-y-0">
-          <FormLabel>Voice</FormLabel>
-          <Select
-            onValueChange={value => setUserSettings('speechVoice', value)}
-            value={speechVoice}
-          >
-            <FormControl>
-              <SelectTrigger className="w-auto rounded-full capitalize">
-                <SelectValue placeholder="Select a voice">
-                  {speechVoice}
-                </SelectValue>
-              </SelectTrigger>
-            </FormControl>
-            <SelectContent>
-              {Voices.map(voice => (
-                <SelectItem className="capitalize" key={voice} value={voice}>
-                  {voice}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </FormItem>
+                </div>
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
-    </Form>
+      <div className="flex items-center justify-between space-y-0">
+        <UiLabel>Voice</UiLabel>
+        <Select
+          onValueChange={handleVoiceChange}
+          value={speechVoice}
+          disabled={availableVoices.length === 0}
+        >
+          <SelectTrigger className="w-auto rounded-full capitalize">
+            <SelectValue placeholder="Select a voice">
+              {speechVoice}
+            </SelectValue>
+          </SelectTrigger>
+          <SelectContent>
+            {availableVoices.map(voice => (
+              <SelectItem className="capitalize" key={voice} value={voice}>
+                {voice}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+    </div>
   );
 };

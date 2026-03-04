@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import { CircleNotch, Link, Trash } from '@phosphor-icons/react';
 import { format } from 'date-fns';
+import { Link, Loader2, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 
 import { useSharedLinks } from '@/hooks/use-shared-links';
@@ -77,7 +77,7 @@ export function SharedLinksDialog({
         </DialogHeader>
         {isLoading && (
           <div className="flex justify-center p-4">
-            <CircleNotch className="size-8 animate-spin text-muted-foreground" />
+            <Loader2 className="size-8 animate-spin text-muted-foreground" />
           </div>
         )}
         {!isLoading && (
@@ -99,9 +99,9 @@ export function SharedLinksDialog({
                           title="Delete all"
                         >
                           {isDeletingAll ? (
-                            <CircleNotch className="size-4 animate-spin" />
+                            <Loader2 className="size-4 animate-spin" />
                           ) : (
-                            <Trash className="size-4" />
+                            <Trash2 className="size-4" />
                           )}
                         </Button>
                       </th>
@@ -117,7 +117,7 @@ export function SharedLinksDialog({
                             rel="noopener noreferrer"
                             className="flex items-center text-blue-500 hover:underline"
                           >
-                            <Link className="mr-1" />
+                            <Link className="mr-1 size-4" />
                             <span className="truncate">{link.chat?.title}</span>
                           </a>
                         </td>
@@ -134,9 +134,9 @@ export function SharedLinksDialog({
                             title="Delete"
                           >
                             {isDeleting.has(link.id) ? (
-                              <CircleNotch className="size-4 animate-spin" />
+                              <Loader2 className="size-4 animate-spin" />
                             ) : (
-                              <Trash />
+                              <Trash2 />
                             )}
                           </Button>
                         </td>

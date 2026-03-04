@@ -2,11 +2,11 @@
 
 import { useEffect } from 'react';
 import { UseChatHelpers } from '@ai-sdk/react';
-import { ArrowDown } from '@phosphor-icons/react';
-import { useScrollToBottom, useSticky } from 'react-scroll-to-bottom';
+import { ArrowDown } from 'lucide-react';
 
 import { ChatMessage } from '@/types';
 import { Button } from '@/components/ui/button';
+import { useScrollToBottom, useSticky } from '@/components/scroll-to-bottom';
 
 interface ButtonScrollToBottomProps
   extends Partial<Pick<UseChatHelpers<ChatMessage>, 'status'>>,

@@ -3,25 +3,25 @@
 import * as React from 'react';
 import {
   CheckCircle,
-  CircleNotch,
-  DotsThreeVertical,
-  PencilSimple,
-  ShareNetwork,
-  Trash
-} from '@phosphor-icons/react';
+  Loader2,
+  MoreVertical,
+  Pencil,
+  Share2,
+  Trash2
+} from 'lucide-react';
 import { toast } from 'sonner';
 
 import { Chat } from '@/types';
-import { api } from '@/lib/api';
 import { cn } from '@/lib/utils';
 import { useCopyToClipboard } from '@/hooks/use-copy-to-clipboard';
-import { Button } from '@/components/ui/button';
+import { api } from '@/trpc/react';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu';
+import { SidebarMenuAction } from '@/components/ui/sidebar';
 import { ChatDeleteDialog } from '@/components/chat-delete-dialog';
 import { ChatRenameDialog } from '@/components/chat-rename-dialog';
 
@@ -39,25 +39,21 @@ export function SidebarActions({
   const { isCopied, copyToClipboard } = useCopyToClipboard();
   const [titleDialogOpen, setTitleDialogOpen] = React.useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = React.useState(false);
-  const [isSharing, setIsSharing] = React.useState(false);
+
+  const shareMutation = api.share.create.useMutation();
 
   const copyShareLink = async (chatId: string) => {
-    if (isCopied || isSharing) return;
+    if (isCopied || shareMutation.isPending) return;
 
     try {
-      setIsSharing(true);
-      const result = await api.createShare(chatId);
-      if (result && 'error' in result) {
-        toast.error(result.error);
-        return;
-      }
+      const result = await shareMutation.mutateAsync({ chatId });
 
       const sharedLink = new URL(window.location.origin);
-      sharedLink.pathname = `/share/${result.id}`;
+      sharedLink.pathname = `/share/${result?.id}`;
       await copyToClipboard(sharedLink.toString());
       toast.success('Share link copied to clipboard', { duration: 2000 });
-    } finally {
-      setIsSharing(false);
+    } catch (error: any) {
+      toast.error(error.message || 'Failed to share');
     }
   };
 
@@ -65,42 +61,49 @@ export function SidebarActions({
     <>
       <DropdownMenu onOpenChange={onOpenChange}>
         <DropdownMenuTrigger asChild>
-          <Button
-            variant="ghost"
-            size="icon"
+          <SidebarMenuAction
+            showOnHover
             className={cn(
-              'size-6 bg-background hover:bg-accent data-[state=open]:bg-accent dark:bg-accent dark:hover:bg-background dark:data-[state=open]:bg-background',
+              'data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground data-[state=open]:opacity-100',
               className
             )}
           >
-            <DotsThreeVertical weight="bold" />
-          </Button>
+            <MoreVertical />
+            <span className="sr-only">More</span>
+          </SidebarMenuAction>
         </DropdownMenuTrigger>
         <DropdownMenuContent sideOffset={8} align="start">
           <DropdownMenuItem
+            className="flex items-center gap-2"
             onClick={() => copyShareLink(chat.id)}
-            disabled={isCopied || isSharing}
+            disabled={isCopied || shareMutation.isPending}
           >
             {isCopied ? (
               <>
-                <CheckCircle className="mr-2" /> Copied
+                <CheckCircle /> Copied
               </>
-            ) : isSharing ? (
+            ) : shareMutation.isPending ? (
               <>
-                <CircleNotch className="mr-2 animate-spin" /> Sharing...
+                <Loader2 className="animate-spin" /> Sharing...
               </>
             ) : (
               <>
-                <ShareNetwork className="mr-2" /> Share
+                <Share2 /> Share
               </>
             )}
           </DropdownMenuItem>
-          <DropdownMenuItem onClick={() => setTitleDialogOpen(true)}>
-            <PencilSimple className="mr-2" />
+          <DropdownMenuItem
+            className="flex items-center gap-2"
+            onClick={() => setTitleDialogOpen(true)}
+          >
+            <Pencil />
             Rename
           </DropdownMenuItem>
-          <DropdownMenuItem onClick={() => setDeleteDialogOpen(true)}>
-            <Trash className="mr-2" />
+          <DropdownMenuItem
+            className="flex items-center gap-2"
+            onClick={() => setDeleteDialogOpen(true)}
+          >
+            <Trash2 />
             Delete
           </DropdownMenuItem>
         </DropdownMenuContent>

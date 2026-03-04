@@ -1,23 +1,32 @@
 'use client';
 
-import React, { useCallback, useMemo, useState } from 'react';
-import { Image as ImageIcon } from '@phosphor-icons/react';
-import ScrollToBottom from 'react-scroll-to-bottom';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState
+} from 'react';
+import { usePreferences } from '@/contexts/preferences-context';
+import { useSystemSettings } from '@/contexts/system-settings-context';
+import { Image as ImageIcon } from 'lucide-react';
 import { toast } from 'sonner';
 
-import { ChatMessage, ImageAspectRatio, ImageSize } from '@/types';
-import { api } from '@/lib/api';
-import { cn, findModelByValue, generateUUID } from '@/lib/utils';
-import { refreshChats, updateChatInCache } from '@/hooks/use-chats';
-import { useSettings } from '@/hooks/use-settings';
+import { ChatMessage } from '@/types';
+import { generateImage } from '@/lib/api';
+import { cn, generateUUID } from '@/lib/utils';
+import { useChats } from '@/hooks/use-chats';
+import { ButtonScrollToBottom } from '@/components/button-scroll-to-bottom';
 import { ChatHeader } from '@/components/chat-header';
 import { EmptyScreen } from '@/components/empty-screen';
 import { ImagePromptForm } from '@/components/image-prompt-form';
 import { Messages } from '@/components/messages';
+import { ModelOptions } from '@/components/model-menu';
+import ScrollToBottom from '@/components/scroll-to-bottom';
 
 interface ImageUIProps {
   id: string;
-  initialChat?: { title: string; model: string };
+  initialChat?: { title: string; modelId?: string };
   initialMessages?: ChatMessage[];
 }
 
@@ -26,87 +35,152 @@ export function ImageUI({
   initialChat,
   initialMessages = []
 }: ImageUIProps) {
-  const { imagePreferences, setImagePreferences } = useSettings();
+  const { refreshChats } = useChats();
+
+  // Get from contexts
+  const { imageModels } = useSystemSettings();
+  const { preferences, setPreference } = usePreferences();
 
   const initialTitle = initialChat?.title;
-  const initialModel = initialChat?.model || imagePreferences.model;
 
   const [input, setInput] = useState('');
   const [title, setTitle] = useState(initialTitle);
-  const [imageModel, setImageModel] = useState(initialModel);
-  const [selectedModel, setSelectedModel] = useState(initialModel);
-  const [size, setSize] = useState<ImageSize>(imagePreferences.size);
-  const [aspectRatio, setAspectRatio] = useState<ImageAspectRatio>(
-    imagePreferences.aspectRatio
-  );
-  const [isLoading, setIsLoading] = useState(false);
-  const [messages, setMessages] = useState<ChatMessage[]>(initialMessages);
 
-  const provider = useMemo(
-    () => findModelByValue('image', imageModel)?.provider,
-    [imageModel]
+  // Track the current model (for next submission)
+  // Priority: initialChat.modelId (if valid) > preferences
+  const [currentModelId, setCurrentModelId] = useState(
+    initialChat?.modelId || preferences.imageModelId
+  );
+
+  // Track the display model (for showing in Messages)
+  const [displayModelId, setDisplayModelId] = useState(
+    initialChat?.modelId || preferences.imageModelId
+  );
+
+  // Track previous model for rollback on error
+  const previousModelRef = useRef<string | null>(null);
+
+  // Helper to update displayModel optimistically
+  const updateDisplayModelOptimistically = useCallback(() => {
+    if (currentModelId !== displayModelId) {
+      previousModelRef.current = displayModelId;
+      setDisplayModelId(currentModelId);
+    }
+  }, [currentModelId, displayModelId]);
+
+  const [size, setSize] = useState(preferences.imageSize);
+  const [aspectRatio, setAspectRatio] = useState(preferences.imageAspectRatio);
+  const [isLoading, setIsLoading] = useState(false);
+  const [messagesState, setMessagesState] =
+    useState<ChatMessage[]>(initialMessages);
+  const messagesRef = useRef<ChatMessage[]>(initialMessages);
+
+  const setMessages = useCallback(
+    (updater: React.SetStateAction<ChatMessage[]>) => {
+      const nextMessages =
+        typeof updater === 'function'
+          ? (updater as (prevState: ChatMessage[]) => ChatMessage[])(
+              messagesRef.current
+            )
+          : updater;
+      messagesRef.current = nextMessages;
+      setMessagesState(nextMessages);
+    },
+    []
+  );
+
+  const messages = messagesState;
+
+  // Find current model in database models (for API request options)
+  const currentDbModel = useMemo(
+    () => imageModels?.find(m => m.modelId === currentModelId),
+    [imageModels, currentModelId]
+  );
+
+  // Find display model in database models (for showing in Messages)
+  const displayDbModel = useMemo(
+    () => imageModels?.find(m => m.modelId === displayModelId),
+    [imageModels, displayModelId]
+  );
+
+  const displayImage = useMemo(
+    () => displayDbModel?.image || displayDbModel?.provider?.image || null,
+    [displayDbModel]
+  );
+
+  const currentImage = useMemo(
+    () => currentDbModel?.image || currentDbModel?.provider?.image || null,
+    [currentDbModel]
   );
 
   const modelOptions = useMemo(
-    () => findModelByValue('image', selectedModel)?.options,
-    [selectedModel]
+    () => currentDbModel?.uiOptions,
+    [currentDbModel]
   );
 
-  const handleModelChange = (newModel: string) => {
-    setSelectedModel(newModel);
-    setImagePreferences('model', newModel);
+  // Validate and reset size/aspectRatio based on the current model's options
+  useEffect(() => {
+    if (!currentDbModel) return;
 
-    // Check if the new model supports size or aspectRatio options
-    const newModelData = findModelByValue('image', newModel);
-    const availableSizes = newModelData?.options?.size;
-    const availableAspectRatios = newModelData?.options?.aspectRatio;
+    const availableSizes = currentDbModel.uiOptions?.sizes as
+      | string[]
+      | undefined;
+    const availableAspectRatios = currentDbModel.uiOptions?.aspectRatios as
+      | string[]
+      | undefined;
 
-    // If model doesn't support size, or current size is not available, reset to first available size
+    // Reset size if the current size is invalid for this model
     if (availableSizes && availableSizes.length > 0) {
       if (!availableSizes.includes(size)) {
-        const defaultSize = availableSizes[0] as ImageSize;
+        const defaultSize = availableSizes[0];
         setSize(defaultSize);
-        setImagePreferences('size', defaultSize);
+        setPreference('imageSize', defaultSize);
       }
     }
 
-    // If model doesn't support aspectRatio, or current aspectRatio is not available, reset to first available
+    // Reset aspectRatio if the current aspectRatio is invalid for this model
     if (availableAspectRatios && availableAspectRatios.length > 0) {
       if (!availableAspectRatios.includes(aspectRatio)) {
-        const defaultAspectRatio = availableAspectRatios[0] as ImageAspectRatio;
+        const defaultAspectRatio = availableAspectRatios[0];
         setAspectRatio(defaultAspectRatio);
-        setImagePreferences('aspectRatio', defaultAspectRatio);
+        setPreference('imageAspectRatio', defaultAspectRatio);
       }
     }
-  };
+  }, [currentDbModel, size, aspectRatio, setPreference]);
 
-  const handleSizeChange = (newSize: ImageSize) => {
-    setSize(newSize);
-    setImagePreferences('size', newSize);
-  };
-
-  const handleAspectRatioChange = (newAspectRatio: ImageAspectRatio) => {
-    setAspectRatio(newAspectRatio);
-    setImagePreferences('aspectRatio', newAspectRatio);
-  };
-
-  const resetModel = useCallback(
-    (newModel: string) => {
-      if (imageModel !== selectedModel) {
-        setImageModel(newModel);
-        updateChatInCache(id, { model: newModel });
-      }
+  // Handle model change from ModelMenu
+  const handleModelChange = useCallback(
+    (newModelId: string) => {
+      setCurrentModelId(newModelId);
+      setPreference('imageModelId', newModelId);
     },
-    [id, imageModel, selectedModel]
+    [setPreference]
   );
+
+  const handleSizeChange = (newSize: string) => {
+    setSize(newSize);
+    setPreference('imageSize', newSize);
+  };
+
+  const handleAspectRatioChange = (newAspectRatio: string) => {
+    setAspectRatio(newAspectRatio);
+    setPreference('imageAspectRatio', newAspectRatio);
+  };
+
+  const handleOptionsChange = (options: ModelOptions) => {
+    if (options.size !== undefined) {
+      handleSizeChange(options.size);
+    }
+    if (options.aspectRatio !== undefined) {
+      handleAspectRatioChange(options.aspectRatio);
+    }
+  };
 
   const handleSubmit = async () => {
     if (!input.trim()) return;
 
     setIsLoading(true);
-
     setInput('');
-    resetModel(selectedModel);
 
     // Create user message
     const now = new Date();
@@ -120,16 +194,18 @@ export function ImageUI({
       }
     };
 
+    updateDisplayModelOptimistically();
+
     // Add user message to UI
     setMessages(prev => [...prev, userMessage]);
 
     try {
-      const supportSize = modelOptions?.size;
-      const supportAspectRatio = modelOptions?.aspectRatio;
+      const supportSize = modelOptions?.sizes;
+      const supportAspectRatio = modelOptions?.aspectRatios;
 
-      const result = await api.generateImage({
+      const result = await generateImage({
         id,
-        model: selectedModel,
+        modelId: currentModelId,
         userMessage,
         size: supportSize ? size : undefined,
         aspectRatio: supportAspectRatio ? aspectRatio : undefined,
@@ -140,6 +216,10 @@ export function ImageUI({
         toast.error('Image generation failed', {
           description: result.error
         });
+        if (previousModelRef.current) {
+          setDisplayModelId(previousModelRef.current);
+          previousModelRef.current = null;
+        }
         return;
       }
 
@@ -152,6 +232,9 @@ export function ImageUI({
         setTitle(result.title);
       }
 
+      // Clear previous model ref on success
+      previousModelRef.current = null;
+
       // Add assistant message with result
       setMessages(prev => [...prev, result.assistantMessage]);
     } catch (error) {
@@ -161,18 +244,21 @@ export function ImageUI({
             ? error.message
             : 'An unexpected error occurred'
       });
+      if (previousModelRef.current) {
+        setDisplayModelId(previousModelRef.current);
+        previousModelRef.current = null;
+      }
     } finally {
       setIsLoading(false);
     }
   };
 
   const handleReload = async () => {
-    if (messages.length === 0) return;
-
-    setIsLoading(true);
+    const currentMessages = messagesRef.current;
+    if (currentMessages.length === 0) return;
 
     // Get the last message
-    const lastMessage = messages[messages.length - 1];
+    const lastMessage = currentMessages[currentMessages.length - 1];
     let userMessage: ChatMessage | undefined;
     let shouldRemoveAssistant = false;
 
@@ -181,7 +267,7 @@ export function ImageUI({
       const parentId = lastMessage.metadata?.parentId;
       if (!parentId) return;
 
-      userMessage = messages.find(msg => msg.id === parentId);
+      userMessage = currentMessages.find(msg => msg.id === parentId);
       shouldRemoveAssistant = true;
     }
     // If last message is user, use it directly
@@ -199,20 +285,22 @@ export function ImageUI({
 
     if (!textParts) return;
 
+    setIsLoading(true);
+
     // Remove the assistant message from UI if needed
-    if (shouldRemoveAssistant) {
-      setMessages(prev => prev.slice(0, -1));
+    if (shouldRemoveAssistant && lastMessage) {
+      setMessages(prev => prev.filter(msg => msg.id !== lastMessage.id));
     }
 
-    resetModel(selectedModel);
+    updateDisplayModelOptimistically();
 
     try {
-      const supportSize = modelOptions?.size;
-      const supportAspectRatio = modelOptions?.aspectRatio;
+      const supportSize = modelOptions?.sizes;
+      const supportAspectRatio = modelOptions?.aspectRatios;
 
-      const result = await api.generateImage({
+      const result = await generateImage({
         id,
-        model: selectedModel,
+        modelId: currentModelId,
         userMessage,
         parentMessageId: userMessage.id,
         size: supportSize ? size : undefined,
@@ -224,8 +312,15 @@ export function ImageUI({
         toast.error('Image generation failed', {
           description: result.error
         });
+        if (previousModelRef.current) {
+          setDisplayModelId(previousModelRef.current);
+          previousModelRef.current = null;
+        }
         return;
       }
+
+      // Clear previous model ref on success
+      previousModelRef.current = null;
 
       // Add assistant message with result
       setMessages(prev => [...prev, result.assistantMessage]);
@@ -236,30 +331,38 @@ export function ImageUI({
             ? error.message
             : 'An unexpected error occurred'
       });
+      if (previousModelRef.current) {
+        setDisplayModelId(previousModelRef.current);
+        previousModelRef.current = null;
+      }
     } finally {
       setIsLoading(false);
     }
   };
 
   const noChat = useMemo(
-    () => !title && messages.length === 0,
-    [title, messages.length]
+    () => !title && !isLoading && messages.length === 0,
+    [title, isLoading, messages.length]
   );
 
   return (
-    <>
-      <div className={cn('w-full overflow-hidden', { 'flex-1': !noChat })}>
+    <div className="flex size-full flex-col">
+      <ChatHeader title={title} />
+      <div className="w-full flex-1 overflow-hidden">
         <ScrollToBottom
-          className={cn({ 'size-full': !noChat })}
-          scrollViewClassName="size-full flex flex-col items-center"
-          followButtonClassName="hidden"
-          initialScrollBehavior="auto"
-          mode="bottom"
+          className="flex size-full flex-col items-center overflow-y-auto"
+          button={
+            <ButtonScrollToBottom
+              status={isLoading ? 'submitted' : 'ready'}
+              messages={messages}
+            />
+          }
         >
-          <ChatHeader title={title} />
           <Messages
-            model={selectedModel}
-            provider={provider}
+            modelId={displayModelId}
+            image={displayImage}
+            currentModelId={currentModelId}
+            currentImage={currentImage}
             messages={messages}
             setMessages={setMessages}
             reload={handleReload}
@@ -270,7 +373,7 @@ export function ImageUI({
       </div>
 
       <div
-        className={cn('w-full max-w-4xl px-2 pb-4', {
+        className={cn('mx-auto w-full max-w-4xl px-2 pb-4', {
           'mb-60 flex h-full flex-col items-center justify-center': noChat
         })}
       >
@@ -281,18 +384,17 @@ export function ImageUI({
           />
         )}
         <ImagePromptForm
-          model={selectedModel}
-          setModel={handleModelChange}
+          modelId={currentModelId}
           size={size}
-          setSize={handleSizeChange}
           aspectRatio={aspectRatio}
-          setAspectRatio={handleAspectRatioChange}
           input={input}
           setInput={setInput}
           isLoading={isLoading}
           onSubmit={handleSubmit}
+          onModelChange={handleModelChange}
+          onOptionsChange={handleOptionsChange}
         />
       </div>
-    </>
+    </div>
   );
 }

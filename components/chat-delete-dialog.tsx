@@ -2,11 +2,11 @@
 
 import * as React from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { CircleNotch } from '@phosphor-icons/react';
+import { Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 
 import { Chat } from '@/types';
-import { deleteChat } from '@/hooks/use-chats';
+import { useChats } from '@/hooks/use-chats';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -29,6 +29,7 @@ export function ChatDeleteDialog({
   open,
   onOpenChange
 }: ChatDeleteDialogProps) {
+  const { deleteChat } = useChats();
   const router = useRouter();
   const params = useParams<{ id?: string }>();
   const [isPending, startTransition] = React.useTransition();
@@ -51,9 +52,11 @@ export function ChatDeleteDialog({
               e.preventDefault();
               startTransition(async () => {
                 try {
-                  await deleteChat(chat.id);
+                  await deleteChat({ id: chat.id });
                   toast.success('Chat deleted', { duration: 2000 });
-                  params.id === chat.id && router.push('/');
+                  if (params.id === chat.id) {
+                    router.push('/');
+                  }
                   onOpenChange(false);
                 } catch (err: any) {
                   toast.error(err.message);
@@ -63,7 +66,7 @@ export function ChatDeleteDialog({
           >
             {isPending ? (
               <>
-                <CircleNotch className="animate-spin" />
+                <Loader2 className="animate-spin" />
                 Deleting...
               </>
             ) : (

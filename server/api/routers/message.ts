@@ -73,7 +73,8 @@ export const messageRouter = createTRPCRouter({
         .where(
           and(
             eq(messages.id, input.message.id),
-            eq(messages.userId, ctx.session.user.id)
+            eq(messages.userId, ctx.session.user.id),
+            eq(messages.role, 'user') // Only allow editing user messages
           )
         )
         .returning({

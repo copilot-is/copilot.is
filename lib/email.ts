@@ -22,7 +22,7 @@ export async function sendVerificationCode(
     const { error } = await resend.emails.send({
       from: env.EMAIL_FROM,
       to: email,
-      subject: `Your verification code: ${code}`,
+      subject: `Your verification code`,
       html: `
         <div style="font-family: Arial, sans-serif; max-width: 480px; margin: 0 auto; padding: 20px;">
           <h2 style="color: #333; margin-bottom: 20px;">Verification Code</h2>

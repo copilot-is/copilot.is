@@ -1,6 +1,22 @@
 import { Model } from './model';
 
-export type SystemSettings = {
-  availableModels: Model[];
+export interface SystemDefaults {
+  chatModelId: string | null;
+  imageModelId: string | null;
+  videoModelId: string | null;
+  ttsModelId: string | null;
+  speechModelId: string | null;
+  speechVoice: string | null;
+}
+
+export interface SystemSettings {
+  appName: string;
+  appSubtitle: string;
+  appDescription: string;
   speechEnabled: boolean;
-};
+  chatModels: Model[];
+  imageModels: Model[];
+  videoModels: Model[];
+  ttsModels: Model[];
+  defaults: SystemDefaults;
+}

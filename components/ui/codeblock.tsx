@@ -1,5 +1,5 @@
 import { memo, useMemo } from 'react';
-import { Check, Copy } from '@phosphor-icons/react';
+import { Check, Copy } from 'lucide-react';
 import { useTheme } from 'next-themes';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import {

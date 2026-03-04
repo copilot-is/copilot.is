@@ -1,31 +1,35 @@
 'use client';
 
 import * as React from 'react';
-import { CircleNotch, EnvelopeSimple } from '@phosphor-icons/react';
+import { Loader2, Mail } from 'lucide-react';
 import { signIn } from 'next-auth/react';
 
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { OtpInput } from '@/components/ui/otp-input';
+import {
+  InputOTP,
+  InputOTPGroup,
+  InputOTPSlot
+} from '@/components/ui/input-otp';
 
 interface EmailLoginFormProps {
   className?: string;
-  loading?: string | null;
-  setLoading?: (provider: string | null) => void;
+  isLoading?: string | null;
+  setIsLoading?: (provider: string | null) => void;
 }
 
 export function EmailLoginForm({
   className,
-  loading = null,
-  setLoading
+  isLoading = null,
+  setIsLoading
 }: EmailLoginFormProps) {
-  const disabled = loading !== null && loading !== 'email';
+  const disabled = isLoading !== null && isLoading !== 'email';
+  const loading = isLoading === 'email';
   const [step, setStep] = React.useState<'email' | 'code'>('email');
   const [email, setEmail] = React.useState('');
   const [code, setCode] = React.useState('');
   const [error, setError] = React.useState<string | null>(null);
-  const [isLoading, setIsLoading] = React.useState(false);
   const [countdown, setCountdown] = React.useState(0);
 
   React.useEffect(() => {
@@ -38,8 +42,7 @@ export function EmailLoginForm({
   const handleSendCode = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
-    setIsLoading(true);
-    setLoading?.('email');
+    setIsLoading?.('email');
 
     try {
       const response = await fetch('/api/auth/send-code', {
@@ -52,22 +55,23 @@ export function EmailLoginForm({
 
       if (!response.ok) {
         setError(data.error || 'Failed to send verification code');
+        setIsLoading?.(null);
         return;
       }
 
       setStep('code');
       setCountdown(60);
-    } catch (err) {
+      setIsLoading?.(null);
+    } catch {
       setError('An error occurred. Please try again.');
-    } finally {
-      setIsLoading(false);
+      setIsLoading?.(null);
     }
   };
 
   const handleVerifyCode = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
-    setIsLoading(true);
+    setIsLoading?.('email');
 
     try {
       const result = await signIn('email-code', {
@@ -79,23 +83,23 @@ export function EmailLoginForm({
 
       if (result?.error) {
         setError('Invalid or expired verification code');
+        setIsLoading?.(null);
         return;
       }
 
       if (result?.ok) {
         window.location.href = '/';
       }
-    } catch (err) {
+    } catch {
       setError('An error occurred. Please try again.');
-    } finally {
-      setIsLoading(false);
+      setIsLoading?.(null);
     }
   };
 
   const handleResendCode = async () => {
     if (countdown > 0) return;
     setError(null);
-    setIsLoading(true);
+    setIsLoading?.('email');
 
     try {
       const response = await fetch('/api/auth/send-code', {
@@ -108,14 +112,15 @@ export function EmailLoginForm({
 
       if (!response.ok) {
         setError(data.error || 'Failed to resend code');
+        setIsLoading?.(null);
         return;
       }
 
       setCountdown(60);
-    } catch (err) {
+      setIsLoading?.(null);
+    } catch {
       setError('An error occurred. Please try again.');
-    } finally {
-      setIsLoading(false);
+      setIsLoading?.(null);
     }
   };
 
@@ -124,7 +129,7 @@ export function EmailLoginForm({
       {step === 'email' ? (
         <form onSubmit={handleSendCode} className="space-y-4">
           <div className="relative">
-            <EnvelopeSimple className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+            <Mail className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
             <Input
               type="email"
               placeholder="Email address"
@@ -132,7 +137,7 @@ export function EmailLoginForm({
               onChange={e => setEmail(e.target.value)}
               className="pl-10"
               required
-              disabled={disabled || isLoading}
+              disabled={disabled || loading}
             />
           </div>
           {error && <p className="text-sm text-destructive">{error}</p>}
@@ -141,12 +146,12 @@ export function EmailLoginForm({
             variant="outline"
             size="lg"
             className="w-full"
-            disabled={disabled || isLoading || !email}
+            disabled={disabled || loading || !email}
           >
-            {isLoading ? (
-              <CircleNotch className="size-4 animate-spin" />
+            {loading ? (
+              <Loader2 className="size-4 animate-spin" />
             ) : (
-              <EnvelopeSimple className="size-4" />
+              <Mail className="size-4" />
             )}
             <span className="ml-2">Continue with Email</span>
           </Button>
@@ -157,21 +162,32 @@ export function EmailLoginForm({
             We sent a verification code to{' '}
             <span className="font-medium text-foreground">{email}</span>
           </p>
-          <OtpInput
-            value={code}
-            onChange={setCode}
-            length={6}
-            disabled={isLoading}
-          />
+          <div className="flex justify-center">
+            <InputOTP
+              maxLength={6}
+              value={code}
+              onChange={setCode}
+              disabled={loading}
+            >
+              <InputOTPGroup>
+                <InputOTPSlot index={0} />
+                <InputOTPSlot index={1} />
+                <InputOTPSlot index={2} />
+                <InputOTPSlot index={3} />
+                <InputOTPSlot index={4} />
+                <InputOTPSlot index={5} />
+              </InputOTPGroup>
+            </InputOTP>
+          </div>
           {error && <p className="text-sm text-destructive">{error}</p>}
           <Button
             type="submit"
             size="lg"
             className="w-full"
-            disabled={isLoading || code.length !== 6}
+            disabled={loading || code.length !== 6}
           >
-            {isLoading ? (
-              <CircleNotch className="size-4 animate-spin" />
+            {loading ? (
+              <Loader2 className="size-4 animate-spin" />
             ) : (
               'Verify & Sign In'
             )}
@@ -183,7 +199,7 @@ export function EmailLoginForm({
                 setStep('email');
                 setCode('');
                 setError(null);
-                setLoading?.(null);
+                setIsLoading?.(null);
               }}
               className="text-muted-foreground hover:text-foreground"
             >
@@ -192,7 +208,7 @@ export function EmailLoginForm({
             <button
               type="button"
               onClick={handleResendCode}
-              disabled={countdown > 0 || isLoading}
+              disabled={countdown > 0 || loading}
               className={cn(
                 'text-muted-foreground',
                 countdown > 0 ? 'cursor-not-allowed' : 'hover:text-foreground'

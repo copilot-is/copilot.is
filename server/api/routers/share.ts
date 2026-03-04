@@ -2,8 +2,12 @@ import { and, eq } from 'drizzle-orm';
 import { z } from 'zod';
 
 import { generateUUID } from '@/lib/utils';
-import { createTRPCRouter, protectedProcedure } from '@/server/api/trpc';
-import { shares } from '@/server/db/schema';
+import {
+  createTRPCRouter,
+  protectedProcedure,
+  publicProcedure
+} from '@/server/api/trpc';
+import { chats, shares } from '@/server/db/schema';
 
 export const shareRouter = createTRPCRouter({
   create: protectedProcedure
@@ -13,13 +17,30 @@ export const shareRouter = createTRPCRouter({
       })
     )
     .mutation(async ({ ctx, input }) => {
-      const share = await ctx.db.query.shares.findFirst({
-        where: eq(shares.chatId, input.chatId),
+      // Verify the chat belongs to the current user
+      const chat = await ctx.db.query.chats.findFirst({
+        where: and(
+          eq(chats.id, input.chatId),
+          eq(chats.userId, ctx.session.user.id)
+        ),
+        columns: { id: true }
+      });
+
+      if (!chat) {
+        throw new Error('Chat not found');
+      }
+
+      // Check if a share already exists for this chat
+      const existingShare = await ctx.db.query.shares.findFirst({
+        where: and(
+          eq(shares.chatId, input.chatId),
+          eq(shares.userId, ctx.session.user.id)
+        ),
         columns: { chatId: false, userId: false }
       });
 
-      if (share) {
-        return share;
+      if (existingShare) {
+        return existingShare;
       }
 
       const shareId = generateUUID();
@@ -70,7 +91,7 @@ export const shareRouter = createTRPCRouter({
       });
     }),
 
-  detail: protectedProcedure
+  detail: publicProcedure
     .input(
       z.object({
         id: z.string().min(1)

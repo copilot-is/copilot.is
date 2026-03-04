@@ -1,11 +1,7 @@
 import { cache } from 'react';
 import { DrizzleAdapter } from '@auth/drizzle-adapter';
 import { and, count, eq, gt } from 'drizzle-orm';
-import NextAuth, {
-  type DefaultSession,
-  type Session,
-  type User
-} from 'next-auth';
+import NextAuth, { type DefaultSession } from 'next-auth';
 import Credentials from 'next-auth/providers/credentials';
 import GitHub from 'next-auth/providers/github';
 import Google from 'next-auth/providers/google';

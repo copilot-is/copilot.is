@@ -1,17 +1,13 @@
 import path from 'path';
 import { NextResponse } from 'next/server';
 import { put } from '@vercel/blob';
-import {
-  experimental_generateImage as generateImage,
-  generateText,
-  JSONValue
-} from 'ai';
+import { generateImage, generateText, JSONValue } from 'ai';
 
 import { ChatMessage } from '@/types';
-import { GenerateTitlePrompt } from '@/lib/constant';
 import { env } from '@/lib/env';
-import { provider } from '@/lib/provider';
-import { generateUUID, isAvailableModel } from '@/lib/utils';
+import { getImageModel, getLanguageModel } from '@/lib/provider';
+import { findModelByModelId, getTitleSettings } from '@/lib/queries';
+import { generateUUID } from '@/lib/utils';
 import { auth } from '@/server/auth';
 import { api } from '@/trpc/server';
 
@@ -19,7 +15,7 @@ export const maxDuration = 60;
 
 type PostData = {
   id: string;
-  model: string;
+  modelId: string;
   userMessage: Omit<ChatMessage, 'role'> & { role: 'user' };
   parentMessageId?: string;
   n?: number;
@@ -39,7 +35,7 @@ export async function POST(req: Request) {
   const json: PostData = await req.json();
   const id = json.id || generateUUID();
   const {
-    model,
+    modelId,
     userMessage,
     parentMessageId,
     n = 1,
@@ -49,16 +45,18 @@ export async function POST(req: Request) {
     providerOptions
   } = json;
 
-  if (!model || !userMessage) {
+  if (!modelId || !userMessage) {
     return NextResponse.json(
-      { error: 'Invalid model and userMessage parameters' },
+      { error: 'Invalid modelId and userMessage parameters' },
       { status: 400 }
     );
   }
 
-  if (!isAvailableModel('image', model)) {
+  // Fetch model from database to validate
+  const dbModel = await findModelByModelId(modelId, 'image');
+  if (!dbModel?.provider) {
     return NextResponse.json(
-      { error: `Model ${model} is not available` },
+      { error: `Model ${modelId} is not available` },
       { status: 403 }
     );
   }
@@ -71,29 +69,39 @@ export async function POST(req: Request) {
   });
   if (!chat) {
     try {
-      const { text } = await generateText({
-        model: provider.languageModel(env.GENERATE_TITLE_MODEL),
-        system: GenerateTitlePrompt,
-        prompt: JSON.stringify(userMessage)
-      });
+      const {
+        prompt: titlePrompt,
+        modelId: titleModelId,
+        provider: titleProvider
+      } = await getTitleSettings();
 
-      title = text ?? title;
+      // Only generate title if all settings are configured
+      if (titlePrompt && titleModelId && titleProvider) {
+        const { text } = await generateText({
+          model: getLanguageModel(titleProvider, titleModelId),
+          system: titlePrompt,
+          prompt: JSON.stringify(userMessage)
+        });
+
+        title = text ?? title;
+      }
     } catch (err: any) {
-      console.error(
-        `Generate title ${env.GENERATE_TITLE_MODEL} error:`,
-        err.message
-      );
+      console.error(`Generate title error:`, err.message);
     }
 
     await api.chat.create({
       id,
       title,
       type: 'image',
-      model,
+      modelId,
       messages: [userMessage]
     });
   } else {
     title = chat.title;
+    // Update modelId if it has changed
+    if (chat.modelId !== modelId) {
+      await api.chat.update({ id, modelId });
+    }
     if (parentMessageId && parentMessageId === userMessage.id) {
       await api.message.delete({ parentId: parentMessageId });
     } else {
@@ -110,18 +118,66 @@ export async function POST(req: Request) {
       .map(part => part.text)
       .join('\n')
       .trim();
-    const { image } = await generateImage({
-      model: provider.imageModel(model),
-      prompt: textParts,
-      n,
-      size,
-      aspectRatio,
-      seed,
-      providerOptions
-    });
 
-    const buffer = Buffer.from(image.base64, 'base64');
-    const ext = image.mediaType?.split('/')[1] || 'png';
+    let imageBase64: string;
+    let imageMediaType: string;
+
+    const isGeminiImageModel =
+      modelId.startsWith('gemini-2.5-flash-image') ||
+      modelId.startsWith('gemini-3-pro-image');
+
+    if (isGeminiImageModel) {
+      // Gemini models generate images via generateText with multi-modal output
+      const mergedProviderOptions = {
+        ...(dbModel.provider.apiOptions && {
+          [dbModel.provider.type]: dbModel.provider.apiOptions
+        }),
+        ...providerOptions
+      } as any;
+      const result = await generateText({
+        model: getLanguageModel(dbModel.provider, modelId),
+        prompt: textParts,
+        temperature: dbModel.apiParams?.temperature,
+        topP: dbModel.apiParams?.topP,
+        topK: dbModel.apiParams?.topK,
+        maxOutputTokens: dbModel.apiParams?.maxOutputTokens,
+        frequencyPenalty: dbModel.apiParams?.frequencyPenalty,
+        presencePenalty: dbModel.apiParams?.presencePenalty,
+        providerOptions: mergedProviderOptions
+      });
+
+      const imageFile = result.files?.find(f =>
+        f.mediaType.startsWith('image/')
+      );
+      if (!imageFile) {
+        throw new Error('No image generated by the model');
+      }
+
+      imageBase64 = imageFile.base64;
+      imageMediaType = imageFile.mediaType;
+    } else {
+      // Standard image models use generateImage API
+      const { image } = await generateImage({
+        model: getImageModel(dbModel.provider, modelId),
+        prompt: textParts,
+        n,
+        size,
+        aspectRatio,
+        seed,
+        providerOptions: {
+          ...(dbModel.provider.apiOptions && {
+            [dbModel.provider.type]: dbModel.provider.apiOptions
+          }),
+          ...providerOptions
+        } as any
+      });
+
+      imageBase64 = image.base64;
+      imageMediaType = image.mediaType;
+    }
+
+    const buffer = Buffer.from(imageBase64, 'base64');
+    const ext = imageMediaType?.split('/')[1] || 'png';
     const filename = `${generateUUID()}.${ext}`;
 
     const pathname = path.join(
@@ -132,7 +188,7 @@ export async function POST(req: Request) {
     );
     const data = await put(pathname, buffer, {
       access: 'public',
-      contentType: image.mediaType,
+      contentType: imageMediaType,
       addRandomSuffix: false
     });
 
@@ -143,7 +199,7 @@ export async function POST(req: Request) {
       parts: [
         {
           type: 'file',
-          mediaType: data.contentType || image.mediaType,
+          mediaType: data.contentType || imageMediaType,
           url: data.url,
           filename
         }
@@ -164,13 +220,13 @@ export async function POST(req: Request) {
       id,
       title,
       type: 'image',
-      model,
+      modelId,
       assistantMessage
     });
   } catch (err) {
     console.error('Image generation error:', err);
     return NextResponse.json(
-      { error: 'Oops, an error occured!' },
+      { error: 'Oops, an error occurred!' },
       { status: 500 }
     );
   }

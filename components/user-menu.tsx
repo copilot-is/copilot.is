@@ -1,19 +1,20 @@
 'use client';
 
 import { useState } from 'react';
-import Image from 'next/image';
 import Link from 'next/link';
 import {
-  ArrowSquareOut,
-  CaretDown,
-  Gear,
-  GithubLogo,
-  Shield,
-  SignOut
-} from '@phosphor-icons/react';
+  ChevronDown,
+  ExternalLink,
+  Github,
+  LayoutDashboard,
+  LogOut,
+  Settings,
+  Shield
+} from 'lucide-react';
 import { signOut } from 'next-auth/react';
 
 import { useCurrentUser } from '@/hooks/use-current-user';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -21,112 +22,133 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu';
+import {
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
+  useSidebar
+} from '@/components/ui/sidebar';
 import { Skeleton } from '@/components/ui/skeleton';
 import { SettingsDialog } from '@/components/settings-dialog';
 
 export function UserMenu() {
   const { user, isLoading } = useCurrentUser();
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const { isMobile, state } = useSidebar();
+  const isCollapsed = state === 'collapsed';
+
+  if (isLoading) {
+    return (
+      <SidebarMenu className="my-1">
+        <SidebarMenuItem>
+          <SidebarMenuButton
+            size="lg"
+            className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
+          >
+            <Skeleton className="size-8 rounded-full" />
+            <div className="grid flex-1 gap-1 text-left text-sm leading-tight">
+              <Skeleton className="h-4 w-24" />
+              <Skeleton className="h-3 w-32" />
+            </div>
+          </SidebarMenuButton>
+        </SidebarMenuItem>
+      </SidebarMenu>
+    );
+  }
+
+  if (!user) return null;
 
   return (
-    <div className="flex items-center p-3">
-      {isLoading ? (
-        <div className="flex w-full items-center rounded-md border bg-background p-2 shadow-sm">
-          <Skeleton className="size-8 rounded-full" />
-          <div className="flex flex-col pl-2">
-            <Skeleton className="h-4 w-24" />
-            <Skeleton className="mt-1 h-3 w-32" />
-          </div>
-        </div>
-      ) : (
-        user && (
-          <DropdownMenu>
-            <DropdownMenuTrigger className="group" asChild>
-              <div
-                tabIndex={0}
-                className="flex w-full cursor-pointer items-center rounded-md border bg-background p-2 text-sm font-medium shadow-sm transition-colors hover:bg-accent focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-              >
-                <div className="size-8 overflow-hidden rounded-full border">
-                  {user.image ? (
-                    <Image
-                      className="size-full object-cover"
-                      src={user.image}
-                      alt={user.name ?? ''}
-                      height={32}
-                      width={32}
-                    />
-                  ) : (
-                    <div className="flex size-full items-center justify-center bg-primary/10 text-sm font-medium text-primary">
-                      {user.name
-                        ? user.name
-                            .split(' ')
-                            .map(word => word[0])
-                            .join('')
-                            .toUpperCase()
-                            .slice(0, 2)
-                        : (user.email?.[0] || '?').toUpperCase()}
-                    </div>
-                  )}
-                </div>
-                <div className="mx-2 flex flex-1 flex-col items-start text-xs">
-                  <span className="font-medium">{user.name}</span>
-                  <span className="text-muted-foreground">{user.email}</span>
-                </div>
-                <CaretDown className="size-4 opacity-50 transition-transform group-data-[state=open]:rotate-180" />
+    <SidebarMenu className="my-1">
+      <SidebarMenuItem>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <SidebarMenuButton
+              size="lg"
+              className="hover:bg-accent data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground group-data-[state=expanded]:border group-data-[state=expanded]:bg-background group-data-[state=expanded]:shadow-sm"
+            >
+              <Avatar className="size-8 rounded-full border">
+                <AvatarImage src={user.image || ''} alt={user.name || ''} />
+                <AvatarFallback className="rounded-full">
+                  {user.name
+                    ? user.name.slice(0, 2).toUpperCase()
+                    : (user.email?.[0] || '?').toUpperCase()}
+                </AvatarFallback>
+              </Avatar>
+              <div className="grid flex-1 text-left text-sm leading-tight">
+                <span className="truncate font-semibold">{user.name}</span>
+                <span className="truncate text-xs">{user.email}</span>
               </div>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent className="w-[255px] lg:w-[225px] xl:w-[275px]">
-              <DropdownMenuItem
-                className="flex items-center"
-                onClick={() => setIsSettingsOpen(true)}
-              >
-                <Gear className="mr-2 size-4" />
-                Settings
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
+              <ChevronDown className="ml-auto size-4" />
+            </SidebarMenuButton>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent
+            className="w-[--radix-dropdown-menu-trigger-width] min-w-56 rounded-lg"
+            side={isMobile ? 'bottom' : isCollapsed ? 'right' : 'top'}
+            align="end"
+            sideOffset={4}
+          >
+            <DropdownMenuItem
+              className="flex items-center gap-2"
+              onClick={() => setIsSettingsOpen(true)}
+            >
+              <Settings className="size-4" />
+              Settings
+            </DropdownMenuItem>
+            {user.admin && (
               <DropdownMenuItem asChild>
                 <Link
-                  href="/privacy"
-                  className="flex w-full items-center justify-between px-2 py-1.5 text-sm outline-none transition-colors focus:bg-accent focus:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50"
+                  href="/console"
+                  className="flex w-full items-center gap-2"
                 >
-                  <div className="flex items-center">
-                    <Shield className="mr-2 size-4" />
-                    Privacy Policy
-                  </div>
-                  <ArrowSquareOut className="size-4" />
+                  <LayoutDashboard className="size-4" />
+                  Console
                 </Link>
               </DropdownMenuItem>
-              <DropdownMenuItem asChild>
-                <a
-                  href="https://github.com/copilot-is/copilot.is"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex w-full items-center justify-between px-2 py-1.5 text-sm outline-none transition-colors focus:bg-accent focus:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50"
-                >
-                  <div className="flex items-center">
-                    <GithubLogo className="mr-2 size-4" />
-                    GitHub
-                  </div>
-                  <ArrowSquareOut className="size-4" />
-                </a>
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem
-                onClick={() =>
-                  signOut({
-                    callbackUrl: '/'
-                  })
-                }
-                className="flex items-center"
+            )}
+            <DropdownMenuSeparator />
+            <DropdownMenuItem asChild>
+              <Link
+                href="/privacy"
+                className="flex w-full items-center justify-between"
               >
-                <SignOut className="mr-2 size-4" />
-                Log Out
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        )
-      )}
+                <div className="flex items-center gap-2">
+                  <Shield className="size-4" />
+                  Privacy Policy
+                </div>
+                <ExternalLink className="size-4" />
+              </Link>
+            </DropdownMenuItem>
+            <DropdownMenuItem asChild>
+              <a
+                href="https://github.com/copilot-is/copilot.is"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex w-full items-center justify-between"
+              >
+                <div className="flex items-center gap-2">
+                  <Github className="size-4" />
+                  GitHub
+                </div>
+                <ExternalLink className="size-4" />
+              </a>
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem
+              onClick={() =>
+                signOut({
+                  callbackUrl: '/'
+                })
+              }
+              className="flex items-center gap-2"
+            >
+              <LogOut className="size-4" />
+              Log Out
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </SidebarMenuItem>
       <SettingsDialog open={isSettingsOpen} onOpenChange={setIsSettingsOpen} />
-    </div>
+    </SidebarMenu>
   );
 }

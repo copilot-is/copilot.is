@@ -1,25 +1,27 @@
 'use client';
 
 import * as React from 'react';
+import { usePreferences } from '@/contexts/preferences-context';
+import { useSystemSettings } from '@/contexts/system-settings-context';
 import { UseChatHelpers } from '@ai-sdk/react';
 import {
-  ArrowsClockwise,
   CheckCircle,
-  CircleNotch,
   Copy,
-  DownloadSimple,
+  Download,
+  Loader2,
   PauseCircle,
-  PencilSimple,
-  SpeakerHigh,
-  Trash
-} from '@phosphor-icons/react';
+  Pencil,
+  RefreshCw,
+  Trash2,
+  Volume2
+} from 'lucide-react';
 import { toast } from 'sonner';
 
 import { ChatMessage } from '@/types';
-import { api } from '@/lib/api';
+import { createSpeech } from '@/lib/api';
 import { cn } from '@/lib/utils';
 import { useCopyToClipboard } from '@/hooks/use-copy-to-clipboard';
-import { useSettings } from '@/hooks/use-settings';
+import { api } from '@/trpc/react';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -43,7 +45,7 @@ import { Textarea } from '@/components/ui/textarea';
 
 interface MessageActionsProps
   extends Partial<Pick<UseChatHelpers<ChatMessage>, 'status' | 'setMessages'>> {
-  model: string;
+  modelId: string;
   message: ChatMessage;
   reload?: () => void;
   isReadonly?: boolean;
@@ -51,7 +53,7 @@ interface MessageActionsProps
 }
 
 export function MessageActions({
-  model,
+  modelId,
   status,
   reload,
   message,
@@ -59,16 +61,19 @@ export function MessageActions({
   isReadonly,
   isLastMessage
 }: MessageActionsProps) {
-  const { systemSettings, userSettings } = useSettings();
-  const { speechEnabled } = systemSettings;
-  const { speechModel, speechVoice } = userSettings;
+  const { ttsModels, speechEnabled } = useSystemSettings();
+  const isSpeechAvailable = (ttsModels?.length ?? 0) > 0 && speechEnabled;
+  const { preferences } = usePreferences();
+  const speechModel = preferences.speechModelId;
+  const speechVoice = preferences.speechVoice;
   const { isCopied, copyToClipboard } = useCopyToClipboard();
   const [draftContent, setDraftContent] = React.useState('');
   const [editDialogOpen, setEditDialogOpen] = React.useState(false);
-  const [isEditPending, startEditTransition] = React.useTransition();
   const [deleteDialogOpen, setDeleteDialogOpen] = React.useState(false);
-  const [isDeletePending, startDeleteTransition] = React.useTransition();
   const [isPlaying, setIsPlaying] = React.useState(false);
+
+  const updateMutation = api.message.update.useMutation();
+  const deleteMutation = api.message.delete.useMutation();
   const [isLoadingAudio, setIsLoadingAudio] = React.useState(false);
   const audioRef = React.useRef<HTMLAudioElement | null>(null);
 
@@ -146,20 +151,16 @@ export function MessageActions({
         document.body.removeChild(link);
 
         toast.success('Download started');
-      } catch (error) {
+      } catch {
         toast.error('Failed to download file');
       }
     }
   };
 
   const onRead = async () => {
-    if (speechEnabled && speechModel && speechVoice) {
+    if (isSpeechAvailable && speechModel && speechVoice) {
       setIsLoadingAudio(true);
-      const result = await api.createSpeech(
-        speechModel,
-        speechVoice,
-        textParts
-      );
+      const result = await createSpeech(speechModel, speechVoice, textParts);
       setIsLoadingAudio(false);
 
       if (result && 'error' in result) {
@@ -206,7 +207,7 @@ export function MessageActions({
         isLastMessage ? 'lg:visible' : 'lg:invisible'
       )}
     >
-      {speechEnabled && !hasFileContent && (
+      {isSpeechAvailable && !hasFileContent && textParts && (
         <Button
           variant="ghost"
           size="icon"
@@ -215,11 +216,11 @@ export function MessageActions({
           disabled={isLoadingAudio}
         >
           {isLoadingAudio ? (
-            <CircleNotch className="size-4 animate-spin" />
+            <Loader2 className="size-4 animate-spin" />
           ) : isPlaying ? (
             <PauseCircle className="size-4" />
           ) : (
-            <SpeakerHigh className="size-4" />
+            <Volume2 className="size-4" />
           )}
           <span className="sr-only">
             {isLoadingAudio ? 'Loading...' : isPlaying ? 'Stop' : 'Play'}
@@ -247,7 +248,7 @@ export function MessageActions({
           className="size-7 text-muted-foreground"
           onClick={onDownload}
         >
-          <DownloadSimple className="size-4" />
+          <Download className="size-4" />
           <span className="sr-only">Download</span>
         </Button>
       )}
@@ -259,16 +260,16 @@ export function MessageActions({
               size="icon"
               className="group/retry h-7 w-auto gap-1 px-1.5 text-muted-foreground"
               onClick={() => reload()}
-              disabled={status !== 'ready'}
+              disabled={status !== 'ready' && status !== 'error'}
             >
-              <ArrowsClockwise className="size-4" />
+              <RefreshCw className="size-4" />
               <span className="sr-only">Retry</span>
               <span className="hidden text-muted-foreground animate-out fade-out group-hover/retry:inline-block group-hover/retry:animate-in group-hover/retry:fade-in">
-                {model}
+                {modelId}
               </span>
             </Button>
           )}
-          {!hasFileContent && (
+          {!hasFileContent && message.role === 'user' && (
             <>
               <Button
                 variant="ghost"
@@ -277,11 +278,11 @@ export function MessageActions({
                 disabled={
                   status === 'submitted' ||
                   status === 'streaming' ||
-                  isEditPending
+                  updateMutation.isPending
                 }
                 onClick={() => setEditDialogOpen(true)}
               >
-                <PencilSimple className="size-4" />
+                <Pencil className="size-4" />
                 <span className="sr-only">Edit</span>
               </Button>
               <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
@@ -300,32 +301,33 @@ export function MessageActions({
                   />
                   <DialogFooter>
                     <Button
-                      disabled={isEditPending || textParts === draftContent}
-                      onClick={() => {
-                        startEditTransition(async () => {
-                          if (draftContent) {
-                            const updated = {
-                              ...message,
-                              content: draftContent,
-                              parts: message.parts.map(part =>
-                                part.type === 'text'
-                                  ? {
-                                      type: 'text' as const,
-                                      text: draftContent
-                                    }
-                                  : part
-                              )
-                            };
+                      disabled={
+                        updateMutation.isPending || textParts === draftContent
+                      }
+                      onClick={async () => {
+                        if (draftContent) {
+                          const updated = {
+                            ...message,
+                            content: draftContent,
+                            parts: message.parts.map(part =>
+                              part.type === 'text'
+                                ? {
+                                    type: 'text' as const,
+                                    text: draftContent
+                                  }
+                                : part
+                            )
+                          };
 
-                            const result = await api.updateMessage(updated);
-                            if (result && 'error' in result) {
-                              toast.error(result.error);
-                              return;
-                            }
+                          try {
+                            await updateMutation.mutateAsync({
+                              id: message.id,
+                              message: updated
+                            });
                             toast.success('Message saved', { duration: 2000 });
 
-                            setMessages((messages: any) => {
-                              return messages.map((m: any) =>
+                            setMessages((messages: ChatMessage[]) => {
+                              return messages.map((m: ChatMessage) =>
                                 m.id === message.id ? updated : m
                               );
                             });
@@ -334,13 +336,17 @@ export function MessageActions({
                             if (message.role === 'user') {
                               reload();
                             }
+                          } catch (error: any) {
+                            toast.error(
+                              error.message || 'Failed to save message'
+                            );
                           }
-                        });
+                        }
                       }}
                     >
-                      {isEditPending ? (
+                      {updateMutation.isPending ? (
                         <>
-                          <CircleNotch className="animate-spin" />
+                          <Loader2 className="animate-spin" />
                           Saving...
                         </>
                       ) : (
@@ -359,11 +365,11 @@ export function MessageActions({
             disabled={
               status === 'submitted' ||
               status === 'streaming' ||
-              isDeletePending
+              deleteMutation.isPending
             }
             onClick={() => setDeleteDialogOpen(true)}
           >
-            <Trash className="size-4" />
+            <Trash2 className="size-4" />
             <span className="sr-only">Delete</span>
           </Button>
           <AlertDialog
@@ -382,40 +388,40 @@ export function MessageActions({
                 </AlertDialogDescription>
               </AlertDialogHeader>
               <AlertDialogFooter>
-                <AlertDialogCancel disabled={isDeletePending}>
+                <AlertDialogCancel disabled={deleteMutation.isPending}>
                   Cancel
                 </AlertDialogCancel>
                 <AlertDialogAction
-                  disabled={isDeletePending}
-                  onClick={e => {
+                  disabled={deleteMutation.isPending}
+                  onClick={async e => {
                     e.preventDefault();
-                    startDeleteTransition(async () => {
-                      const result = await api.removeMessage(message.id);
-                      if (result && 'error' in result) {
-                        toast.error(result.error);
-                        return;
-                      }
+                    try {
+                      await deleteMutation.mutateAsync({ id: message.id });
                       toast.success('Message deleted', { duration: 2000 });
-                      setMessages((messages: any) => {
+                      setMessages((messages: ChatMessage[]) => {
                         // If deleting user message, also delete all AI messages with it as parentId
                         if (message.role === 'user') {
                           return messages.filter(
-                            (m: any) =>
+                            (m: ChatMessage) =>
                               m.id !== message.id &&
                               m.metadata?.parentId !== message.id
                           );
                         }
 
                         // If deleting AI message, only delete itself
-                        return messages.filter((m: any) => m.id !== message.id);
+                        return messages.filter(
+                          (m: ChatMessage) => m.id !== message.id
+                        );
                       });
                       setDeleteDialogOpen(false);
-                    });
+                    } catch (error: any) {
+                      toast.error(error.message || 'Failed to delete message');
+                    }
                   }}
                 >
-                  {isDeletePending ? (
+                  {deleteMutation.isPending ? (
                     <>
-                      <CircleNotch className="animate-spin" />
+                      <Loader2 className="animate-spin" />
                       Deleting...
                     </>
                   ) : (

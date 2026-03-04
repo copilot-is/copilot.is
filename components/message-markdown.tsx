@@ -14,7 +14,7 @@ export function MessageMarkdown({ content }: MessageMarkdownProps) {
       <MemoizedReactMarkdown
         remarkPlugins={[remarkGfm]}
         components={{
-          code({ node, className, children, ...props }) {
+          code({ className, children, ...props }) {
             const childArray = React.Children.toArray(children);
             const firstChild = childArray[0] as React.ReactElement<any>;
             const firstChildAsString = React.isValidElement(firstChild)

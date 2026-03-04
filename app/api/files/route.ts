@@ -19,8 +19,11 @@ export async function DELETE(req: NextRequest) {
   }
 
   const decodedUrl = decodeURIComponent(url);
-  const userId = new URL(decodedUrl).pathname.substring(1).split('/')[0];
-  if (session.user.id !== userId) {
+  const segments = new URL(decodedUrl).pathname.split('/').filter(Boolean);
+  // Path structure: {UPLOAD_PATH}/{folder}/{userId}/{filename}
+  // userId is always the second-to-last segment
+  const userId = segments[segments.length - 2];
+  if (!userId || session.user.id !== userId) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
@@ -28,7 +31,7 @@ export async function DELETE(req: NextRequest) {
     await del(decodedUrl);
 
     return new Response(null, { status: 204 });
-  } catch (error) {
+  } catch {
     return NextResponse.json({ error: 'Delete failed' }, { status: 500 });
   }
 }

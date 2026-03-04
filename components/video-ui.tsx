@@ -1,23 +1,32 @@
 'use client';
 
-import React, { useCallback, useMemo, useState } from 'react';
-import { Video as VideoIcon } from '@phosphor-icons/react';
-import ScrollToBottom from 'react-scroll-to-bottom';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState
+} from 'react';
+import { usePreferences } from '@/contexts/preferences-context';
+import { useSystemSettings } from '@/contexts/system-settings-context';
+import { Video as VideoIcon } from 'lucide-react';
 import { toast } from 'sonner';
 
 import { ChatMessage } from '@/types';
-import { api } from '@/lib/api';
-import { cn, findModelByValue, generateUUID } from '@/lib/utils';
-import { refreshChats, updateChatInCache } from '@/hooks/use-chats';
-import { useSettings } from '@/hooks/use-settings';
+import { generateVideo } from '@/lib/api';
+import { cn, generateUUID } from '@/lib/utils';
+import { useChats } from '@/hooks/use-chats';
+import { ButtonScrollToBottom } from '@/components/button-scroll-to-bottom';
 import { ChatHeader } from '@/components/chat-header';
 import { EmptyScreen } from '@/components/empty-screen';
 import { Messages } from '@/components/messages';
+import { ModelOptions } from '@/components/model-menu';
+import ScrollToBottom from '@/components/scroll-to-bottom';
 import { VideoPromptForm } from '@/components/video-prompt-form';
 
 interface VideoUIProps {
   id: string;
-  initialChat?: { title: string; model: string };
+  initialChat?: { title: string; modelId?: string };
   initialMessages?: ChatMessage[];
 }
 
@@ -26,45 +35,148 @@ export function VideoUI({
   initialChat,
   initialMessages = []
 }: VideoUIProps) {
-  const { videoPreferences, setVideoPreferences } = useSettings();
+  const { refreshChats } = useChats();
+
+  // Get from contexts
+  const { videoModels } = useSystemSettings();
+  const { preferences, setPreference } = usePreferences();
 
   const initialTitle = initialChat?.title;
-  const initialModel = initialChat?.model || videoPreferences.model;
 
   const [input, setInput] = useState('');
   const [title, setTitle] = useState(initialTitle);
-  const [videoModel, setVideoModel] = useState(initialModel);
-  const [selectedModel, setSelectedModel] = useState(initialModel);
+
+  // Track the current model (for next submission)
+  // Priority: initialChat.modelId (if valid) > preferences
+  const [currentModelId, setCurrentModelId] = useState(
+    initialChat?.modelId || preferences.videoModelId
+  );
+
+  // Track the display model (for showing in Messages)
+  const [displayModelId, setDisplayModelId] = useState(
+    initialChat?.modelId || preferences.videoModelId
+  );
+
+  // Track previous model for rollback on error
+  const previousModelRef = useRef<string | null>(null);
+
+  // Helper to update displayModel optimistically
+  const updateDisplayModelOptimistically = useCallback(() => {
+    if (currentModelId !== displayModelId) {
+      previousModelRef.current = displayModelId;
+      setDisplayModelId(currentModelId);
+    }
+  }, [currentModelId, displayModelId]);
+
   const [isLoading, setIsLoading] = useState(false);
-  const [messages, setMessages] = useState<ChatMessage[]>(initialMessages);
+  const [messagesState, setMessagesState] =
+    useState<ChatMessage[]>(initialMessages);
+  const messagesRef = useRef<ChatMessage[]>(initialMessages);
 
-  const provider = useMemo(
-    () => findModelByValue('video', videoModel)?.provider,
-    [videoModel]
-  );
-
-  const handleModelChange = (newModel: string) => {
-    setSelectedModel(newModel);
-    setVideoPreferences('model', newModel);
-  };
-
-  const resetModel = useCallback(
-    (newModel: string) => {
-      if (videoModel !== selectedModel) {
-        setVideoModel(newModel);
-        updateChatInCache(id, { model: newModel });
-      }
+  const setMessages = useCallback(
+    (updater: React.SetStateAction<ChatMessage[]>) => {
+      const nextMessages =
+        typeof updater === 'function'
+          ? (updater as (prevState: ChatMessage[]) => ChatMessage[])(
+              messagesRef.current
+            )
+          : updater;
+      messagesRef.current = nextMessages;
+      setMessagesState(nextMessages);
     },
-    [id, videoModel, selectedModel]
+    []
   );
+
+  const messages = messagesState;
+
+  // Track aspectRatio for video generation
+  const [aspectRatio, setAspectRatio] = useState(
+    preferences.videoAspectRatio || ''
+  );
+
+  // Track resolution for video generation
+  const [resolution, setResolution] = useState(
+    preferences.videoResolution || ''
+  );
+
+  // Find current model in database models (for API request options)
+  const currentDbModel = useMemo(
+    () => videoModels?.find(m => m.modelId === currentModelId),
+    [videoModels, currentModelId]
+  );
+
+  // Find display model in database models (for showing in Messages)
+  const displayDbModel = useMemo(
+    () => videoModels?.find(m => m.modelId === displayModelId),
+    [videoModels, displayModelId]
+  );
+
+  const displayImage = useMemo(
+    () => displayDbModel?.image || displayDbModel?.provider?.image || null,
+    [displayDbModel]
+  );
+
+  const currentImage = useMemo(
+    () => currentDbModel?.image || currentDbModel?.provider?.image || null,
+    [currentDbModel]
+  );
+
+  // Validate and reset aspectRatio/resolution based on the current model's options
+  useEffect(() => {
+    if (!currentDbModel) return;
+
+    const availableAspectRatios = currentDbModel.uiOptions?.aspectRatios as
+      | string[]
+      | undefined;
+    const availableResolutions = currentDbModel.uiOptions?.resolutions as
+      | string[]
+      | undefined;
+
+    // Reset aspectRatio if the current aspectRatio is invalid for this model
+    if (availableAspectRatios && availableAspectRatios.length > 0) {
+      if (!availableAspectRatios.includes(aspectRatio)) {
+        const defaultAspectRatio = availableAspectRatios[0];
+        setAspectRatio(defaultAspectRatio);
+        setPreference('videoAspectRatio', defaultAspectRatio);
+      }
+    }
+
+    // Reset resolution if the current resolution is invalid for this model
+    if (availableResolutions && availableResolutions.length > 0) {
+      if (!availableResolutions.includes(resolution)) {
+        const defaultResolution = availableResolutions[0];
+        setResolution(defaultResolution);
+        setPreference('videoResolution', defaultResolution);
+      }
+    }
+  }, [currentDbModel, aspectRatio, resolution, setPreference]);
+
+  // Handle model change from ModelMenu
+  const handleModelChange = useCallback(
+    (newModelId: string) => {
+      setCurrentModelId(newModelId);
+      setPreference('videoModelId', newModelId);
+    },
+    [setPreference]
+  );
+
+  // Handle options change from ModelMenu
+  const handleOptionsChange = (options: ModelOptions) => {
+    if (options.aspectRatio !== undefined) {
+      setAspectRatio(options.aspectRatio);
+      setPreference('videoAspectRatio', options.aspectRatio);
+    }
+    if (options.resolution !== undefined) {
+      setResolution(options.resolution);
+      setPreference('videoResolution', options.resolution);
+    }
+  };
 
   const handleSubmit = async () => {
     if (!input.trim()) return;
 
     setIsLoading(true);
-
     setInput('');
-    resetModel(selectedModel);
 
     // Create user message
     const now = new Date();
@@ -78,20 +190,28 @@ export function VideoUI({
       }
     };
 
+    updateDisplayModelOptimistically();
+
     // Add user message to UI
     setMessages(prev => [...prev, userMessage]);
 
     try {
-      const result = await api.generateVideo({
+      const result = await generateVideo({
         id,
-        model: selectedModel,
-        userMessage
+        modelId: currentModelId,
+        userMessage,
+        aspectRatio,
+        resolution
       });
 
       if ('error' in result) {
         toast.error('Video generation failed', {
           description: result.error
         });
+        if (previousModelRef.current) {
+          setDisplayModelId(previousModelRef.current);
+          previousModelRef.current = null;
+        }
         return;
       }
 
@@ -104,6 +224,9 @@ export function VideoUI({
         setTitle(result.title);
       }
 
+      // Clear previous model ref on success
+      previousModelRef.current = null;
+
       // Add assistant message with result
       setMessages(prev => [...prev, result.assistantMessage]);
     } catch (error) {
@@ -113,18 +236,21 @@ export function VideoUI({
             ? error.message
             : 'An unexpected error occurred'
       });
+      if (previousModelRef.current) {
+        setDisplayModelId(previousModelRef.current);
+        previousModelRef.current = null;
+      }
     } finally {
       setIsLoading(false);
     }
   };
 
   const handleReload = async () => {
-    if (messages.length === 0) return;
-
-    setIsLoading(true);
+    const currentMessages = messagesRef.current;
+    if (currentMessages.length === 0) return;
 
     // Get the last message
-    const lastMessage = messages[messages.length - 1];
+    const lastMessage = currentMessages[currentMessages.length - 1];
     let userMessage: ChatMessage | undefined;
     let shouldRemoveAssistant = false;
 
@@ -133,7 +259,7 @@ export function VideoUI({
       const parentId = lastMessage.metadata?.parentId;
       if (!parentId) return;
 
-      userMessage = messages.find(msg => msg.id === parentId);
+      userMessage = currentMessages.find(msg => msg.id === parentId);
       shouldRemoveAssistant = true;
     }
     // If last message is user, use it directly
@@ -151,27 +277,38 @@ export function VideoUI({
 
     if (!textParts) return;
 
+    setIsLoading(true);
+
     // Remove the assistant message from UI if needed
-    if (shouldRemoveAssistant) {
-      setMessages(prev => prev.slice(0, -1));
+    if (shouldRemoveAssistant && lastMessage) {
+      setMessages(prev => prev.filter(msg => msg.id !== lastMessage.id));
     }
 
-    resetModel(selectedModel);
+    updateDisplayModelOptimistically();
 
     try {
-      const result = await api.generateVideo({
+      const result = await generateVideo({
         id,
-        model: selectedModel,
+        modelId: currentModelId,
         userMessage,
-        parentMessageId: userMessage.id
+        parentMessageId: userMessage.id,
+        aspectRatio,
+        resolution
       });
 
       if ('error' in result) {
         toast.error('Video generation failed', {
           description: result.error
         });
+        if (previousModelRef.current) {
+          setDisplayModelId(previousModelRef.current);
+          previousModelRef.current = null;
+        }
         return;
       }
+
+      // Clear previous model ref on success
+      previousModelRef.current = null;
 
       // Add assistant message with result
       setMessages(prev => [...prev, result.assistantMessage]);
@@ -182,30 +319,38 @@ export function VideoUI({
             ? error.message
             : 'An unexpected error occurred'
       });
+      if (previousModelRef.current) {
+        setDisplayModelId(previousModelRef.current);
+        previousModelRef.current = null;
+      }
     } finally {
       setIsLoading(false);
     }
   };
 
   const noChat = useMemo(
-    () => !title && messages.length === 0,
-    [title, messages.length]
+    () => !title && !isLoading && messages.length === 0,
+    [title, isLoading, messages.length]
   );
 
   return (
-    <>
-      <div className={cn('w-full overflow-hidden', { 'flex-1': !noChat })}>
+    <div className="flex size-full flex-col">
+      <ChatHeader title={title} />
+      <div className="w-full flex-1 overflow-hidden">
         <ScrollToBottom
-          className={cn({ 'size-full': !noChat })}
-          scrollViewClassName="size-full flex flex-col items-center"
-          followButtonClassName="hidden"
-          initialScrollBehavior="auto"
-          mode="bottom"
+          className="flex size-full flex-col items-center overflow-y-auto"
+          button={
+            <ButtonScrollToBottom
+              status={isLoading ? 'submitted' : 'ready'}
+              messages={messages}
+            />
+          }
         >
-          <ChatHeader title={title} />
           <Messages
-            model={selectedModel}
-            provider={provider}
+            modelId={displayModelId}
+            image={displayImage}
+            currentModelId={currentModelId}
+            currentImage={currentImage}
             messages={messages}
             setMessages={setMessages}
             reload={handleReload}
@@ -216,7 +361,7 @@ export function VideoUI({
       </div>
 
       <div
-        className={cn('w-full max-w-4xl px-2 pb-4', {
+        className={cn('mx-auto w-full max-w-4xl px-2 pb-4', {
           'mb-60 flex h-full flex-col items-center justify-center': noChat
         })}
       >
@@ -227,14 +372,17 @@ export function VideoUI({
           />
         )}
         <VideoPromptForm
-          model={selectedModel}
-          setModel={handleModelChange}
+          modelId={currentModelId}
+          aspectRatio={aspectRatio}
+          resolution={resolution}
           input={input}
           setInput={setInput}
           isLoading={isLoading}
           onSubmit={handleSubmit}
+          onModelChange={handleModelChange}
+          onOptionsChange={handleOptionsChange}
         />
       </div>
-    </>
+    </div>
   );
 }

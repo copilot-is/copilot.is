@@ -1,51 +1,53 @@
 'use client';
 
-import useSWR from 'swr';
-
-import { Result, SharedLink } from '@/types';
-import { fetcher } from '@/lib/utils';
+import { api } from '@/trpc/react';
 
 export function useSharedLinks(page: number = 0, limit: number = 5) {
   const offset = page * limit;
+  const utils = api.useUtils();
 
-  const { data, error, mutate, ...rest } = useSWR<SharedLink[]>(
-    `/api/share?limit=${limit}&offset=${offset}`,
-    fetcher
+  const { data, error, isLoading, refetch } = api.share.list.useQuery(
+    { limit, offset },
+    { staleTime: 1000 * 60 * 5 }
   );
 
-  const deleteSharedLink = async (id: string) => {
-    try {
-      const res = await fetch(`/api/share/${id}`, { method: 'DELETE' });
-      if (!res.ok) {
-        const result: Result = await res.json();
-        throw new Error(result.error);
-      }
-      mutate();
-    } catch (err) {
-      throw err;
+  const deleteMutation = api.share.delete.useMutation({
+    onSuccess: () => {
+      utils.share.list.invalidate();
     }
+  });
+
+  const deleteAllMutation = api.share.deleteAll.useMutation({
+    onSuccess: () => {
+      utils.share.list.invalidate();
+    }
+  });
+
+  const deleteSharedLink = async (id: string) => {
+    await deleteMutation.mutateAsync({ id });
   };
 
   const deleteAllSharedLinks = async () => {
-    try {
-      const res = await fetch('/api/share', { method: 'DELETE' });
-      if (!res.ok) {
-        const result: Result = await res.json();
-        throw new Error(result.error);
-      }
-      mutate();
-    } catch (err) {
-      throw err;
-    }
+    await deleteAllMutation.mutateAsync();
   };
 
+  // Transform data to match SharedLink[] format
+  const sharedLinks = data?.map(share => ({
+    id: share.id,
+    createdAt: share.createdAt,
+    chat: share.chat
+  }));
+
   return {
-    ...rest,
-    sharedLinks: data,
+    sharedLinks,
     error,
-    isError: error,
+    isLoading,
+    isError: !!error,
     hasMore: data ? data.length === limit : true,
     deleteSharedLink,
-    deleteAllSharedLinks
+    deleteAllSharedLinks,
+    isDeleting: deleteMutation.isPending,
+    isDeletingAll: deleteAllMutation.isPending,
+    refetch
   };
 }

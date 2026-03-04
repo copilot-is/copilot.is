@@ -1,7 +1,7 @@
 import { useState } from 'react';
-import { CaretDown, CircleNotch, Lightbulb } from '@phosphor-icons/react';
 import { ReasoningUIPart } from 'ai';
 import { AnimatePresence, motion } from 'framer-motion';
+import { ChevronDown, Lightbulb, Loader2 } from 'lucide-react';
 
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -9,10 +9,15 @@ import { MemoizedReactMarkdown } from '@/components/markdown';
 
 export interface MessageReasoningProps {
   isLoading: boolean;
+  isWaiting?: boolean;
   part: ReasoningUIPart;
 }
 
-export function MessageReasoning({ isLoading, part }: MessageReasoningProps) {
+export function MessageReasoning({
+  isLoading,
+  isWaiting,
+  part
+}: MessageReasoningProps) {
   const [isExpanded, setIsExpanded] = useState(true);
 
   const variants = {
@@ -26,7 +31,13 @@ export function MessageReasoning({ isLoading, part }: MessageReasoningProps) {
     }
   };
 
-  const showReasoning = isLoading || (part.text && part.text.trim().length > 0);
+  const text = part.text || (part as any).reasoning || '';
+  const hasText = text.trim().length > 0;
+
+  // Keep showing if it's loading, if it has text, or if we are still waiting for the first piece of normal text to arrive.
+  const showThinking = isLoading || (isWaiting && !hasText);
+  const showReasoning = hasText || showThinking;
+
   if (!showReasoning) {
     return null;
   }
@@ -40,17 +51,18 @@ export function MessageReasoning({ isLoading, part }: MessageReasoningProps) {
         onClick={() => {
           setIsExpanded(!isExpanded);
         }}
+        disabled={!hasText}
       >
-        {isLoading ? (
+        {showThinking ? (
           <>
-            <CircleNotch className="animate-spin" />
-            <span>Thinking</span>
+            <Loader2 className="animate-spin text-muted-foreground" />
+            <span className="text-muted-foreground">Thinking...</span>
           </>
         ) : (
           <>
             <Lightbulb />
             <span>Thoughts</span>
-            <CaretDown
+            <ChevronDown
               className={cn('transition-transform', {
                 'rotate-180': isExpanded
               })}
@@ -59,17 +71,17 @@ export function MessageReasoning({ isLoading, part }: MessageReasoningProps) {
         )}
       </Button>
       <AnimatePresence initial={false}>
-        {isExpanded && (
+        {isExpanded && hasText && (
           <motion.div
             key="reasoning"
-            className="ml-0.5 border-l-2 pl-3 text-sm text-muted-foreground"
+            className="ml-[3px] border-l-2 pl-3 text-sm text-muted-foreground"
             initial="collapsed"
             animate="expanded"
             exit="collapsed"
             variants={variants}
             transition={{ duration: 0.2, ease: 'easeInOut' }}
           >
-            <MemoizedReactMarkdown>{part.text}</MemoizedReactMarkdown>
+            <MemoizedReactMarkdown>{text}</MemoizedReactMarkdown>
           </motion.div>
         )}
       </AnimatePresence>

@@ -1,46 +1,52 @@
-import { ImageSize } from './image-preferences';
-import { Provider } from './provider';
+// Model capability type
+export type ModelCapability = 'chat' | 'image' | 'video' | 'audio';
 
-export type ChatModelOptions = {
-  isReasoning?: boolean;
-};
-
-export type ImageModelOptions = {
-  size?: ImageSize[];
-  aspectRatio?: string[];
-};
-
-export type VideoModelOptions = {
-  // Reserved for future video-specific options
-};
-
-export type VoiceModelOptions = {
-  // Reserved for future voice-specific options
-};
-
-export type ModelOptions = ChatModelOptions &
-  ImageModelOptions &
-  VideoModelOptions &
-  VoiceModelOptions;
-
-export type Model = {
-  text: string;
-  value: string;
-  alias?: string[];
-  vision?: boolean;
+// UI options for different model types
+export type ModelUIOptions = {
+  sizes?: string[];
+  aspectRatios?: string[];
+  resolutions?: string[];
+  voices?: string[];
   reasoning?: boolean;
-  deprecated?: boolean;
-  provider: Provider;
-  options?: ModelOptions;
-  maxOutputTokens?: number;
-  parameters?: ModelParameters;
 };
 
-export type ModelParameters = {
+// API parameters for model configuration
+export type ModelAPIParams = {
   temperature?: number;
   topP?: number;
   topK?: number;
-  minP?: number;
+  maxOutputTokens?: number;
   frequencyPenalty?: number;
   presencePenalty?: number;
+};
+
+// Provider information from database
+export type ModelProvider = {
+  id: string;
+  name: string;
+  type: string;
+  image?: string | null;
+  isEnabled: boolean;
+};
+
+/**
+ * Model type aligned with database schema
+ * This is the unified model type used across the application
+ */
+export type Model = {
+  // Database fields
+  id: string;
+  name: string;
+  modelId: string;
+  providerId: string;
+  capability: ModelCapability;
+  image?: string | null;
+  aliases?: string[] | null;
+  supportsVision?: boolean | null;
+  supportsReasoning?: boolean | null;
+  isEnabled: boolean;
+  uiOptions?: ModelUIOptions | null;
+  apiParams?: ModelAPIParams | null;
+  displayOrder: number;
+  provider?: ModelProvider | null;
 };

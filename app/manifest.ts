@@ -1,12 +1,14 @@
 import { MetadataRoute } from 'next';
 
-import { env } from '@/lib/env';
+import { getAppSettings } from '@/lib/queries';
 
-export default function manifest(): MetadataRoute.Manifest {
+export default async function manifest(): Promise<MetadataRoute.Manifest> {
+  const { appName, appDescription } = await getAppSettings();
+
   return {
-    name: env.NEXT_PUBLIC_PRODUCT_NAME,
-    short_name: env.NEXT_PUBLIC_PRODUCT_NAME,
-    description: env.NEXT_PUBLIC_PRODUCT_DESCRIPTION,
+    name: appName,
+    short_name: appName,
+    description: appDescription,
     scope: '/',
     start_url: '/?utm_source=pwa',
     display: 'standalone',

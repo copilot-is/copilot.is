@@ -43,6 +43,13 @@
       "when": 1768568161158,
       "tag": "0005_rainy_the_call",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1772035200000,
+      "tag": "0006_add_console_tables",
+      "breakpoints": true
     }
   ]
 }

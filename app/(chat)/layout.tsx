@@ -1,19 +1,27 @@
-import { SidebarProvider } from '@/hooks/use-sidebar';
+import { PreferencesProvider } from '@/contexts/preferences-context';
+import { SystemSettingsProvider } from '@/contexts/system-settings-context';
+
+import { api } from '@/trpc/server';
+import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar';
 import { Sidebar } from '@/components/sidebar';
 
 interface LayoutProps {
   children: React.ReactNode;
 }
 
-export default function Layout({ children }: LayoutProps) {
+export default async function Layout({ children }: LayoutProps) {
+  const settings = await api.settings.getSystem();
+
   return (
-    <SidebarProvider>
-      <div className="flex size-full">
-        <Sidebar />
-        <main className="flex size-full flex-col items-center overflow-hidden duration-300 ease-in-out peer-[[data-state=open]]:lg:pl-[250px] peer-[[data-state=open]]:xl:pl-[300px]">
-          {children}
-        </main>
-      </div>
-    </SidebarProvider>
+    <SystemSettingsProvider settings={settings}>
+      <PreferencesProvider>
+        <SidebarProvider className="h-svh overflow-hidden">
+          <Sidebar />
+          <SidebarInset className="h-full overflow-hidden">
+            {children}
+          </SidebarInset>
+        </SidebarProvider>
+      </PreferencesProvider>
+    </SystemSettingsProvider>
   );
 }

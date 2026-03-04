@@ -1,11 +1,11 @@
 'use client';
 
 import * as React from 'react';
-import { CircleNotch } from '@phosphor-icons/react';
+import { Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 
 import { Chat } from '@/types';
-import { updateChat } from '@/hooks/use-chats';
+import { useChats } from '@/hooks/use-chats';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -28,6 +28,7 @@ export function ChatRenameDialog({
   open,
   onOpenChange
 }: ChatRenameDialogProps) {
+  const { updateChat } = useChats();
   const [isPending, startTransition] = React.useTransition();
   const [title, setTitle] = React.useState(chat.title);
 
@@ -69,7 +70,7 @@ export function ChatRenameDialog({
           >
             {isPending ? (
               <>
-                <CircleNotch className="animate-spin" />
+                <Loader2 className="animate-spin" />
                 Saving...
               </>
             ) : (

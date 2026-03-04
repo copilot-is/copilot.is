@@ -1,7 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import { CircleNotch } from '@phosphor-icons/react';
+import { Loader2 } from 'lucide-react';
 import { signIn } from 'next-auth/react';
 
 import { Button, type ButtonProps } from '@/components/ui/button';
@@ -9,19 +9,19 @@ import { IconGitHub } from '@/components/ui/icons';
 
 interface GitHubLoginButtonProps
   extends Omit<ButtonProps, 'children' | 'disabled' | 'onClick'> {
-  loading?: string | null;
-  setLoading?: (provider: string | null) => void;
+  isLoading?: string | null;
+  setIsLoading?: (provider: string | null) => void;
 }
 
 export function GitHubLoginButton({
-  loading = null,
-  setLoading,
+  isLoading = null,
+  setIsLoading,
   ...buttonProps
 }: GitHubLoginButtonProps) {
-  const disabled = loading !== null;
+  const disabled = isLoading !== null;
 
   const handleSignIn = () => {
-    setLoading?.('github');
+    setIsLoading?.('github');
     signIn('github', { callbackUrl: '/' });
   };
 
@@ -34,8 +34,8 @@ export function GitHubLoginButton({
       disabled={disabled}
       className="w-full"
     >
-      {loading === 'github' ? (
-        <CircleNotch className="size-4 animate-spin" />
+      {isLoading === 'github' ? (
+        <Loader2 className="size-4 animate-spin" />
       ) : (
         <IconGitHub className="size-4" />
       )}

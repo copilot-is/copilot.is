@@ -1,37 +1,35 @@
 import React from 'react';
-import { ArrowUp, CircleNotch } from '@phosphor-icons/react';
+import { ArrowUp, Loader2 } from 'lucide-react';
 import Textarea from 'react-textarea-autosize';
 
-import { VideoModels } from '@/lib/constant';
-import { findModelByValue } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue
-} from '@/components/ui/select';
-import { ProviderIcon } from '@/components/provider-icon';
+import { ModelMenu, ModelOptions } from '@/components/model-menu';
 
 export interface VideoPromptFormProps {
-  model: string;
-  setModel: (value: string) => void;
+  modelId: string;
+  aspectRatio?: string;
+  resolution?: string;
   input: string;
   setInput: (value: string) => void;
   isLoading: boolean;
   onSubmit: () => void;
+  onModelChange: (model: string) => void;
+  onOptionsChange?: (options: ModelOptions) => void;
 }
 
 export function VideoPromptForm({
-  model,
-  setModel,
+  modelId,
+  aspectRatio,
+  resolution,
   input,
   setInput,
   isLoading,
-  onSubmit
+  onSubmit,
+  onModelChange,
+  onOptionsChange
 }: VideoPromptFormProps) {
-  const selectedModel = findModelByValue('video', model);
+  // Convert isLoading to status for ModelMenu compatibility
+  const status = isLoading ? 'streaming' : 'ready';
 
   return (
     <div className="w-full rounded-2xl border bg-background p-4 shadow-md">
@@ -62,35 +60,15 @@ export function VideoPromptForm({
         />
       </div>
       <div className="mt-5 flex items-center justify-between space-x-2">
-        <div className="flex items-center space-x-2">
-          <Select value={model} onValueChange={setModel} disabled={isLoading}>
-            <SelectTrigger className="h-9 rounded-full border shadow-none hover:bg-accent">
-              <SelectValue placeholder="Select model">
-                <div className="flex items-center">
-                  <ProviderIcon provider={selectedModel?.provider} />
-                  <span className="ml-2 text-sm font-medium">
-                    {selectedModel?.text}
-                  </span>
-                </div>
-              </SelectValue>
-            </SelectTrigger>
-            <SelectContent>
-              {VideoModels.map(m => (
-                <SelectItem key={m.value} value={m.value}>
-                  <div className="flex items-center">
-                    <ProviderIcon provider={m.provider} />
-                    <div className="ml-2">
-                      <div className="font-medium">{m.text}</div>
-                      <div className="text-xs text-muted-foreground">
-                        {m.value}
-                      </div>
-                    </div>
-                  </div>
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
+        <ModelMenu
+          capability="video"
+          status={status as 'ready' | 'streaming' | 'submitted' | 'error'}
+          modelId={modelId}
+          onModelChange={onModelChange}
+          onOptionsChange={onOptionsChange}
+          aspectRatio={aspectRatio}
+          resolution={resolution}
+        />
         <div className="flex items-center space-x-2">
           <Button
             type="button"
@@ -100,7 +78,7 @@ export function VideoPromptForm({
             disabled={isLoading || !input.trim()}
           >
             {isLoading ? (
-              <CircleNotch className="size-4 animate-spin" />
+              <Loader2 className="size-4 animate-spin" />
             ) : (
               <ArrowUp className="size-4" />
             )}

@@ -3,85 +3,121 @@ import { createAzure } from '@ai-sdk/azure';
 import { createDeepSeek } from '@ai-sdk/deepseek';
 import { createGoogleGenerativeAI } from '@ai-sdk/google';
 import { createVertex } from '@ai-sdk/google-vertex';
-import { createVertexAnthropic } from '@ai-sdk/google-vertex/anthropic';
 import { createOpenAI } from '@ai-sdk/openai';
 import { createXai } from '@ai-sdk/xai';
-import { customProvider } from 'ai';
+import { ImageModel, LanguageModel, SpeechModel } from 'ai';
 
-import { Provider } from '@/types';
+import type { ProviderConfig } from '@/types';
 
-import { ChatModels, ImageModels, TTSModels } from './constant';
-import { env } from './env';
+import { VertexAIModels } from './constant';
+import { decrypt } from './crypto';
 
-const modelProvider: Record<Provider, any> = {
-  openai:
-    env.OPENAI_API_PROVIDER === 'azure'
-      ? createAzure({
-          apiKey: env.AZURE_API_KEY,
-          baseURL: env.AZURE_BASE_URL
-            ? env.AZURE_BASE_URL + '/openai/deployments'
-            : undefined
-        })
-      : createOpenAI({
-          apiKey: env.OPENAI_API_KEY,
-          baseURL: env.OPENAI_BASE_URL
-        }),
-  google:
-    env.GOOGLE_API_PROVIDER === 'vertex'
-      ? createVertex({
-          project: env.GOOGLE_VERTEX_PROJECT,
-          location: env.GOOGLE_VERTEX_LOCATION,
-          googleAuthOptions: {
-            credentials: JSON.parse(env.GOOGLE_APPLICATION_CREDENTIALS || '{}')
-          }
-        })
-      : createGoogleGenerativeAI({
-          apiKey: env.GOOGLE_GENERATIVE_AI_API_KEY,
-          baseURL: env.GOOGLE_GENERATIVE_AI_BASE_URL
-        }),
-  anthropic:
-    env.ANTHROPIC_API_PROVIDER === 'vertex'
-      ? createVertexAnthropic({
-          project: env.GOOGLE_VERTEX_PROJECT,
-          location: env.GOOGLE_VERTEX_LOCATION,
-          googleAuthOptions: {
-            credentials: JSON.parse(env.GOOGLE_APPLICATION_CREDENTIALS || '{}')
-          }
-        })
-      : createAnthropic({
-          apiKey: env.ANTHROPIC_API_KEY,
-          baseURL: env.ANTHROPIC_BASE_URL
-        }),
-  xai: createXai({
-    apiKey: env.XAI_API_KEY,
-    baseURL: env.XAI_BASE_URL
-  }),
-  deepseek: createDeepSeek({
-    apiKey: env.DEEPSEEK_API_KEY,
-    baseURL: env.DEEPSEEK_BASE_URL
-  })
-};
+/**
+ * Convert model ID to Vertex AI format if needed
+ */
+function toVertexModelId(modelId: string): string {
+  return VertexAIModels[modelId] || modelId;
+}
 
-export const provider = customProvider({
-  languageModels: ChatModels.reduce(
-    (acc, model) => {
-      acc[model.value] = modelProvider[model.provider](model.value);
-      return acc;
-    },
-    {} as Record<string, any>
-  ),
-  imageModels: ImageModels.reduce(
-    (acc, model) => {
-      acc[model.value] = modelProvider[model.provider].image(model.value);
-      return acc;
-    },
-    {} as Record<string, any>
-  ),
-  speechModels: TTSModels.reduce(
-    (acc, model) => {
-      acc[model.value] = modelProvider[model.provider].speech(model.value);
-      return acc;
-    },
-    {} as Record<string, any>
-  )
-});
+/**
+ * Create provider SDK instance based on type and config
+ */
+function createProviderSDK(config: ProviderConfig): any {
+  const { type, baseUrl } = config;
+  const apiKey = config.apiKey ? decrypt(config.apiKey) : undefined;
+
+  switch (type) {
+    case 'openai':
+      return createOpenAI({
+        apiKey: apiKey || undefined,
+        baseURL: baseUrl || undefined
+      });
+
+    case 'azure':
+      return createAzure({
+        apiKey: apiKey || undefined,
+        baseURL: baseUrl ? baseUrl + '/openai/deployments' : undefined
+      });
+
+    case 'google':
+      return createGoogleGenerativeAI({
+        apiKey: apiKey || undefined,
+        baseURL: baseUrl || undefined
+      });
+
+    case 'vertex': {
+      const vertexKey = apiKey ? JSON.parse(apiKey) : undefined;
+      return createVertex({
+        project: vertexKey?.project || undefined,
+        location: vertexKey?.location || undefined,
+        googleAuthOptions: vertexKey?.credentials
+          ? { credentials: vertexKey.credentials }
+          : undefined
+      });
+    }
+
+    case 'anthropic':
+      return createAnthropic({
+        apiKey: apiKey || undefined,
+        baseURL: baseUrl || undefined
+      });
+
+    case 'xai':
+      return createXai({
+        apiKey: apiKey || undefined,
+        baseURL: baseUrl || undefined
+      });
+
+    case 'deepseek':
+      return createDeepSeek({
+        apiKey: apiKey || undefined,
+        baseURL: baseUrl || undefined
+      });
+
+    default:
+      throw new Error(`Unknown provider: ${type}`);
+  }
+}
+
+/**
+ * Get a language model by provider config and model ID
+ */
+export function getLanguageModel(
+  provider: ProviderConfig,
+  modelId: string
+): LanguageModel {
+  const sdk = createProviderSDK(provider);
+  const resolvedModelId =
+    provider.type === 'vertex' ? toVertexModelId(modelId) : modelId;
+  return sdk(resolvedModelId);
+}
+
+/**
+ * Get an image model by provider config and model ID
+ */
+export function getImageModel(
+  provider: ProviderConfig,
+  modelId: string
+): ImageModel {
+  const sdk = createProviderSDK(provider);
+  return sdk.image(modelId);
+}
+
+/**
+ * Get a speech model by provider config and model ID
+ */
+export function getSpeechModel(
+  provider: ProviderConfig,
+  modelId: string
+): SpeechModel {
+  const sdk = createProviderSDK(provider);
+  return sdk.speech(modelId);
+}
+
+/**
+ * Get a video model by provider config and model ID
+ */
+export function getVideoModel(provider: ProviderConfig, modelId: string) {
+  const sdk = createProviderSDK(provider);
+  return sdk.video(modelId);
+}

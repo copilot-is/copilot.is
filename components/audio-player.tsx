@@ -1,18 +1,21 @@
-import React, { useEffect, useRef, useState } from 'react';
-import { Pause, Play, SpeakerHigh, SpeakerSlash } from '@phosphor-icons/react';
+'use client';
 
+import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { Download, Pause, Play } from 'lucide-react';
+
+import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 
 interface AudioPlayerProps {
   src: string;
+  className?: string;
 }
 
-export function AudioPlayer({ src }: AudioPlayerProps) {
+export function AudioPlayer({ src, className }: AudioPlayerProps) {
   const audioRef = useRef<HTMLAudioElement>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
-  const [isMuted, setIsMuted] = useState(false);
 
   useEffect(() => {
     const audio = audioRef.current;
@@ -22,25 +25,28 @@ export function AudioPlayer({ src }: AudioPlayerProps) {
     const updateDuration = () => setDuration(audio.duration);
     const handleEnded = () => {
       setIsPlaying(false);
-      // Reset to start after 200ms
-      setTimeout(() => {
-        setCurrentTime(0);
-        audio.currentTime = 0;
-      }, 200);
+      setCurrentTime(0);
+      if (audio) audio.currentTime = 0;
     };
+    const handlePlay = () => setIsPlaying(true);
+    const handlePause = () => setIsPlaying(false);
 
     audio.addEventListener('timeupdate', updateTime);
     audio.addEventListener('loadedmetadata', updateDuration);
     audio.addEventListener('ended', handleEnded);
+    audio.addEventListener('play', handlePlay);
+    audio.addEventListener('pause', handlePause);
 
     return () => {
       audio.removeEventListener('timeupdate', updateTime);
       audio.removeEventListener('loadedmetadata', updateDuration);
       audio.removeEventListener('ended', handleEnded);
+      audio.removeEventListener('play', handlePlay);
+      audio.removeEventListener('pause', handlePause);
     };
   }, []);
 
-  const togglePlay = () => {
+  const togglePlay = useCallback(() => {
     const audio = audioRef.current;
     if (!audio) return;
 
@@ -49,89 +55,96 @@ export function AudioPlayer({ src }: AudioPlayerProps) {
     } else {
       audio.play();
     }
-    setIsPlaying(!isPlaying);
-  };
+  }, [isPlaying]);
 
-  const toggleMute = () => {
-    const audio = audioRef.current;
-    if (!audio) return;
+  const handleSeek = useCallback(
+    (e: React.MouseEvent<HTMLDivElement>) => {
+      const audio = audioRef.current;
+      if (!audio || !duration) return;
 
-    audio.muted = !isMuted;
-    setIsMuted(!isMuted);
-  };
+      const rect = e.currentTarget.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const percentage = x / rect.width;
+      const newTime = percentage * duration;
 
-  const handleSeek = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const audio = audioRef.current;
-    if (!audio) return;
+      audio.currentTime = newTime;
+      setCurrentTime(newTime);
+    },
+    [duration]
+  );
 
-    const newTime = parseFloat(e.target.value);
-    audio.currentTime = newTime;
-    setCurrentTime(newTime);
-  };
+  const handleDownload = useCallback(() => {
+    const link = document.createElement('a');
+    link.href = src;
+    link.download = 'audio.mp3';
+    link.target = '_blank';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  }, [src]);
 
   const formatTime = (time: number) => {
-    if (isNaN(time)) return '0:00';
+    if (isNaN(time) || time === 0) return '0:00';
     const minutes = Math.floor(time / 60);
     const seconds = Math.floor(time % 60);
     return `${minutes}:${seconds.toString().padStart(2, '0')}`;
   };
 
-  // Calculate progress percentage
   const progress = duration > 0 ? (currentTime / duration) * 100 : 0;
 
   return (
-    <div className="rounded-lg border bg-background p-4 shadow-sm">
+    <div
+      className={cn(
+        'flex items-center gap-3 rounded-full bg-muted/50 py-2 pl-2 pr-4',
+        className
+      )}
+    >
       <audio ref={audioRef} src={src} preload="metadata" />
 
-      <div className="flex items-center gap-3">
-        {/* Play/Pause Button */}
-        <Button
-          variant="outline"
-          size="icon"
-          onClick={togglePlay}
-          className="size-10 shrink-0 rounded-full"
-        >
-          {isPlaying ? (
-            <Pause className="size-5" weight="fill" />
-          ) : (
-            <Play className="size-5" weight="fill" />
-          )}
-        </Button>
+      {/* Play/Pause Button */}
+      <Button
+        variant="secondary"
+        size="icon"
+        onClick={togglePlay}
+        className="size-10 shrink-0 rounded-full"
+      >
+        {isPlaying ? (
+          <Pause className="size-4 fill-current" />
+        ) : (
+          <Play className="size-4 fill-current" />
+        )}
+      </Button>
 
-        {/* Progress Bar */}
-        <div className="flex flex-1 flex-col gap-1">
-          <input
-            type="range"
-            min="0"
-            max={duration || 0}
-            step="0.01"
-            value={currentTime}
-            onChange={handleSeek}
-            style={{
-              background: `linear-gradient(to right, hsl(var(--primary)) 0%, hsl(var(--primary)) ${progress}%, hsl(var(--secondary)) ${progress}%, hsl(var(--secondary)) 100%)`
-            }}
-            className="h-2 w-full cursor-pointer appearance-none rounded-full outline-none [&::-moz-range-thumb]:size-3 [&::-moz-range-thumb]:appearance-none [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:border-0 [&::-moz-range-thumb]:bg-primary [&::-webkit-slider-thumb]:size-3 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-primary"
+      {/* Progress Bar & Time */}
+      <div className="flex flex-1 flex-col gap-1">
+        <div
+          className="group relative h-1.5 cursor-pointer rounded-full bg-muted-foreground/20"
+          onClick={handleSeek}
+        >
+          <div
+            className="absolute left-0 top-0 h-full rounded-full bg-foreground transition-all"
+            style={{ width: `${progress}%` }}
           />
-          <div className="flex justify-between text-xs text-muted-foreground">
-            <span>{formatTime(currentTime)}</span>
-            <span>{formatTime(duration)}</span>
-          </div>
+          <div
+            className="absolute top-1/2 size-3 -translate-y-1/2 rounded-full bg-foreground opacity-0 shadow-sm transition-opacity group-hover:opacity-100"
+            style={{ left: `calc(${progress}% - 6px)` }}
+          />
         </div>
-
-        {/* Mute Button */}
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={toggleMute}
-          className="size-8 shrink-0"
-        >
-          {isMuted ? (
-            <SpeakerSlash className="size-5" />
-          ) : (
-            <SpeakerHigh className="size-5" />
-          )}
-        </Button>
+        <div className="flex justify-between text-[10px] text-muted-foreground">
+          <span>{formatTime(currentTime)}</span>
+          <span>{formatTime(duration)}</span>
+        </div>
       </div>
+
+      {/* Download Button */}
+      <Button
+        variant="ghost"
+        size="icon"
+        onClick={handleDownload}
+        className="size-8 shrink-0 rounded-full text-muted-foreground hover:text-foreground"
+      >
+        <Download className="size-4" />
+      </Button>
     </div>
   );
 }

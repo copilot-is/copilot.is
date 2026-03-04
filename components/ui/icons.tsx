@@ -1,6 +1,7 @@
 'use client';
 
 import * as React from 'react';
+import { motion } from 'framer-motion';
 
 import { cn } from '@/lib/utils';
 
@@ -154,49 +155,24 @@ function IconDeepSeek({ className, ...props }: React.ComponentProps<'svg'>) {
   );
 }
 
-function IconTyping({ className, ...props }: React.ComponentProps<'svg'>) {
+function IconLoading({ className, ...props }: React.ComponentProps<'div'>) {
   return (
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      viewBox="0 0 220 50"
-      fill="currentColor"
-      className={cn('h-6 w-10', className)}
-      {...props}
-    >
-      <circle strokeWidth="15" r="15" cx="30" cy="25">
-        <animate
-          attributeName="opacity"
-          calcMode="spline"
-          dur="2s"
-          values="1;0;1"
-          keySplines=".5 0 .5 1;.5 0 .5 1"
-          repeatCount="indefinite"
-          begin="-.4s"
+    <div className={cn('flex h-6 items-center gap-1.5', className)} {...props}>
+      {[0, 1, 2].map(index => (
+        <motion.div
+          key={index}
+          className="size-1.5 rounded-full bg-current opacity-60"
+          initial={{ y: 0, opacity: 0.3 }}
+          animate={{ y: [-2, 2, -2], opacity: [0.3, 1, 0.3] }}
+          transition={{
+            duration: 1.2,
+            repeat: Infinity,
+            ease: 'easeInOut',
+            delay: index * 0.2
+          }}
         />
-      </circle>
-      <circle strokeWidth="15" r="15" cx="110" cy="25">
-        <animate
-          attributeName="opacity"
-          calcMode="spline"
-          dur="2s"
-          values="1;0;1"
-          keySplines=".5 0 .5 1;.5 0 .5 1"
-          repeatCount="indefinite"
-          begin="-.2s"
-        />
-      </circle>
-      <circle strokeWidth="15" r="15" cx="190" cy="25">
-        <animate
-          attributeName="opacity"
-          calcMode="spline"
-          dur="2s"
-          values="1;0;1"
-          keySplines=".5 0 .5 1;.5 0 .5 1"
-          repeatCount="indefinite"
-          begin="0s"
-        />
-      </circle>
-    </svg>
+      ))}
+    </div>
   );
 }
 
@@ -208,5 +184,5 @@ export {
   IconGoogle,
   IconGork,
   IconDeepSeek,
-  IconTyping
+  IconLoading
 };

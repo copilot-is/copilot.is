@@ -1,40 +1,60 @@
 'use client';
 
 import * as React from 'react';
+import Link from 'next/link';
+import { useSystemSettings } from '@/contexts/system-settings-context';
 
-import { cn } from '@/lib/utils';
-import { useIsMobile } from '@/hooks/use-mobile';
-import { useSidebar } from '@/hooks/use-sidebar';
+import {
+  SidebarContent,
+  SidebarFooter,
+  SidebarHeader,
+  SidebarMenu,
+  SidebarMenuButton,
+  SidebarMenuItem,
+  Sidebar as SidebarPrimitive,
+  SidebarRail,
+  SidebarSeparator
+} from '@/components/ui/sidebar';
 import { NewContent } from '@/components/new-content';
-import { SidebarHeader } from '@/components/sidebar-header';
 import { SidebarList } from '@/components/sidebar-list';
 import { UserMenu } from '@/components/user-menu';
 
-export function Sidebar() {
-  const isMobile = useIsMobile();
-  const { isSidebarOpen, closeSidebar } = useSidebar();
+export function Sidebar({
+  ...props
+}: React.ComponentProps<typeof SidebarPrimitive>) {
+  const { appName } = useSystemSettings();
 
   return (
-    <>
-      {isMobile && isSidebarOpen && (
-        <div
-          className="fixed left-0 top-0 z-20 size-full bg-background/60 backdrop-blur-sm"
-          onClick={closeSidebar}
-        ></div>
-      )}
-      <section
-        data-state={isSidebarOpen ? 'open' : 'closed'}
-        className={cn(
-          'peer absolute inset-y-0 z-30 h-full w-[280px] -translate-x-full flex-col border-r bg-sidebar duration-300 ease-in-out data-[state=open]:translate-x-0 lg:flex lg:w-[250px] xl:w-[300px]',
-          isMobile ? 'flex' : 'hidden'
-        )}
-        onClick={isMobile ? closeSidebar : undefined}
-      >
-        <SidebarHeader />
+    <SidebarPrimitive collapsible="icon" {...props}>
+      <SidebarHeader className="h-16 justify-center border-b border-sidebar-border">
+        <SidebarMenu>
+          <SidebarMenuItem>
+            <SidebarMenuButton
+              size="lg"
+              asChild
+              className="gap-1 p-0 hover:bg-transparent hover:text-sidebar-foreground active:bg-transparent active:text-sidebar-foreground group-data-[collapsible=icon]:!h-12 group-data-[collapsible=icon]:!w-8"
+            >
+              <Link href="/">
+                <div className="flex aspect-square size-8 items-center justify-center">
+                  <img src="/favicon.svg" alt="Logo" className="size-7" />
+                </div>
+                <div className="grid flex-1 text-left text-lg font-medium group-data-[collapsible=icon]:hidden">
+                  <span className="truncate">{appName}</span>
+                </div>
+              </Link>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+        </SidebarMenu>
+      </SidebarHeader>
+      <SidebarContent>
         <NewContent />
+        <SidebarSeparator />
         <SidebarList />
+      </SidebarContent>
+      <SidebarFooter>
         <UserMenu />
-      </section>
-    </>
+      </SidebarFooter>
+      <SidebarRail />
+    </SidebarPrimitive>
   );
 }

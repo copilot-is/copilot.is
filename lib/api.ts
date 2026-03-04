@@ -1,19 +1,16 @@
-import {
-  Attachment,
-  Chat,
-  ChatMessage,
-  Result,
-  SharedLink,
-  Voice
-} from '@/types';
+import { Attachment, ChatMessage, Result } from '@/types';
 
-const createSpeech = async (model: string, voice: Voice, text: string) => {
+export const createSpeech = async (
+  modelId: string,
+  voice: string,
+  text: string
+) => {
   const res = await fetch('/api/speech', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json'
     },
-    body: JSON.stringify({ model, voice, text })
+    body: JSON.stringify({ modelId, voice, text })
   });
 
   if (!res.ok) {
@@ -25,90 +22,14 @@ const createSpeech = async (model: string, voice: Voice, text: string) => {
   return json as { audio: string };
 };
 
-const clearChats = async () => {
-  const res = await fetch(`/api/chat`, {
-    method: 'DELETE',
-    headers: {
-      'Content-Type': 'application/json'
-    }
-  });
-
-  if (!res.ok) {
-    const result = await res.json();
-    return { error: result.error } as Result;
-  }
-};
-
-const updateChat = async (
-  chat: Partial<Pick<Chat, 'title' | 'model'>> & {
-    id: string;
-  }
-) => {
-  const res = await fetch(`/api/chat/${chat.id}`, {
-    method: 'PUT',
-    headers: {
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify(chat)
-  });
-
-  if (!res.ok) {
-    const result = await res.json();
-    return { error: result.error } as Result;
-  }
-};
-
-const removeChat = async (id: string) => {
-  const res = await fetch(`/api/chat/${id}`, {
-    method: 'DELETE',
-    headers: {
-      'Content-Type': 'application/json'
-    }
-  });
-
-  if (!res.ok) {
-    const result = await res.json();
-    return { error: result.error } as Result;
-  }
-};
-
-const updateMessage = async (message: ChatMessage) => {
-  const res = await fetch(`/api/messages/${message.id}`, {
-    method: 'PUT',
-    headers: {
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify({ message })
-  });
-
-  if (!res.ok) {
-    const result = await res.json();
-    return { error: result.error } as Result;
-  }
-
-  const json = await res.json();
-  return json as ChatMessage;
-};
-
-const removeMessage = async (id: string) => {
-  const res = await fetch(`/api/messages/${id}`, {
-    method: 'DELETE',
-    headers: {
-      'Content-Type': 'application/json'
-    }
-  });
-
-  if (!res.ok) {
-    const result = await res.json();
-    return { error: result.error } as Result;
-  }
-};
-
-const uploadFile = async (file: File) => {
+export const uploadFile = async (
+  file: File,
+  type: 'avatar' | 'attachment' = 'attachment'
+): Promise<Attachment | Result> => {
   const formData = new FormData();
   formData.append('file', file);
 
-  const res = await fetch('/api/files/upload', {
+  const res = await fetch(`/api/files/upload?type=${type}`, {
     method: 'POST',
     body: formData
   });
@@ -122,7 +43,7 @@ const uploadFile = async (file: File) => {
   return json as Attachment;
 };
 
-const deleteFile = async (url: string) => {
+export const deleteFile = async (url: string) => {
   const res = await fetch(`/api/files?url=${encodeURIComponent(url)}`, {
     method: 'DELETE'
   });
@@ -133,30 +54,12 @@ const deleteFile = async (url: string) => {
   }
 };
 
-const createShare = async (chatId: string) => {
-  const res = await fetch(`/api/share`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify({ chatId })
-  });
-
-  if (!res.ok) {
-    const result = await res.json();
-    return { error: result.error } as Result;
-  }
-
-  const json = await res.json();
-  return json as SharedLink;
-};
-
-const generateVoice = async (params: {
+export const generateVoice = async (params: {
   id: string;
-  model: string;
+  modelId: string;
   userMessage: ChatMessage;
   parentMessageId?: string;
-  voice: Voice;
+  voice: string;
 }) => {
   const res = await fetch('/api/audio', {
     method: 'POST',
@@ -176,9 +79,9 @@ const generateVoice = async (params: {
   };
 };
 
-const generateImage = async (params: {
+export const generateImage = async (params: {
   id: string;
-  model: string;
+  modelId: string;
   userMessage: ChatMessage;
   parentMessageId?: string;
   size?: string;
@@ -203,11 +106,13 @@ const generateImage = async (params: {
   };
 };
 
-const generateVideo = async (params: {
+export const generateVideo = async (params: {
   id: string;
-  model: string;
+  modelId: string;
   userMessage: ChatMessage;
   parentMessageId?: string;
+  aspectRatio?: string;
+  resolution?: string;
 }) => {
   const res = await fetch('/api/video', {
     method: 'POST',
@@ -225,19 +130,4 @@ const generateVideo = async (params: {
     title: string;
     assistantMessage: ChatMessage;
   };
-};
-
-export const api = {
-  createSpeech,
-  updateChat,
-  removeChat,
-  clearChats,
-  updateMessage,
-  removeMessage,
-  uploadFile,
-  deleteFile,
-  createShare,
-  generateVoice,
-  generateImage,
-  generateVideo
 };

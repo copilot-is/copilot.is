@@ -1,6 +1,6 @@
-import { Gear, SpeakerHigh, User } from '@phosphor-icons/react';
+import { useSystemSettings } from '@/contexts/system-settings-context';
+import { Settings, User, Volume2 } from 'lucide-react';
 
-import { useSettings } from '@/hooks/use-settings';
 import {
   Dialog,
   DialogContent,
@@ -18,8 +18,8 @@ interface SettingsDialogProps {
 }
 
 export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
-  const { systemSettings } = useSettings();
-  const { speechEnabled } = systemSettings;
+  const { ttsModels, speechEnabled } = useSystemSettings();
+  const isSpeechAvailable = (ttsModels?.length ?? 0) > 0 && speechEnabled;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -35,32 +35,32 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
           <TabsList className="flex h-full min-w-40 flex-col justify-start gap-2 bg-transparent p-0">
             <TabsTrigger
               value="general"
-              className="w-full justify-start text-wrap py-2 shadow-none hover:bg-muted focus-visible:ring-1 focus-visible:ring-offset-1 data-[state=active]:bg-muted data-[state=active]:shadow-none"
+              className="w-full justify-start gap-2 text-wrap py-2 shadow-none hover:bg-muted focus-visible:ring-1 focus-visible:ring-offset-1 data-[state=active]:bg-muted data-[state=active]:shadow-none"
             >
-              <Gear className="mr-2 size-4" />
+              <Settings className="size-4" />
               General
             </TabsTrigger>
-            {speechEnabled && (
+            {isSpeechAvailable && (
               <TabsTrigger
                 value="speech"
-                className="w-full justify-start text-wrap py-2 shadow-none hover:bg-muted focus-visible:ring-1 focus-visible:ring-offset-1 data-[state=active]:bg-muted data-[state=active]:shadow-none"
+                className="w-full justify-start gap-2 text-wrap py-2 shadow-none hover:bg-muted focus-visible:ring-1 focus-visible:ring-offset-1 data-[state=active]:bg-muted data-[state=active]:shadow-none"
               >
-                <SpeakerHigh className="mr-2 size-4" />
+                <Volume2 className="size-4" />
                 Speech
               </TabsTrigger>
             )}
             <TabsTrigger
               value="profile"
-              className="w-full justify-start text-wrap py-2 shadow-none hover:bg-muted focus-visible:ring-1 focus-visible:ring-offset-1 data-[state=active]:bg-muted data-[state=active]:shadow-none"
+              className="w-full justify-start gap-2 text-wrap py-2 shadow-none hover:bg-muted focus-visible:ring-1 focus-visible:ring-offset-1 data-[state=active]:bg-muted data-[state=active]:shadow-none"
             >
-              <User className="mr-2 size-4" />
+              <User className="size-4" />
               Profile
             </TabsTrigger>
           </TabsList>
           <TabsContent tabIndex={-1} value="general" className="mt-0 w-full">
             <SettingsGeneral />
           </TabsContent>
-          {speechEnabled && (
+          {isSpeechAvailable && (
             <TabsContent tabIndex={-1} value="speech" className="mt-0 w-full">
               <SettingsSpeech />
             </TabsContent>

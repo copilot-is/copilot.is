@@ -5,24 +5,28 @@ import '@/app/globals.css';
 
 import { env } from '@/lib/env';
 import { fontMono, fontSans } from '@/lib/fonts';
-import { cn, getAvailableModels } from '@/lib/utils';
-import { SettingsProvider } from '@/hooks/use-settings';
+import { getAppSettings } from '@/lib/queries';
+import { cn } from '@/lib/utils';
 import { TRPCReactProvider } from '@/trpc/react';
 import { Providers } from '@/components/providers';
 import { TailwindIndicator } from '@/components/tailwind-indicator';
 
-export const metadata: Metadata = {
-  title: {
-    default: `${env.NEXT_PUBLIC_PRODUCT_NAME} - ${env.NEXT_PUBLIC_PRODUCT_SUBTITLE}`,
-    template: `%s - ${env.NEXT_PUBLIC_PRODUCT_NAME}`
-  },
-  description: env.NEXT_PUBLIC_PRODUCT_DESCRIPTION,
-  icons: {
-    icon: '/favicon.svg',
-    shortcut: '/favicon.png',
-    apple: '/apple-touch-icon.png'
-  }
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const { appName, appSubtitle, appDescription } = await getAppSettings();
+
+  return {
+    title: {
+      default: `${appName} - ${appSubtitle}`,
+      template: `%s - ${appName}`
+    },
+    description: appDescription,
+    icons: {
+      icon: '/favicon.svg',
+      shortcut: '/favicon.png',
+      apple: '/apple-touch-icon.png'
+    }
+  };
+}
 
 export const viewport: Viewport = {
   themeColor: [
@@ -59,34 +63,7 @@ export default function RootLayout({ children }: RootLayoutProps) {
       >
         <TRPCReactProvider>
           <Providers attribute="class" defaultTheme="system" enableSystem>
-            <SettingsProvider
-              defaultSystemSettings={{
-                availableModels: getAvailableModels(),
-                speechEnabled: env.SPEECH_ENABLED
-              }}
-              defaultUserSettings={{
-                speechModel: env.DEFAULT_SPEECH_MODEL,
-                speechVoice: env.DEFAULT_SPEECH_VOICE
-              }}
-              defaultChatPreferences={{
-                model: env.DEFAULT_CHAT_MODEL,
-                isReasoning: true
-              }}
-              defaultVideoPreferences={{
-                model: env.DEFAULT_VIDEO_MODEL
-              }}
-              defaultVoicePreferences={{
-                model: env.DEFAULT_VOICE_MODEL,
-                voice: 'alloy'
-              }}
-              defaultImagePreferences={{
-                model: env.DEFAULT_IMAGE_MODEL,
-                size: '1024x1024',
-                aspectRatio: '16:9'
-              }}
-            >
-              {children}
-            </SettingsProvider>
+            {children}
             <TailwindIndicator />
           </Providers>
         </TRPCReactProvider>

@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import {
   convertToModelMessages,
   createUIMessageStream,
@@ -9,16 +9,14 @@ import {
   streamText
 } from 'ai';
 
-import { ChatMessage, MessageMetadata, Usage } from '@/types';
-import { GenerateTitlePrompt, SystemPrompt } from '@/lib/constant';
-import { env } from '@/lib/env';
-import { provider } from '@/lib/provider';
+import { ChatMessage, MessageMetadata } from '@/types';
+import { getLanguageModel } from '@/lib/provider';
 import {
-  convertToChatMessages,
-  generateUUID,
-  isAvailableModel,
-  systemPrompt
-} from '@/lib/utils';
+  findModelByModelId,
+  getSystemPrompt,
+  getTitleSettings
+} from '@/lib/queries';
+import { convertToChatMessages, formatString, generateUUID } from '@/lib/utils';
 import { auth } from '@/server/auth';
 import { api } from '@/trpc/server';
 
@@ -26,7 +24,7 @@ export const maxDuration = 60;
 
 type PostData = {
   id: string;
-  model: string;
+  modelId: string;
   userMessage: Omit<ChatMessage, 'role'> & { role: 'user' };
   parentMessageId?: string;
   isReasoning?: boolean;
@@ -41,18 +39,20 @@ export async function POST(req: Request) {
 
   const json: PostData = await req.json();
   const id = json.id || generateUUID();
-  const { model, userMessage, parentMessageId, isReasoning } = json;
+  const { modelId, userMessage, parentMessageId, isReasoning } = json;
 
-  if (!model || !userMessage) {
+  if (!modelId || !userMessage) {
     return NextResponse.json(
-      { error: 'Invalid model and userMessage parameters' },
+      { error: 'Invalid modelId and userMessage parameters' },
       { status: 400 }
     );
   }
 
-  if (!isAvailableModel('chat', model)) {
+  // Fetch model from database to validate
+  const dbModel = await findModelByModelId(modelId, 'chat');
+  if (!dbModel?.provider) {
     return NextResponse.json(
-      { error: `Model ${model} is not available` },
+      { error: `Model ${modelId} is not available` },
       { status: 403 }
     );
   }
@@ -65,24 +65,30 @@ export async function POST(req: Request) {
   });
   if (!chat) {
     try {
-      const { text } = await generateText({
-        model: provider.languageModel(env.GENERATE_TITLE_MODEL),
-        system: GenerateTitlePrompt,
-        prompt: JSON.stringify(userMessage)
-      });
+      const {
+        prompt: titlePrompt,
+        modelId: titleModelId,
+        provider: titleProvider
+      } = await getTitleSettings();
 
-      title = text ?? title;
+      // Only generate title if all settings are configured
+      if (titlePrompt && titleModelId && titleProvider) {
+        const { text } = await generateText({
+          model: getLanguageModel(titleProvider, titleModelId),
+          system: titlePrompt,
+          prompt: JSON.stringify(userMessage)
+        });
+
+        title = text ?? title;
+      }
     } catch (err: any) {
-      console.error(
-        `Generate title ${env.GENERATE_TITLE_MODEL} error:`,
-        err.message
-      );
+      console.error(`Generate title error:`, err.message);
     }
 
     await api.chat.create({
       id,
       title,
-      model,
+      modelId,
       messages: [userMessage]
     });
   } else {
@@ -104,14 +110,37 @@ export async function POST(req: Request) {
       userMessage
     ];
 
+    const provider = dbModel.provider;
+
+    // Build system prompt (only if configured)
+    const systemPromptContent = await getSystemPrompt(dbModel.systemPromptId);
+    const systemMessage = systemPromptContent
+      ? formatString(systemPromptContent, {
+          provider: provider.name || '',
+          modelId,
+          date: new Date().toISOString()
+        })
+      : undefined;
+
     const stream = createUIMessageStream<ChatMessage>({
       execute: async ({ writer }) => {
         writer.write({ type: 'data-chat', data: { title } });
 
         const res = streamText({
-          model: provider.languageModel(model),
-          system: systemPrompt(model, SystemPrompt),
+          model: getLanguageModel(provider, modelId),
+          ...(systemMessage && { system: systemMessage }),
           messages: await convertToModelMessages(chatMessages),
+          ...(provider.apiOptions && {
+            providerOptions: {
+              [provider.type]: provider.apiOptions
+            } as any
+          }),
+          temperature: dbModel.apiParams?.temperature,
+          topP: dbModel.apiParams?.topP,
+          topK: dbModel.apiParams?.topK,
+          maxOutputTokens: dbModel.apiParams?.maxOutputTokens,
+          frequencyPenalty: dbModel.apiParams?.frequencyPenalty,
+          presencePenalty: dbModel.apiParams?.presencePenalty,
           stopWhen: stepCountIs(5),
           experimental_transform: smoothStream({ chunking: 'word' }),
           onChunk: ({ chunk }) => {
@@ -161,11 +190,11 @@ export async function POST(req: Request) {
         });
 
         // Update chat model if changed
-        if (chat && chat.model !== model) {
+        if (chat && chat.modelId !== modelId) {
           try {
             await api.chat.update({
               id,
-              model
+              modelId
             });
           } catch (err) {
             console.warn('Unable to update chat', id, err);
@@ -192,53 +221,5 @@ export async function POST(req: Request) {
     return createUIMessageStreamResponse({ stream });
   } catch (err: any) {
     return NextResponse.json({ error: err.message }, { status: 500 });
-  }
-}
-
-export async function GET(req: NextRequest) {
-  const session = await auth();
-
-  if (!session?.user) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
-
-  const searchParams = req.nextUrl.searchParams;
-  const limit = parseInt(searchParams.get('limit') || '20');
-  const offset = parseInt(searchParams.get('offset') || '0');
-
-  try {
-    const data = await api.chat.list({ limit, offset });
-
-    if (!data) {
-      return NextResponse.json(
-        { error: 'Chat history not found' },
-        { status: 404 }
-      );
-    }
-
-    return NextResponse.json(data);
-  } catch (err) {
-    return NextResponse.json(
-      { error: 'Oops, an error occured!' },
-      { status: 500 }
-    );
-  }
-}
-
-export async function DELETE() {
-  const session = await auth();
-
-  if (!session?.user) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
-
-  try {
-    await api.chat.deleteAll();
-    return new Response(null, { status: 204 });
-  } catch (err) {
-    return NextResponse.json(
-      { error: 'Oops, an error occured!' },
-      { status: 500 }
-    );
   }
 }

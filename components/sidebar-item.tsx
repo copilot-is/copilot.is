@@ -3,12 +3,26 @@
 import * as React from 'react';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
+import { Image, MessageSquare, Mic, Video } from 'lucide-react';
 
 import { Chat } from '@/types';
-import { cn, findModelByValue } from '@/lib/utils';
-import { ProviderIcon } from '@/components/provider-icon';
+import { SidebarMenuButton, SidebarMenuItem } from '@/components/ui/sidebar';
 
 import { SidebarActions } from './sidebar-actions';
+
+// Get icon for chat type
+function ChatTypeIcon({ type }: { type: string }) {
+  switch (type) {
+    case 'image':
+      return <Image className="size-4" />;
+    case 'video':
+      return <Video className="size-4" />;
+    case 'audio':
+      return <Mic className="size-4" />;
+    default:
+      return <MessageSquare className="size-4" />;
+  }
+}
 
 interface SidebarItemProps {
   chat: Chat;
@@ -18,38 +32,20 @@ export function SidebarItem({ chat }: SidebarItemProps) {
   const params = useParams<{ id?: string }>();
   const [isOpen, setIsOpen] = React.useState(false);
 
-  const provider = findModelByValue(chat.type, chat.model)?.provider;
-
   return (
-    <div
-      className={cn(
-        'group relative flex h-9 items-center rounded-md p-2 hover:bg-background hover:shadow-sm dark:hover:bg-accent',
-        {
-          'bg-background shadow-sm dark:bg-accent':
-            chat.id === params.id || isOpen
-        }
-      )}
-    >
-      <div className="flex size-5 items-center justify-center rounded-full border bg-background">
-        <ProviderIcon provider={provider} />
-      </div>
-      <Link
-        href={`/${chat.type || 'chat'}/${chat.id}`}
-        className={cn(
-          'w-full flex-1 items-center justify-start truncate p-1.5 text-sm',
-          { 'font-medium': chat.id === params.id }
-        )}
+    <SidebarMenuItem>
+      <SidebarMenuButton
+        asChild
+        isActive={chat.id === params.id || isOpen}
+        tooltip={chat.title}
+        className="group-hover/menu-item:bg-background group-hover/menu-item:shadow-sm data-[active=true]:bg-background data-[active=true]:shadow-sm dark:group-hover/menu-item:bg-accent dark:data-[active=true]:bg-accent"
       >
-        {chat.title}
-      </Link>
-      <SidebarActions
-        className={cn(
-          'absolute right-2 z-10 group-hover:opacity-100',
-          chat.id === params.id || isOpen ? 'opacity-100' : 'opacity-0'
-        )}
-        chat={chat}
-        onOpenChange={setIsOpen}
-      />
-    </div>
+        <Link href={`/${chat.type}/${chat.id}`}>
+          <ChatTypeIcon type={chat.type} />
+          <span className="truncate">{chat.title}</span>
+        </Link>
+      </SidebarMenuButton>
+      <SidebarActions chat={chat} onOpenChange={setIsOpen} />
+    </SidebarMenuItem>
   );
 }

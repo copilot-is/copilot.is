@@ -1,43 +1,46 @@
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
 import { UseChatHelpers } from '@ai-sdk/react';
-import { ArrowUp, CircleNotch, Lightbulb, Stop } from '@phosphor-icons/react';
+import { ArrowUp, Loader2, Square } from 'lucide-react';
 import Textarea from 'react-textarea-autosize';
 
 import { Attachment, ChatMessage } from '@/types';
-import { cn, findModelByValue } from '@/lib/utils';
 import { useEnterSubmit } from '@/hooks/use-enter-submit';
-import { useSettings } from '@/hooks/use-settings';
 import { Button } from '@/components/ui/button';
 import { AttachmentsButton } from '@/components/attachments-button';
 import { AttachmentsPreview } from '@/components/attachments-preview';
-import { ChatModelMenu } from '@/components/chat-model-menu';
+import { ModelMenu, ModelOptions } from '@/components/model-menu';
+
+export type { ModelOptions };
 
 export interface ChatPromptFormProps
   extends Pick<UseChatHelpers<ChatMessage>, 'status' | 'stop'> {
-  model: string;
-  setModel: (value: string) => void;
+  /** Current model value */
+  modelId: string;
   input: string;
   setInput: (value: string) => void;
   onInputChange: (e: React.ChangeEvent<HTMLTextAreaElement>) => void;
   onSubmit: (attachments?: Attachment[]) => void;
+  /** Callback when model changes */
+  onModelChange: (model: string) => void;
+  /** Callback when model options change (like reasoning toggle) */
+  onOptionsChange?: (options: ModelOptions) => void;
 }
 
 export function ChatPromptForm({
-  model,
-  setModel,
+  modelId,
   status,
   stop,
   input,
   setInput,
   onInputChange,
-  onSubmit
+  onSubmit,
+  onModelChange,
+  onOptionsChange
 }: ChatPromptFormProps) {
-  const { chatPreferences, setChatPreferences } = useSettings();
-  const { isReasoning } = chatPreferences;
   const { formRef, onKeyDown } = useEnterSubmit();
   const [uploadQueue, setUploadQueue] = useState<Array<string>>([]);
   const [attachments, setAttachments] = useState<Attachment[]>([]);
-  const selectedModel = findModelByValue('chat', model);
+  const [modelOptions, setModelOptions] = useState<ModelOptions>({});
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -46,9 +49,18 @@ export function ChatPromptForm({
     setAttachments([]);
   };
 
+  const handleOptionsChange = useCallback(
+    (options: ModelOptions) => {
+      setModelOptions(options);
+      // Propagate to parent for isReasoning tracking
+      onOptionsChange?.(options);
+    },
+    [onOptionsChange]
+  );
+
   return (
     <form ref={formRef} onSubmit={handleSubmit} className="w-full">
-      {selectedModel?.vision && (
+      {modelOptions.supportsVision && (
         <AttachmentsPreview
           disabled={status === 'submitted' || status === 'streaming'}
           uploadQueue={uploadQueue}
@@ -95,38 +107,15 @@ export function ChatPromptForm({
           />
         </div>
         <div className="mt-5 flex items-center justify-between space-x-2">
+          {/* Model Menu with integrated Think button */}
+          <ModelMenu
+            status={status}
+            modelId={modelId}
+            onModelChange={onModelChange}
+            onOptionsChange={handleOptionsChange}
+          />
           <div className="flex items-center space-x-2">
-            <ChatModelMenu model={model} setModel={setModel} status={status} />
-            {selectedModel?.options?.isReasoning && (
-              <Button
-                type="button"
-                variant="outline"
-                disabled={status === 'submitted' || status === 'streaming'}
-                className={cn(
-                  'h-9 rounded-full px-3 font-normal text-muted-foreground shadow-none hover:text-muted-foreground',
-                  {
-                    'border-muted-foreground/30 bg-muted text-foreground hover:text-foreground':
-                      isReasoning
-                  }
-                )}
-                onClick={async () => {
-                  setChatPreferences('isReasoning', !isReasoning);
-                }}
-              >
-                <Lightbulb
-                  weight={isReasoning ? 'regular' : 'duotone'}
-                  className={
-                    isReasoning
-                      ? 'fill-muted-foreground'
-                      : 'fill-muted-foreground/30'
-                  }
-                />
-                Think
-              </Button>
-            )}
-          </div>
-          <div className="flex items-center space-x-2">
-            {selectedModel?.vision && (
+            {modelOptions.supportsVision && (
               <AttachmentsButton
                 disabled={status === 'submitted' || status === 'streaming'}
                 uploadQueue={uploadQueue}
@@ -142,7 +131,7 @@ export function ChatPromptForm({
                 className="size-9 rounded-full shadow-none"
                 onClick={stop}
               >
-                <Stop weight="fill" className="size-4" />
+                <Square className="size-4 fill-current" />
                 <span className="sr-only">Stop generating</span>
               </Button>
             ) : (
@@ -157,7 +146,7 @@ export function ChatPromptForm({
                 }
               >
                 {status === 'submitted' ? (
-                  <CircleNotch className="size-4 animate-spin" />
+                  <Loader2 className="size-4 animate-spin" />
                 ) : (
                   <ArrowUp className="size-4" />
                 )}

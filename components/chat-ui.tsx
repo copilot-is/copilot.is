@@ -1,76 +1,100 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { usePreferences } from '@/contexts/preferences-context';
+import { useSystemSettings } from '@/contexts/system-settings-context';
 import { useChat } from '@ai-sdk/react';
-import { ChatDots } from '@phosphor-icons/react';
 import { DefaultChatTransport } from 'ai';
-import ScrollToBottom from 'react-scroll-to-bottom';
+import { MessageSquare } from 'lucide-react';
 import { toast } from 'sonner';
 
-import { Attachment, Chat, ChatMessage } from '@/types';
+import { Attachment, ChatMessage } from '@/types';
 import { CustomUIDataTypes } from '@/types/ui-data';
-import {
-  cn,
-  findModelByValue,
-  generateUUID,
-  getMostRecentUserMessage
-} from '@/lib/utils';
-import { refreshChats, updateChatInCache } from '@/hooks/use-chats';
-import { useSettings } from '@/hooks/use-settings';
+import { cn, generateUUID, getMostRecentUserMessage } from '@/lib/utils';
+import { useChats } from '@/hooks/use-chats';
+import { ButtonScrollToBottom } from '@/components/button-scroll-to-bottom';
 import { ChatHeader } from '@/components/chat-header';
 import { ChatPromptForm } from '@/components/chat-prompt-form';
 import { EmptyScreen } from '@/components/empty-screen';
 import { Messages } from '@/components/messages';
+import { ModelOptions } from '@/components/model-menu';
+import ScrollToBottom from '@/components/scroll-to-bottom';
 
 interface ChatUIProps {
   id: string;
-  initialChat?: Pick<Chat, 'title' | 'model'>;
+  initialChat?: { title: string; modelId?: string };
   initialMessages?: ChatMessage[];
 }
 
 export function ChatUI({ id, initialChat, initialMessages = [] }: ChatUIProps) {
-  const { chatPreferences, setChatPreferences } = useSettings();
+  const { refreshChats } = useChats();
+
+  // Get from contexts
+  const { chatModels } = useSystemSettings();
+  const { preferences, setPreference } = usePreferences();
 
   const initialTitle = initialChat?.title;
-  const initialModel = initialChat?.model || chatPreferences.model;
 
   const [input, setInput] = useState('');
   const [title, setTitle] = useState(initialTitle);
-  const [chatModel, setChatModel] = useState(initialModel);
-  const [selectedModel, setSelectedModel] = useState(initialModel);
 
-  const provider = useMemo(
-    () => findModelByValue('chat', chatModel)?.provider,
-    [chatModel]
+  // Track the current model (for next submission)
+  // Priority: initialChat.modelId (if valid) > preferences
+  const [currentModelId, setCurrentModelId] = useState(
+    initialChat?.modelId || preferences.chatModelId
   );
 
-  const isReasoning = useMemo(
-    () => findModelByValue('chat', selectedModel)?.options?.isReasoning,
-    [selectedModel]
+  // Track the display model (for showing in Messages)
+  const [displayModelId, setDisplayModelId] = useState(
+    initialChat?.modelId || preferences.chatModelId
+  );
+
+  // Track previous model for rollback on error
+  const previousModelRef = useRef<string | null>(null);
+
+  // Track isReasoning state
+  const [isReasoning, setIsReasoning] = useState(preferences.chatReasoning);
+
+  // Find current model in database models (for API request options)
+  const currentDbModel = useMemo(
+    () => chatModels?.find(m => m.modelId === currentModelId),
+    [chatModels, currentModelId]
+  );
+
+  // Find display model in database models (for showing in Messages)
+  const displayDbModel = useMemo(
+    () => chatModels?.find(m => m.modelId === displayModelId),
+    [chatModels, displayModelId]
+  );
+
+  const displayImage = useMemo(
+    () => displayDbModel?.image || displayDbModel?.provider?.image || null,
+    [displayDbModel]
+  );
+
+  const currentImage = useMemo(
+    () => currentDbModel?.image || currentDbModel?.provider?.image || null,
+    [currentDbModel]
+  );
+
+  const supportsReasoning = useMemo(
+    () => currentDbModel?.supportsReasoning,
+    [currentDbModel]
   );
 
   const chatRequestBody = useMemo(
     () => ({
-      model: selectedModel || chatPreferences.model,
-      isReasoning: isReasoning ? chatPreferences.isReasoning : undefined
+      modelId: currentModelId,
+      isReasoning: supportsReasoning ? isReasoning : undefined
     }),
-    [selectedModel, isReasoning, chatPreferences]
+    [currentModelId, supportsReasoning, isReasoning]
   );
   const chatRequestBodyRef = useRef(chatRequestBody);
 
+  // Keep ref in sync with the latest request body
   useEffect(() => {
     chatRequestBodyRef.current = chatRequestBody;
   }, [chatRequestBody]);
-
-  const resetModel = useCallback(
-    (newModel: string) => {
-      if (chatModel !== selectedModel) {
-        setChatModel(newModel);
-        updateChatInCache(id, { model: newModel });
-      }
-    },
-    [id, chatModel, selectedModel]
-  );
 
   const { status, messages, stop, regenerate, setMessages, sendMessage } =
     useChat<ChatMessage>({
@@ -94,7 +118,6 @@ export function ChatUI({ id, initialChat, initialMessages = [] }: ChatUIProps) {
         }
       }),
       onData: dataPart => {
-        console.log('onData<Client>', dataPart);
         if (dataPart.type === 'data-chat' && dataPart.data) {
           const chatData = dataPart.data as CustomUIDataTypes['chat'];
           if (chatData.title) {
@@ -104,16 +127,19 @@ export function ChatUI({ id, initialChat, initialMessages = [] }: ChatUIProps) {
             }
             setTitle(chatData.title);
           }
+          // Clear previous model ref on success
+          previousModelRef.current = null;
         }
       },
-      onFinish: ({ message }) => {
-        console.log('onFinish<Client>', message);
-      },
       onError: error => {
-        resetModel(initialModel);
         toast.error('An error occurred.', {
-          description: `Oops! An error occurred while processing your request. ${error.message}`
+          description: error.message
         });
+        // Revert displayModel on error
+        if (previousModelRef.current) {
+          setDisplayModelId(previousModelRef.current);
+          previousModelRef.current = null;
+        }
       }
     });
 
@@ -122,16 +148,44 @@ export function ChatUI({ id, initialChat, initialMessages = [] }: ChatUIProps) {
     [title, status, messages.length]
   );
 
+  // Handle model change from ModelMenu
+  const handleModelChange = useCallback(
+    (newModelId: string) => {
+      setCurrentModelId(newModelId);
+      setPreference('chatModelId', newModelId);
+    },
+    [setPreference]
+  );
+
+  // Handle options change from ModelMenu (like reasoning toggle)
+  const handleOptionsChange = useCallback(
+    (options: ModelOptions) => {
+      if (options.isReasoning !== undefined) {
+        setIsReasoning(options.isReasoning);
+        setPreference('chatReasoning', options.isReasoning);
+      }
+    },
+    [setPreference]
+  );
+
+  // Helper to update displayModel optimistically
+  const updateDisplayModelOptimistically = useCallback(() => {
+    if (currentModelId !== displayModelId) {
+      previousModelRef.current = displayModelId;
+      setDisplayModelId(currentModelId);
+    }
+  }, [currentModelId, displayModelId]);
+
   const handleReload = useCallback(() => {
-    resetModel(selectedModel);
+    updateDisplayModelOptimistically();
     const userMessage = getMostRecentUserMessage(messages);
     regenerate({ body: { parentMessageId: userMessage?.id } });
-  }, [messages, selectedModel, regenerate, resetModel]);
+  }, [messages, regenerate, updateDisplayModelOptimistically]);
 
   const handleSubmit = useCallback(
     (attachments?: Attachment[]) => {
       if (!input.trim()) return;
-      resetModel(selectedModel);
+      updateDisplayModelOptimistically();
       sendMessage({
         text: input,
         files: attachments?.map(attachment => ({
@@ -142,59 +196,53 @@ export function ChatUI({ id, initialChat, initialMessages = [] }: ChatUIProps) {
         }))
       });
     },
-    [input, selectedModel, resetModel, sendMessage]
+    [input, sendMessage, updateDisplayModelOptimistically]
   );
 
   return (
-    <>
-      <div
-        className={cn('w-full overflow-hidden', {
-          'flex-1': !noChat
-        })}
-      >
+    <div className="flex size-full flex-col">
+      <ChatHeader title={title} />
+      <div className="w-full flex-1 overflow-hidden">
         <ScrollToBottom
-          className={cn({ 'size-full': !noChat })}
-          scrollViewClassName="size-full flex flex-col items-center"
-          followButtonClassName="hidden"
-          initialScrollBehavior="auto"
-          mode="bottom"
+          className="flex size-full flex-col items-center overflow-y-auto"
+          button={<ButtonScrollToBottom status={status} messages={messages} />}
         >
-          <ChatHeader title={title} />
           <Messages
-            model={selectedModel}
-            provider={provider}
+            modelId={displayModelId}
+            image={displayImage}
+            currentModelId={currentModelId}
+            currentImage={currentImage}
             status={status}
             messages={messages}
             setMessages={setMessages}
             reload={handleReload}
+            supportsReasoning={supportsReasoning}
           />
         </ScrollToBottom>
       </div>
       <div
-        className={cn('w-full max-w-4xl bg-background px-2 pb-4', {
+        className={cn('mx-auto w-full max-w-4xl bg-background px-4 pb-4', {
           'mb-60 flex h-full flex-col items-center justify-center': noChat
         })}
       >
         {noChat && (
           <EmptyScreen
-            icon={<ChatDots className="mx-auto mb-4 size-12 opacity-50" />}
+            icon={<MessageSquare className="mx-auto mb-4 size-12 opacity-50" />}
             text="How can I help you today?"
           />
         )}
         <ChatPromptForm
-          model={selectedModel}
-          setModel={value => {
-            setSelectedModel(value);
-            setChatPreferences('model', value);
-          }}
+          modelId={currentModelId}
           stop={stop}
           status={status}
           input={input}
           setInput={setInput}
           onInputChange={e => setInput(e.target.value)}
           onSubmit={handleSubmit}
+          onModelChange={handleModelChange}
+          onOptionsChange={handleOptionsChange}
         />
       </div>
-    </>
+    </div>
   );
 }

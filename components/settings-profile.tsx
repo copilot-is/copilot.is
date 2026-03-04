@@ -2,18 +2,20 @@
 
 import * as React from 'react';
 import Image from 'next/image';
-import { Camera, CircleNotch } from '@phosphor-icons/react';
+import { Camera, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 
+import { uploadFile } from '@/lib/api';
 import { useCurrentUser } from '@/hooks/use-current-user';
+import { api } from '@/trpc/react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 
 export const SettingsProfile = () => {
   const { user, isLoading: isUserLoading, mutate } = useCurrentUser();
   const [name, setName] = React.useState('');
-  const [isLoading, setIsLoading] = React.useState(false);
   const [isUploading, setIsUploading] = React.useState(false);
+  const [previewUrl, setPreviewUrl] = React.useState<string | null>(null);
   const fileInputRef = React.useRef<HTMLInputElement>(null);
 
   React.useEffect(() => {
@@ -21,6 +23,14 @@ export const SettingsProfile = () => {
       setName(user.name);
     }
   }, [user?.name]);
+
+  React.useEffect(() => {
+    return () => {
+      if (previewUrl) {
+        URL.revokeObjectURL(previewUrl);
+      }
+    };
+  }, [previewUrl]);
 
   const handleAvatarClick = () => {
     fileInputRef.current?.click();
@@ -41,26 +51,26 @@ export const SettingsProfile = () => {
       return;
     }
 
+    // Create preview
+    const objectUrl = URL.createObjectURL(file);
+    setPreviewUrl(objectUrl);
     setIsUploading(true);
+
     try {
-      const formData = new FormData();
-      formData.append('file', file);
+      const result = await uploadFile(file, 'avatar');
 
-      const response = await fetch('/api/users/me/avatar', {
-        method: 'POST',
-        body: formData
-      });
-
-      if (!response.ok) {
-        const data = await response.json();
-        toast.error(data.error || 'Failed to upload avatar');
+      if ('error' in result) {
+        toast.error(result.error || 'Failed to upload avatar');
+        setPreviewUrl(null); // Clear preview on error
         return;
       }
 
-      await mutate();
-      toast.success('Avatar updated successfully');
-    } catch (err) {
+      await updateProfileMutation.mutateAsync({ image: result.url });
+      // Don't clear previewUrl here to avoid flicker.
+      // It will be cleared in mutation onSuccess after revalidation.
+    } catch {
       toast.error('An error occurred while uploading avatar');
+      setPreviewUrl(null); // Clear preview on error
     } finally {
       setIsUploading(false);
       if (fileInputRef.current) {
@@ -69,36 +79,28 @@ export const SettingsProfile = () => {
     }
   };
 
+  const updateProfileMutation = api.user.updateProfile.useMutation({
+    onSuccess: async () => {
+      await mutate();
+      setPreviewUrl(null); // Clear preview only after successful revalidation
+      toast.success('Profile updated successfully');
+    },
+    onError: error => {
+      toast.error(error.message || 'Failed to update profile');
+      setPreviewUrl(null);
+    }
+  });
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsLoading(true);
 
-    try {
-      const response = await fetch('/api/users/me', {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name: name.trim() })
-      });
-
-      if (!response.ok) {
-        const data = await response.json();
-        toast.error(data.error || 'Failed to update profile');
-        return;
-      }
-
-      await mutate();
-      toast.success('Profile updated successfully');
-    } catch (err) {
-      toast.error('An error occurred. Please try again.');
-    } finally {
-      setIsLoading(false);
-    }
+    updateProfileMutation.mutate({ name: name.trim() });
   };
 
   if (isUserLoading) {
     return (
       <div className="flex size-full items-center justify-center">
-        <CircleNotch className="size-8 animate-spin text-muted-foreground" />
+        <Loader2 className="size-8 animate-spin text-muted-foreground" />
       </div>
     );
   }
@@ -115,10 +117,10 @@ export const SettingsProfile = () => {
           className="group relative size-16 cursor-pointer overflow-hidden rounded-full border-2 border-dashed border-muted-foreground/25 transition-colors hover:border-muted-foreground/50"
           onClick={handleAvatarClick}
         >
-          {user.image ? (
+          {previewUrl || user.image ? (
             <Image
               className="size-full object-cover"
-              src={user.image}
+              src={previewUrl || user.image || ''}
               alt={user.name ?? ''}
               height={64}
               width={64}
@@ -135,9 +137,12 @@ export const SettingsProfile = () => {
                 : (user.email?.[0] || '?').toUpperCase()}
             </div>
           )}
-          <div className="absolute inset-0 flex items-center justify-center bg-black/50 opacity-0 transition-opacity group-hover:opacity-100">
+          <div
+            className="absolute inset-0 flex items-center justify-center bg-black/50 opacity-0 transition-opacity group-hover:opacity-100 data-[uploading=true]:opacity-100"
+            data-uploading={isUploading}
+          >
             {isUploading ? (
-              <CircleNotch className="size-4 animate-spin text-white" />
+              <Loader2 className="size-4 animate-spin text-white" />
             ) : (
               <Camera className="size-4 text-white" />
             )}
@@ -171,20 +176,20 @@ export const SettingsProfile = () => {
             placeholder="Enter your name"
             value={name}
             onChange={e => setName(e.target.value)}
-            disabled={isLoading}
+            disabled={updateProfileMutation.isPending}
             maxLength={100}
           />
         </div>
 
         <Button
           type="submit"
-          disabled={isLoading || !name.trim() || name.trim() === user.name}
+          disabled={
+            updateProfileMutation.isPending ||
+            !name.trim() ||
+            name.trim() === user.name
+          }
         >
-          {isLoading ? (
-            <CircleNotch className="size-4 animate-spin" />
-          ) : (
-            'Save Changes'
-          )}
+          Save Changes
         </Button>
       </form>
     </div>

@@ -12,7 +12,7 @@ export const chatRouter = createTRPCRouter({
         id: z.string().min(1),
         title: z.string().trim().min(1).max(255),
         type: chatTypeSchema.default('chat'),
-        model: z.string().trim().min(1).max(255),
+        modelId: z.string().trim().min(1).max(255),
         messages: z.array(messageSchema)
       })
     )
@@ -21,7 +21,7 @@ export const chatRouter = createTRPCRouter({
         id: input.id,
         title: input.title,
         type: input.type,
-        model: input.model,
+        modelId: input.modelId,
         userId: ctx.session.user.id
       });
 
@@ -41,13 +41,13 @@ export const chatRouter = createTRPCRouter({
       z.object({
         id: z.string().min(1),
         title: z.string().trim().min(1).max(255).optional(),
-        model: z.string().trim().min(1).max(255).optional()
+        modelId: z.string().trim().min(1).max(255).optional()
       })
     )
     .mutation(async ({ ctx, input }) => {
       const updates: Record<string, any> = {};
       if (input.title) updates.title = input.title;
-      if (input.model) updates.model = input.model;
+      if (input.modelId) updates.modelId = input.modelId;
 
       if (Object.keys(updates).length > 0) {
         await ctx.db
@@ -65,14 +65,15 @@ export const chatRouter = createTRPCRouter({
         .object({
           type: chatTypeSchema.optional(),
           limit: z.number().min(1).default(50).optional(),
-          offset: z.number().min(0).default(0).optional()
+          offset: z.number().min(0).default(0).optional(),
+          cursor: z.number().nullish()
         })
         .optional()
     )
     .query(async ({ ctx, input }) => {
       const type = input?.type;
       const limit = input?.limit ?? 50;
-      const offset = input?.offset ?? 0;
+      const offset = input?.cursor ?? input?.offset ?? 0;
 
       return await ctx.db.query.chats.findMany({
         orderBy: (chats, { desc }) => [desc(chats.createdAt)],
@@ -104,6 +105,11 @@ export const chatRouter = createTRPCRouter({
           input.type ? eq(chats.type, input.type) : undefined
         ),
         with: {
+          model: {
+            with: {
+              provider: true
+            }
+          },
           messages: input.includeMessages
             ? {
                 where: eq(messages.userId, ctx.session.user.id),
@@ -120,7 +126,15 @@ export const chatRouter = createTRPCRouter({
         }
       });
 
-      return chat;
+      if (!chat) return null;
+
+      return {
+        ...chat,
+        modelId:
+          chat.model?.isEnabled && chat.model.provider?.isEnabled
+            ? chat.model.modelId
+            : null
+      };
     }),
 
   delete: protectedProcedure

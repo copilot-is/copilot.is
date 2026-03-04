@@ -18,7 +18,7 @@ export function LoginForm({
   githubEnabled,
   googleEnabled
 }: LoginFormProps) {
-  const [loading, setLoading] = React.useState<string | null>(null);
+  const [isLoading, setIsLoading] = React.useState<string | null>(null);
   const hasOAuthProviders = githubEnabled || googleEnabled;
 
   return (
@@ -30,7 +30,7 @@ export function LoginForm({
       </div>
 
       {emailEnabled && (
-        <EmailLoginForm loading={loading} setLoading={setLoading} />
+        <EmailLoginForm isLoading={isLoading} setIsLoading={setIsLoading} />
       )}
 
       {emailEnabled && hasOAuthProviders && (
@@ -49,10 +49,16 @@ export function LoginForm({
       {hasOAuthProviders && (
         <div className="flex flex-col space-y-4">
           {githubEnabled && (
-            <GitHubLoginButton loading={loading} setLoading={setLoading} />
+            <GitHubLoginButton
+              isLoading={isLoading}
+              setIsLoading={setIsLoading}
+            />
           )}
           {googleEnabled && (
-            <GoogleLoginButton loading={loading} setLoading={setLoading} />
+            <GoogleLoginButton
+              isLoading={isLoading}
+              setIsLoading={setIsLoading}
+            />
           )}
         </div>
       )}

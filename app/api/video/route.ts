@@ -1,14 +1,14 @@
 import path from 'path';
 import { NextResponse } from 'next/server';
 import { put } from '@vercel/blob';
-import { generateText } from 'ai';
+import { generateText, experimental_generateVideo as generateVideo } from 'ai';
 
 import { ChatMessage } from '@/types';
-import { GenerateTitlePrompt } from '@/lib/constant';
 import { env } from '@/lib/env';
-import { provider } from '@/lib/provider';
-import { generateUUID, isAvailableModel } from '@/lib/utils';
-import { generateVideo } from '@/lib/video-generation';
+import { getLanguageModel, getVideoModel } from '@/lib/provider';
+import { findModelByModelId, getTitleSettings } from '@/lib/queries';
+import { generateUUID } from '@/lib/utils';
+import { generateWithSora } from '@/lib/video-generation';
 import { auth } from '@/server/auth';
 import { api } from '@/trpc/server';
 
@@ -16,10 +16,11 @@ export const maxDuration = 60;
 
 type PostData = {
   id: string;
-  model: string;
+  modelId: string;
   userMessage: Omit<ChatMessage, 'role'> & { role: 'user' };
   parentMessageId?: string;
   aspectRatio?: `${number}:${number}`;
+  resolution?: string;
   duration?: number;
 };
 
@@ -33,23 +34,26 @@ export async function POST(req: Request) {
   const json: PostData = await req.json();
   const id = json.id || generateUUID();
   const {
-    model,
+    modelId,
     userMessage,
     parentMessageId,
     aspectRatio = '16:9',
+    resolution,
     duration
   } = json;
 
-  if (!model || !userMessage) {
+  if (!modelId || !userMessage) {
     return NextResponse.json(
-      { error: 'Invalid model and userMessage parameters' },
+      { error: 'Invalid modelId and userMessage parameters' },
       { status: 400 }
     );
   }
 
-  if (!isAvailableModel('video', model)) {
+  // Fetch model from database to validate
+  const dbModel = await findModelByModelId(modelId, 'video');
+  if (!dbModel?.provider) {
     return NextResponse.json(
-      { error: `Model ${model} is not available` },
+      { error: `Model ${modelId} is not available` },
       { status: 403 }
     );
   }
@@ -62,29 +66,39 @@ export async function POST(req: Request) {
   });
   if (!chat) {
     try {
-      const { text } = await generateText({
-        model: provider.languageModel(env.GENERATE_TITLE_MODEL),
-        system: GenerateTitlePrompt,
-        prompt: JSON.stringify(userMessage)
-      });
+      const {
+        prompt: titlePrompt,
+        modelId: titleModelId,
+        provider: titleProvider
+      } = await getTitleSettings();
 
-      title = text ?? title;
+      // Only generate title if all settings are configured
+      if (titlePrompt && titleModelId && titleProvider) {
+        const { text } = await generateText({
+          model: getLanguageModel(titleProvider, titleModelId),
+          system: titlePrompt,
+          prompt: JSON.stringify(userMessage)
+        });
+
+        title = text ?? title;
+      }
     } catch (err: any) {
-      console.error(
-        `Generate title ${env.GENERATE_TITLE_MODEL} error:`,
-        err.message
-      );
+      console.error(`Generate title error:`, err.message);
     }
 
     await api.chat.create({
       id,
       title,
       type: 'video',
-      model,
+      modelId,
       messages: [userMessage]
     });
   } else {
     title = chat.title;
+    // Update modelId if it has changed
+    if (chat.modelId !== modelId) {
+      await api.chat.update({ id, modelId });
+    }
     if (parentMessageId && parentMessageId === userMessage.id) {
       await api.message.delete({ parentId: parentMessageId });
     } else {
@@ -101,13 +115,41 @@ export async function POST(req: Request) {
       .map(part => part.text)
       .join('\n')
       .trim();
-    const { buffer: videoBuffer, mediaType: videoMediaType } =
-      await generateVideo({
-        model,
+
+    let videoBuffer: Buffer;
+    let videoMediaType: string;
+
+    // Fallback for Sora models since they are not supported by AI SDK yet
+    if (modelId.includes('sora')) {
+      const result = await generateWithSora(
+        modelId,
+        textParts,
+        dbModel.provider,
+        aspectRatio,
+        resolution,
+        duration
+      );
+      videoBuffer = result.buffer;
+      videoMediaType = result.mediaType;
+    } else {
+      const providerOpts = {
+        ...dbModel.provider.apiOptions,
+        ...(resolution && { resolution })
+      };
+      const { video } = await generateVideo({
+        model: getVideoModel(dbModel.provider, modelId),
         prompt: textParts,
         aspectRatio,
-        duration
+        duration,
+        ...(Object.keys(providerOpts).length > 0 && {
+          providerOptions: {
+            [dbModel.provider.type]: providerOpts
+          } as any
+        })
       });
+      videoBuffer = Buffer.from(video.uint8Array);
+      videoMediaType = 'video/mp4';
+    }
 
     const filename = `${generateUUID()}.mp4`;
     const pathname = path.join(
@@ -150,13 +192,13 @@ export async function POST(req: Request) {
       id,
       title,
       type: 'video',
-      model,
+      modelId,
       assistantMessage
     });
   } catch (err: any) {
     console.error('Video generation error:', err);
     return NextResponse.json(
-      { error: err.message || 'Oops, an error occured!' },
+      { error: 'Oops, an error occurred!' },
       { status: 500 }
     );
   }

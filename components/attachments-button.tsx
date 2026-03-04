@@ -5,11 +5,11 @@ import {
   useCallback,
   useRef
 } from 'react';
-import { CircleNotch, Paperclip } from '@phosphor-icons/react';
+import { Loader2, Paperclip } from 'lucide-react';
 import { toast } from 'sonner';
 
 import { Attachment } from '@/types';
-import { api } from '@/lib/api';
+import { uploadFile } from '@/lib/api';
 import { Button } from '@/components/ui/button';
 import {
   Tooltip,
@@ -47,7 +47,7 @@ export const AttachmentsButton = ({
 
       try {
         const uploadPromises = files.map(async file => {
-          const result = await api.uploadFile(file);
+          const result = await uploadFile(file);
           if (result && 'error' in result) {
             toast.error(result.error);
             return;
@@ -85,7 +85,7 @@ export const AttachmentsButton = ({
           }}
         >
           {uploadQueue.length > 0 ? (
-            <CircleNotch className="size-4 animate-spin" />
+            <Loader2 className="size-4 animate-spin" />
           ) : (
             <>
               <input

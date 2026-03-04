@@ -1,3 +1,6 @@
-export type Provider = 'openai' | 'google' | 'anthropic' | 'xai' | 'deepseek';
-
-export type APIProvider = 'azure' | 'vertex';
+export type ProviderConfig = {
+  type: string;
+  apiKey?: string | null;
+  baseUrl?: string | null;
+  apiOptions?: Record<string, unknown> | null;
+};
