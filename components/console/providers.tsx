@@ -113,9 +113,14 @@ export default function ProvidersPage() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    let apiOptions = null;
+    let apiOptions: Record<string, unknown> | null | undefined;
     try {
-      if (formData.apiOptions) apiOptions = JSON.parse(formData.apiOptions);
+      if (formData.apiOptions) {
+        apiOptions = JSON.parse(formData.apiOptions);
+      } else {
+        // create: omit the field (undefined); update: clear it (null)
+        apiOptions = editingId ? null : undefined;
+      }
     } catch {
       toast.error('Invalid JSON format');
       return;
@@ -128,7 +133,9 @@ export default function ProvidersPage() {
     if (editingId) {
       updateMutation.mutate({ id: editingId, ...data });
     } else {
-      createMutation.mutate(data);
+      createMutation.mutate(
+        data as Parameters<typeof createMutation.mutate>[0]
+      );
     }
   };
 

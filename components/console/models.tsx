@@ -134,25 +134,38 @@ export default function ModelsPage() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    let uiOptions = null;
-    let apiParams = null;
+    let uiOptions: Record<string, unknown> | null | undefined;
+    let apiParams: Record<string, unknown> | null | undefined;
     try {
-      if (formData.uiOptions) uiOptions = JSON.parse(formData.uiOptions);
-      if (formData.apiParams) apiParams = JSON.parse(formData.apiParams);
+      if (formData.uiOptions) {
+        uiOptions = JSON.parse(formData.uiOptions);
+      } else {
+        // create: omit the field (undefined); update: clear it (null)
+        uiOptions = editingId ? null : undefined;
+      }
+      if (formData.apiParams) {
+        apiParams = JSON.parse(formData.apiParams);
+      } else {
+        apiParams = editingId ? null : undefined;
+      }
     } catch {
       toast.error('Invalid JSON format');
       return;
     }
+    const systemPromptId =
+      formData.systemPromptId || (editingId ? null : undefined);
     const data = {
       ...formData,
-      systemPromptId: formData.systemPromptId || undefined,
+      systemPromptId,
       uiOptions,
       apiParams
     };
     if (editingId) {
       updateMutation.mutate({ id: editingId, ...data });
     } else {
-      createMutation.mutate(data);
+      createMutation.mutate(
+        data as Parameters<typeof createMutation.mutate>[0]
+      );
     }
   };
 
@@ -349,6 +362,28 @@ export default function ModelsPage() {
                     className="font-mono"
                     rows={3}
                   />
+                  <button
+                    type="button"
+                    className="cursor-pointer text-left text-xs text-muted-foreground hover:text-primary"
+                    onClick={() =>
+                      setFormData({
+                        ...formData,
+                        uiOptions: JSON.stringify(
+                          {
+                            sizes: ['1024x1024'],
+                            aspectRatios: ['16:9'],
+                            resolutions: ['720p'],
+                            voices: [],
+                            reasoning: false
+                          },
+                          null,
+                          2
+                        )
+                      })
+                    }
+                  >
+                    {`{ "sizes":[], "aspectRatios":[], "resolutions":[], "voices":[], "reasoning":false }`}
+                  </button>
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="apiParams">API Params (JSON)</Label>
@@ -362,6 +397,29 @@ export default function ModelsPage() {
                     className="font-mono"
                     rows={3}
                   />
+                  <button
+                    type="button"
+                    className="cursor-pointer text-left text-xs text-muted-foreground hover:text-primary"
+                    onClick={() =>
+                      setFormData({
+                        ...formData,
+                        apiParams: JSON.stringify(
+                          {
+                            temperature: 0.7,
+                            topP: 1,
+                            topK: 0,
+                            maxOutputTokens: 4096,
+                            frequencyPenalty: 0,
+                            presencePenalty: 0
+                          },
+                          null,
+                          2
+                        )
+                      })
+                    }
+                  >
+                    {`{ "temperature":0.7, "topP":1, "topK":0, "maxOutputTokens":4096, "frequencyPenalty":0, "presencePenalty":0 }`}
+                  </button>
                 </div>
               </div>
               <div className="flex flex-wrap gap-4">
