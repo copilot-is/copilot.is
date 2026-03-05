@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import { useSystemSettings } from '@/contexts/system-settings-context';
 import { ArrowUp, Loader2 } from 'lucide-react';
 import Textarea from 'react-textarea-autosize';
 
@@ -31,6 +32,9 @@ export function AudioPromptForm({
   // Convert isLoading to status for ModelMenu compatibility
   const status = isLoading ? 'streaming' : 'ready';
 
+  const { ttsModels } = useSystemSettings();
+  const noModels = !ttsModels || ttsModels.length === 0;
+
   return (
     <div className="w-full rounded-2xl border bg-background p-4 shadow-md">
       <div className="relative flex w-full items-start space-x-2">
@@ -44,7 +48,7 @@ export function AudioPromptForm({
           rows={1}
           minRows={1}
           maxRows={8}
-          disabled={isLoading}
+          disabled={noModels || isLoading}
           value={input}
           onChange={e => setInput(e.target.value)}
           onKeyDown={e => {
@@ -74,7 +78,7 @@ export function AudioPromptForm({
             size="icon"
             className="size-9 rounded-full shadow-none"
             onClick={onSubmit}
-            disabled={isLoading || !input.trim()}
+            disabled={noModels || isLoading || !input.trim()}
           >
             {isLoading ? (
               <Loader2 className="size-4 animate-spin" />

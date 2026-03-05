@@ -55,6 +55,7 @@ export const modelRouter = createTRPCRouter({
             voices: z.array(z.string()).optional(),
             reasoning: z.boolean().optional()
           })
+          .strict()
           .optional(),
         apiParams: z
           .object({
@@ -65,6 +66,7 @@ export const modelRouter = createTRPCRouter({
             frequencyPenalty: z.number().optional(),
             presencePenalty: z.number().optional()
           })
+          .strict()
           .optional(),
         systemPromptId: z.string().optional(),
         displayOrder: z.number().int().default(0)
@@ -124,6 +126,7 @@ export const modelRouter = createTRPCRouter({
             voices: z.array(z.string()).optional(),
             reasoning: z.boolean().optional()
           })
+          .strict()
           .nullable()
           .optional(),
         apiParams: z
@@ -135,6 +138,7 @@ export const modelRouter = createTRPCRouter({
             frequencyPenalty: z.number().optional(),
             presencePenalty: z.number().optional()
           })
+          .strict()
           .nullable()
           .optional(),
         systemPromptId: z.string().nullable().optional(),

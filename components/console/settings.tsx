@@ -361,41 +361,6 @@ export default function SettingsPage() {
               </div>
             </div>
           </div>
-        </TabsContent>
-
-        <TabsContent value="prompts" className="space-y-4">
-          <div className="rounded-lg border p-4">
-            <h2 className="mb-4 text-lg font-semibold">Default Prompts</h2>
-            <div className="grid gap-4 md:grid-cols-2">
-              <div className="space-y-2">
-                <Label>Default System Prompt</Label>
-                <Select
-                  value={formData['system.prompt'] || '_none'}
-                  onValueChange={value =>
-                    handleChange(
-                      'system.prompt',
-                      value === '_none' ? '' : value
-                    )
-                  }
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select system prompt" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="_none">None</SelectItem>
-                    {systemPrompts?.map(p => (
-                      <SelectItem key={p.id} value={p.id}>
-                        {p.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <p className="text-xs text-muted-foreground">
-                  The default system prompt used for new chat conversations.
-                </p>
-              </div>
-            </div>
-          </div>
 
           <div className="rounded-lg border p-4">
             <h2 className="mb-4 text-lg font-semibold">Title Generation</h2>
@@ -435,6 +400,41 @@ export default function SettingsPage() {
                     ))}
                   </SelectContent>
                 </Select>
+              </div>
+            </div>
+          </div>
+        </TabsContent>
+
+        <TabsContent value="prompts" className="space-y-4">
+          <div className="rounded-lg border p-4">
+            <h2 className="mb-4 text-lg font-semibold">Default Prompts</h2>
+            <div className="grid gap-4 md:grid-cols-2">
+              <div className="space-y-2">
+                <Label>Default System Prompt</Label>
+                <Select
+                  value={formData['system.prompt'] || '_none'}
+                  onValueChange={value =>
+                    handleChange(
+                      'system.prompt',
+                      value === '_none' ? '' : value
+                    )
+                  }
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select system prompt" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="_none">None</SelectItem>
+                    {systemPrompts?.map(p => (
+                      <SelectItem key={p.id} value={p.id}>
+                        {p.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <p className="text-xs text-muted-foreground">
+                  The default system prompt used for new chat conversations.
+                </p>
               </div>
             </div>
           </div>

@@ -33,8 +33,10 @@ import { ModelIcon } from '@/components/model-icon';
 // API capability type (matches tRPC router schema - excludes 'speech')
 type APICapability = 'chat' | 'image' | 'video' | 'audio';
 
-export interface ModelMenuProps
-  extends Pick<UseChatHelpers<ChatMessage>, 'status'> {
+export interface ModelMenuProps extends Pick<
+  UseChatHelpers<ChatMessage>,
+  'status'
+> {
   /** The capability type for model selection */
   capability?: APICapability;
   /** Current model value (controlled) */

@@ -1,4 +1,5 @@
 import { useCallback, useState } from 'react';
+import { useSystemSettings } from '@/contexts/system-settings-context';
 import { UseChatHelpers } from '@ai-sdk/react';
 import { ArrowUp, Loader2, Square } from 'lucide-react';
 import Textarea from 'react-textarea-autosize';
@@ -12,8 +13,10 @@ import { ModelMenu, ModelOptions } from '@/components/model-menu';
 
 export type { ModelOptions };
 
-export interface ChatPromptFormProps
-  extends Pick<UseChatHelpers<ChatMessage>, 'status' | 'stop'> {
+export interface ChatPromptFormProps extends Pick<
+  UseChatHelpers<ChatMessage>,
+  'status' | 'stop'
+> {
   /** Current model value */
   modelId: string;
   input: string;
@@ -41,6 +44,9 @@ export function ChatPromptForm({
   const [uploadQueue, setUploadQueue] = useState<Array<string>>([]);
   const [attachments, setAttachments] = useState<Attachment[]>([]);
   const [modelOptions, setModelOptions] = useState<ModelOptions>({});
+
+  const { chatModels } = useSystemSettings();
+  const noModels = !chatModels || chatModels.length === 0;
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -80,7 +86,9 @@ export function ChatPromptForm({
             rows={1}
             minRows={1}
             maxRows={8}
-            disabled={status === 'submitted' || status === 'streaming'}
+            disabled={
+              noModels || status === 'submitted' || status === 'streaming'
+            }
             value={input}
             onChange={onInputChange}
             onKeyDown={e => {
@@ -140,6 +148,7 @@ export function ChatPromptForm({
                 size="icon"
                 className="size-9 rounded-full shadow-none"
                 disabled={
+                  noModels ||
                   input?.trim() === '' ||
                   status === 'submitted' ||
                   uploadQueue.length > 0

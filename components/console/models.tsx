@@ -88,6 +88,7 @@ export default function ModelsPage() {
     providerId: '',
     capability: 'chat' as const,
     image: '',
+    aliases: '',
     supportsVision: false,
     supportsReasoning: false,
     isEnabled: true,
@@ -103,6 +104,7 @@ export default function ModelsPage() {
       providerId: providers?.[0]?.id || '',
       capability: 'chat',
       image: '',
+      aliases: '',
       supportsVision: false,
       supportsReasoning: false,
       isEnabled: true,
@@ -120,6 +122,7 @@ export default function ModelsPage() {
       providerId: model.providerId,
       capability: model.capability,
       image: model.image || '',
+      aliases: model.aliases?.join(', ') || '',
       supportsVision: model.supportsVision || false,
       supportsReasoning: model.supportsReasoning || false,
       isEnabled: model.isEnabled,
@@ -140,7 +143,6 @@ export default function ModelsPage() {
       if (formData.uiOptions) {
         uiOptions = JSON.parse(formData.uiOptions);
       } else {
-        // create: omit the field (undefined); update: clear it (null)
         uiOptions = editingId ? null : undefined;
       }
       if (formData.apiParams) {
@@ -152,10 +154,20 @@ export default function ModelsPage() {
       toast.error('Invalid JSON format');
       return;
     }
+
     const systemPromptId =
       formData.systemPromptId || (editingId ? null : undefined);
+    const aliases = formData.aliases
+      ? formData.aliases
+          .split(',')
+          .map(s => s.trim())
+          .filter(Boolean)
+      : editingId
+        ? []
+        : undefined;
     const data = {
       ...formData,
+      aliases,
       systemPromptId,
       uiOptions,
       apiParams
@@ -349,6 +361,20 @@ export default function ModelsPage() {
                   placeholder="https:// or Base64 or IconName"
                 />
               </div>
+              <div className="space-y-2">
+                <Label htmlFor="aliases">Aliases (optional)</Label>
+                <Input
+                  id="aliases"
+                  value={formData.aliases}
+                  onChange={e =>
+                    setFormData({ ...formData, aliases: e.target.value })
+                  }
+                  placeholder="gpt-4, gpt-4-turbo"
+                />
+                <p className="text-xs text-muted-foreground">
+                  Model ID aliases, e.g. gpt-4, gpt-4-turbo
+                </p>
+              </div>
               <div className="grid grid-cols-1 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="uiOptions">UI Options (JSON)</Label>
@@ -483,6 +509,7 @@ export default function ModelsPage() {
               <th className="w-20 p-3 text-left text-sm font-medium">Icon</th>
               <th className="p-3 text-left text-sm font-medium">Name</th>
               <th className="p-3 text-left text-sm font-medium">Model ID</th>
+              <th className="p-3 text-left text-sm font-medium">Aliases</th>
               <th className="p-3 text-left text-sm font-medium">Provider</th>
               <th className="p-3 text-left text-sm font-medium">Capability</th>
               <th className="w-20 p-3 text-center text-sm font-medium">
@@ -505,6 +532,9 @@ export default function ModelsPage() {
                 </td>
                 <td className="p-3">{model.name}</td>
                 <td className="p-3 font-mono text-sm">{model.modelId}</td>
+                <td className="p-3 text-sm text-muted-foreground">
+                  {model.aliases?.join(', ') || '-'}
+                </td>
                 <td className="p-3">{model.provider?.name}</td>
                 <td className="p-3">
                   <span className="rounded bg-blue-100 px-2 py-1 text-xs text-blue-700 dark:bg-blue-900/30 dark:text-blue-300">
@@ -557,7 +587,7 @@ export default function ModelsPage() {
             {(!filteredModels || filteredModels.length === 0) && (
               <tr>
                 <td
-                  colSpan={7}
+                  colSpan={8}
                   className="p-6 text-center text-muted-foreground"
                 >
                   No models configured. Add your first model to get started.

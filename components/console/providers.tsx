@@ -79,7 +79,7 @@ export default function ProvidersPage() {
     apiKey: '',
     image: '',
     baseUrl: '',
-    isEnabled: false,
+    isEnabled: true,
     apiOptions: ''
   });
 
@@ -90,7 +90,7 @@ export default function ProvidersPage() {
       apiKey: '',
       image: '',
       baseUrl: '',
-      isEnabled: false,
+      isEnabled: true,
       apiOptions: ''
     });
   };
