@@ -91,7 +91,7 @@ export default function SettingsPage() {
   const utils = api.useUtils();
   const { data: settings, isLoading } = api.settings.list.useQuery();
   const { data: models } = api.model.list.useQuery();
-  const { data: prompts } = api.prompt.list.useQuery();
+  const { data: prompts } = api.prompt.list.useQuery({ type: 'system' });
 
   const [formData, setFormData] = useState<Record<string, string>>({});
   const [hasChanges, setHasChanges] = useState(false);
@@ -141,7 +141,9 @@ export default function SettingsPage() {
   const speechModels = models?.filter(
     m => m.capability === 'audio' && m.isEnabled
   );
-  const systemPrompts = prompts?.filter(p => p.type === 'system');
+  const systemPrompts = prompts?.filter(
+    p => !p.capability || p.capability === 'chat'
+  );
 
   // Get available voices for speech reading model
   const speechVoices = useMemo(() => {

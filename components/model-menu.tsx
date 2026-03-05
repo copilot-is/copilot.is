@@ -2,7 +2,6 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import { usePreferences } from '@/contexts/preferences-context';
-import { useSystemSettings } from '@/contexts/system-settings-context';
 import { UseChatHelpers } from '@ai-sdk/react';
 import { ChevronDown, Eye, Lightbulb } from 'lucide-react';
 
@@ -39,6 +38,8 @@ export interface ModelMenuProps extends Pick<
 > {
   /** The capability type for model selection */
   capability?: APICapability;
+  /** Pre-filtered models to display */
+  models: Model[];
   /** Current model value (controlled) */
   modelId: string;
   /** Callback when model changes */
@@ -72,6 +73,7 @@ export interface ModelOptions {
 export function ModelMenu({
   status,
   capability = 'chat',
+  models,
   modelId,
   onModelChange,
   onOptionsChange,
@@ -84,26 +86,7 @@ export function ModelMenu({
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
 
-  // Get models from context
-  const { chatModels, imageModels, videoModels, ttsModels } =
-    useSystemSettings();
   const { preferences, setPreference } = usePreferences();
-
-  // Get models by capability
-  const availableModels = useMemo(() => {
-    switch (capability) {
-      case 'chat':
-        return chatModels;
-      case 'image':
-        return imageModels;
-      case 'video':
-        return videoModels;
-      case 'audio':
-        return ttsModels;
-      default:
-        return [];
-    }
-  }, [capability, chatModels, imageModels, videoModels, ttsModels]);
 
   // Track isReasoning state from preferences
   const [isReasoning, setIsReasoning] = useState(preferences.chatReasoning);
@@ -111,10 +94,10 @@ export function ModelMenu({
   // Find selected model from database models
   const selectedModel = useMemo(
     () =>
-      availableModels?.find(
+      models?.find(
         m => m.modelId === modelId || (m.aliases && m.aliases.includes(modelId))
       ),
-    [availableModels, modelId]
+    [models, modelId]
   );
 
   // Get available options from selected model
@@ -191,7 +174,7 @@ export function ModelMenu({
   }
 
   // Grouped models by provider for display
-  const groupedModels = (availableModels ?? [])
+  const groupedModels = (models ?? [])
     .filter(m => m.provider)
     .reduce(
       (acc, m) => {
@@ -214,7 +197,7 @@ export function ModelMenu({
     onModelChange(newModel);
 
     // Find the new model and notify about its options
-    const newModelData = availableModels?.find(m => m.modelId === newModel);
+    const newModelData = models?.find(m => m.modelId === newModel);
     if (newModelData) {
       const supportsReasoning = newModelData.uiOptions?.reasoning;
       onOptionsChange?.({
@@ -238,7 +221,8 @@ export function ModelMenu({
     });
   };
 
-  const isDisabled = status === 'submitted' || status === 'streaming';
+  const isDisabled =
+    status === 'submitted' || status === 'streaming' || !models?.length;
 
   return (
     <div className="flex items-center space-x-2">
@@ -275,68 +259,70 @@ export function ModelMenu({
           <ChevronDown className="ml-2 size-4 shrink-0 opacity-50" />
         </SelectTrigger>
         <SelectContent>
-          {availableModels && availableModels.length > 0 ? (
-            Object.entries(groupedModels).map(([providerId, models]) => (
-              <SelectGroup key={providerId}>
-                <SelectLabel asChild>
-                  <div className="flex items-center px-2 py-1.5">
-                    <ModelIcon
-                      className="mr-2 size-4 opacity-45 grayscale"
-                      image={models[0]?.provider?.image || null}
-                    />
-                    <div className="text-xs font-normal text-muted-foreground">
-                      {models[0]?.provider?.name || 'Unknown'}
-                    </div>
-                  </div>
-                </SelectLabel>
-                {models.map(m => (
-                  <SelectItem
-                    key={m.modelId}
-                    value={m.modelId}
-                    className="pr-2 data-[state=checked]:bg-accent [&>span:first-child]:hidden [&>span:last-child]:w-full"
-                  >
-                    <div className="flex w-full items-start">
+          {models && models.length > 0 ? (
+            Object.entries(groupedModels).map(
+              ([providerId, providerModels]) => (
+                <SelectGroup key={providerId}>
+                  <SelectLabel asChild>
+                    <div className="flex items-center px-2 py-1.5">
                       <ModelIcon
-                        image={m.image || m.provider?.image || null}
-                        className="mr-2 mt-0.5 size-4"
+                        className="mr-2 size-4 opacity-45 grayscale"
+                        image={providerModels[0]?.provider?.image || null}
                       />
-                      <div>
-                        <div className="font-medium">{m.name}</div>
-                        <div className="text-xs text-muted-foreground">
-                          {m.modelId}
-                        </div>
+                      <div className="text-xs font-normal text-muted-foreground">
+                        {providerModels[0]?.provider?.name || 'Unknown'}
                       </div>
-                      {(m.supportsReasoning || m.supportsVision) && (
-                        <div className="ml-auto flex items-center gap-1 pl-3 pt-0.5">
-                          {m.supportsVision && (
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                                <span className="rounded bg-blue-100 p-0.5 dark:bg-blue-900/30">
-                                  <Eye className="size-3 text-blue-600 dark:text-blue-400" />
-                                </span>
-                              </TooltipTrigger>
-                              <TooltipContent>Supports vision</TooltipContent>
-                            </Tooltip>
-                          )}
-                          {m.supportsReasoning && (
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                                <span className="rounded bg-amber-100 p-0.5 dark:bg-amber-900/30">
-                                  <Lightbulb className="size-3 text-amber-600 dark:text-amber-400" />
-                                </span>
-                              </TooltipTrigger>
-                              <TooltipContent>
-                                Supports reasoning
-                              </TooltipContent>
-                            </Tooltip>
-                          )}
-                        </div>
-                      )}
                     </div>
-                  </SelectItem>
-                ))}
-              </SelectGroup>
-            ))
+                  </SelectLabel>
+                  {providerModels.map(m => (
+                    <SelectItem
+                      key={m.modelId}
+                      value={m.modelId}
+                      className="pr-2 data-[state=checked]:bg-accent [&>span:first-child]:hidden [&>span:last-child]:w-full"
+                    >
+                      <div className="flex w-full items-start">
+                        <ModelIcon
+                          image={m.image || m.provider?.image || null}
+                          className="mr-2 mt-0.5 size-4"
+                        />
+                        <div>
+                          <div className="font-medium">{m.name}</div>
+                          <div className="text-xs text-muted-foreground">
+                            {m.modelId}
+                          </div>
+                        </div>
+                        {(m.supportsReasoning || m.supportsVision) && (
+                          <div className="ml-auto flex items-center gap-1 pl-3 pt-0.5">
+                            {m.supportsVision && (
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <span className="rounded bg-blue-100 p-0.5 dark:bg-blue-900/30">
+                                    <Eye className="size-3 text-blue-600 dark:text-blue-400" />
+                                  </span>
+                                </TooltipTrigger>
+                                <TooltipContent>Supports vision</TooltipContent>
+                              </Tooltip>
+                            )}
+                            {m.supportsReasoning && (
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <span className="rounded bg-amber-100 p-0.5 dark:bg-amber-900/30">
+                                    <Lightbulb className="size-3 text-amber-600 dark:text-amber-400" />
+                                  </span>
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                  Supports reasoning
+                                </TooltipContent>
+                              </Tooltip>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectGroup>
+              )
+            )
           ) : (
             <div className="px-2 py-1 text-center text-sm text-muted-foreground">
               No available models
@@ -349,7 +335,7 @@ export function ModelMenu({
         <Button
           type="button"
           variant="outline"
-          disabled={status === 'submitted' || status === 'streaming'}
+          disabled={isDisabled}
           className={cn(
             'h-9 rounded-full px-3 font-normal text-muted-foreground shadow-none hover:text-muted-foreground',
             {

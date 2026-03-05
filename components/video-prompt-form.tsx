@@ -66,6 +66,7 @@ export function VideoPromptForm({
       <div className="mt-5 flex items-center justify-between space-x-2">
         <ModelMenu
           capability="video"
+          models={videoModels}
           status={status as 'ready' | 'streaming' | 'submitted' | 'error'}
           modelId={modelId}
           onModelChange={onModelChange}

@@ -117,6 +117,7 @@ export function ChatPromptForm({
         <div className="mt-5 flex items-center justify-between space-x-2">
           {/* Model Menu with integrated Think button */}
           <ModelMenu
+            models={chatModels}
             status={status}
             modelId={modelId}
             onModelChange={onModelChange}

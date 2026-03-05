@@ -68,6 +68,7 @@ export function ImagePromptForm({
       <div className="mt-5 flex items-center justify-between space-x-2">
         <ModelMenu
           capability="image"
+          models={imageModels}
           status={status as 'ready' | 'streaming' | 'submitted' | 'error'}
           modelId={modelId}
           onModelChange={onModelChange}
