@@ -214,11 +214,11 @@ export default function ModelsPage() {
             />
           </div>
           <Select value={filterCapability} onValueChange={setFilterCapability}>
-            <SelectTrigger className="w-32">
+            <SelectTrigger className="w-40">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">All</SelectItem>
+              <SelectItem value="all">All Capabilities</SelectItem>
               {CAPABILITIES.map(cap => (
                 <SelectItem key={cap.value} value={cap.value}>
                   {cap.label}
@@ -319,11 +319,11 @@ export default function ModelsPage() {
               <div className="space-y-2">
                 <Label htmlFor="systemPromptId">System Prompt (optional)</Label>
                 <Select
-                  value={formData.systemPromptId || '__none__'}
+                  value={formData.systemPromptId || 'none'}
                   onValueChange={value =>
                     setFormData({
                       ...formData,
-                      systemPromptId: value === '__none__' ? '' : value
+                      systemPromptId: value === 'none' ? '' : value
                     })
                   }
                 >
@@ -331,7 +331,7 @@ export default function ModelsPage() {
                     <SelectValue placeholder="Select prompt" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="__none__">None</SelectItem>
+                    <SelectItem value="none">None</SelectItem>
                     {prompts?.map(p => (
                       <SelectItem key={p.id} value={p.id}>
                         {p.name}
@@ -522,7 +522,10 @@ export default function ModelsPage() {
           </thead>
           <tbody>
             {filteredModels?.map(model => (
-              <tr key={model.id} className="border-b">
+              <tr
+                key={model.id}
+                className="border-b transition-colors hover:bg-muted/30"
+              >
                 <td className="p-3">
                   {model.image ? (
                     <ModelIcon image={model.image} className="size-8" />

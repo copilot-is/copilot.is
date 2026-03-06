@@ -335,7 +335,10 @@ export default function ProvidersPage() {
           </thead>
           <tbody>
             {filteredProviders?.map(provider => (
-              <tr key={provider.id} className="border-b">
+              <tr
+                key={provider.id}
+                className="border-b transition-colors hover:bg-muted/30"
+              >
                 <td className="p-3">
                   {provider.image ? (
                     <ModelIcon image={provider.image} className="size-8" />

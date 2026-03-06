@@ -116,7 +116,10 @@ export default function UsersPage() {
           </thead>
           <tbody>
             {users?.map(user => (
-              <tr key={user.id} className="border-b">
+              <tr
+                key={user.id}
+                className="border-b transition-colors hover:bg-muted/30"
+              >
                 <td className="p-3">
                   <div className="flex items-center gap-3">
                     <div className="size-8 overflow-hidden rounded-full border bg-muted">

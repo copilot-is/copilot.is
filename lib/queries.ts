@@ -114,8 +114,8 @@ export const getSystemPrompt = cache(
       const content = await getPromptById(promptId);
       if (content) return content;
     }
-    const values = await getSettings(['system.prompt']);
-    const defaultPromptId = values['system.prompt'];
+    const values = await getSettings(['default.chat.systemPrompt']);
+    const defaultPromptId = values['default.chat.systemPrompt'];
     if (!defaultPromptId) return null;
     return getPromptById(defaultPromptId);
   }

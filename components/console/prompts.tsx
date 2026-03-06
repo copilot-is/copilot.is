@@ -213,11 +213,11 @@ export default function PromptsPage() {
             </SelectContent>
           </Select>
           <Select value={filterCapability} onValueChange={setFilterCapability}>
-            <SelectTrigger className="w-32">
+            <SelectTrigger className="w-40">
               <SelectValue placeholder="Capability" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">All</SelectItem>
+              <SelectItem value="all">All Capabilities</SelectItem>
               {CAPABILITIES.map(c => (
                 <SelectItem key={c.value} value={c.value}>
                   {c.label}
@@ -444,7 +444,10 @@ export default function PromptsPage() {
           </thead>
           <tbody>
             {filteredPrompts?.map(prompt => (
-              <tr key={prompt.id} className="border-b">
+              <tr
+                key={prompt.id}
+                className="border-b transition-colors hover:bg-muted/30"
+              >
                 <td className="p-3">
                   {prompt.image ? (
                     <img

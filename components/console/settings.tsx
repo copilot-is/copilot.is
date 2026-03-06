@@ -71,8 +71,8 @@ const DEFAULT_SETTINGS = [
     description: 'Default voice for reading messages'
   },
   {
-    key: 'system.prompt',
-    label: 'Default System Prompt',
+    key: 'default.chat.systemPrompt',
+    label: 'Default Chat System Prompt',
     description: 'Default system prompt for chat'
   },
   {
@@ -412,13 +412,13 @@ export default function SettingsPage() {
             <h2 className="mb-4 text-lg font-semibold">Default Prompts</h2>
             <div className="grid gap-4 md:grid-cols-2">
               <div className="space-y-2">
-                <Label>Default System Prompt</Label>
+                <Label>Default Chat System Prompt</Label>
                 <Select
-                  value={formData['system.prompt'] || '_none'}
+                  value={formData['default.chat.systemPrompt'] || 'none'}
                   onValueChange={value =>
                     handleChange(
-                      'system.prompt',
-                      value === '_none' ? '' : value
+                      'default.chat.systemPrompt',
+                      value === 'none' ? '' : value
                     )
                   }
                 >
@@ -426,7 +426,7 @@ export default function SettingsPage() {
                     <SelectValue placeholder="Select system prompt" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="_none">None</SelectItem>
+                    <SelectItem value="none">None</SelectItem>
                     {systemPrompts?.map(p => (
                       <SelectItem key={p.id} value={p.id}>
                         {p.name}
