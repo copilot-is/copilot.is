@@ -1,11 +1,20 @@
 'use client';
 
 import { useState } from 'react';
-import { Pencil, Plus, Search, Trash2 } from 'lucide-react';
+import { Loader2, Pencil, Plus, Search, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 
 import { ProviderTypes } from '@/lib/constant';
 import { api } from '@/trpc/react';
+import {
+  AlertDialog,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle
+} from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -35,6 +44,7 @@ import { ModelIcon } from '@/components/model-icon';
 export default function ProvidersPage() {
   const [isOpen, setIsOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [deleteId, setDeleteId] = useState<string | null>(null);
   const [search, setSearch] = useState('');
 
   const utils = api.useUtils();
@@ -62,6 +72,7 @@ export default function ProvidersPage() {
   const deleteMutation = api.provider.delete.useMutation({
     onSuccess: () => {
       utils.provider.list.invalidate();
+      setDeleteId(null);
     },
     onError: error => toast.error(error.message)
   });
@@ -139,6 +150,8 @@ export default function ProvidersPage() {
     }
   };
 
+  const isPending = createMutation.isPending || updateMutation.isPending;
+
   const filteredProviders = providers?.filter(
     p =>
       p.name.toLowerCase().includes(search.toLowerCase()) ||
@@ -197,6 +210,7 @@ export default function ProvidersPage() {
                     setFormData({ ...formData, name: e.target.value })
                   }
                   placeholder="OpenAI"
+                  disabled={isPending}
                   required
                 />
               </div>
@@ -207,6 +221,7 @@ export default function ProvidersPage() {
                   onValueChange={value =>
                     setFormData({ ...formData, type: value as any })
                   }
+                  disabled={isPending}
                 >
                   <SelectTrigger>
                     <SelectValue />
@@ -234,6 +249,7 @@ export default function ProvidersPage() {
                       : 'Enter API Key'
                   }
                   required={!editingId}
+                  disabled={isPending}
                   className="font-mono"
                   rows={2}
                 />
@@ -247,6 +263,7 @@ export default function ProvidersPage() {
                     setFormData({ ...formData, baseUrl: e.target.value })
                   }
                   placeholder="https://"
+                  disabled={isPending}
                 />
               </div>
               <div className="space-y-2">
@@ -268,6 +285,7 @@ export default function ProvidersPage() {
                     setFormData({ ...formData, image: e.target.value })
                   }
                   placeholder="https:// or Base64 or IconName"
+                  disabled={isPending}
                 />
               </div>
               <div className="space-y-2">
@@ -279,6 +297,7 @@ export default function ProvidersPage() {
                     setFormData({ ...formData, apiOptions: e.target.value })
                   }
                   placeholder="{}"
+                  disabled={isPending}
                   className="font-mono"
                   rows={3}
                 />
@@ -290,6 +309,7 @@ export default function ProvidersPage() {
                   onCheckedChange={checked =>
                     setFormData({ ...formData, isEnabled: checked })
                   }
+                  disabled={isPending}
                 />
                 <Label htmlFor="isEnabled">Enabled</Label>
               </div>
@@ -301,13 +321,13 @@ export default function ProvidersPage() {
                 >
                   Cancel
                 </Button>
-                <Button
-                  type="submit"
-                  disabled={
-                    createMutation.isPending || updateMutation.isPending
-                  }
-                >
-                  {editingId ? 'Update' : 'Create'}
+                <Button type="submit" disabled={isPending} className="gap-2">
+                  {isPending && <Loader2 className="size-4 animate-spin" />}
+                  {isPending
+                    ? 'Saving...'
+                    : editingId
+                      ? 'Save Changes'
+                      : 'Create'}
                 </Button>
               </div>
             </form>
@@ -385,9 +405,7 @@ export default function ProvidersPage() {
                         variant="ghost"
                         size="sm"
                         onClick={() => {
-                          if (confirm('Delete this provider?')) {
-                            deleteMutation.mutate({ id: provider.id });
-                          }
+                          setDeleteId(provider.id);
                         }}
                       >
                         <Trash2 className="size-4" />
@@ -413,6 +431,41 @@ export default function ProvidersPage() {
           </tbody>
         </table>
       </div>
+
+      <AlertDialog
+        open={!!deleteId}
+        onOpenChange={open => !open && setDeleteId(null)}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Provider</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete this provider? This action cannot
+              be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={deleteMutation.isPending}>
+              Cancel
+            </AlertDialogCancel>
+            <Button
+              onClick={() => {
+                if (deleteId) {
+                  deleteMutation.mutate({ id: deleteId });
+                }
+              }}
+              disabled={deleteMutation.isPending}
+              variant="destructive"
+              className="gap-2"
+            >
+              {deleteMutation.isPending && (
+                <Loader2 className="size-4 animate-spin" />
+              )}
+              {deleteMutation.isPending ? 'Deleting...' : 'Delete'}
+            </Button>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

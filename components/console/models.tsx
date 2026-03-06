@@ -1,10 +1,19 @@
 'use client';
 
 import { useState } from 'react';
-import { Pencil, Plus, Search, Trash2 } from 'lucide-react';
+import { Loader2, Pencil, Plus, Search, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 
 import { api } from '@/trpc/react';
+import {
+  AlertDialog,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle
+} from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -41,6 +50,7 @@ const CAPABILITIES = [
 export default function ModelsPage() {
   const [isOpen, setIsOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [deleteId, setDeleteId] = useState<string | null>(null);
   const [filterCapability, setFilterCapability] = useState<string>('all');
   const [search, setSearch] = useState('');
 
@@ -71,6 +81,7 @@ export default function ModelsPage() {
   const deleteMutation = api.model.delete.useMutation({
     onSuccess: () => {
       utils.model.list.invalidate();
+      setDeleteId(null);
     },
     onError: error => toast.error(error.message)
   });
@@ -181,6 +192,8 @@ export default function ModelsPage() {
     }
   };
 
+  const isPending = createMutation.isPending || updateMutation.isPending;
+
   const filteredModels = models?.filter(m => {
     const matchesCapability =
       filterCapability === 'all' || m.capability === filterCapability;
@@ -259,6 +272,7 @@ export default function ModelsPage() {
                     }
                     placeholder="GPT-4o"
                     required
+                    disabled={isPending}
                   />
                 </div>
                 <div className="space-y-2">
@@ -271,6 +285,7 @@ export default function ModelsPage() {
                     }
                     placeholder="gpt-4o"
                     required
+                    disabled={isPending}
                   />
                 </div>
               </div>
@@ -282,6 +297,7 @@ export default function ModelsPage() {
                     onValueChange={value =>
                       setFormData({ ...formData, providerId: value })
                     }
+                    disabled={isPending}
                   >
                     <SelectTrigger>
                       <SelectValue placeholder="Select provider" />
@@ -302,6 +318,7 @@ export default function ModelsPage() {
                     onValueChange={value =>
                       setFormData({ ...formData, capability: value as any })
                     }
+                    disabled={isPending}
                   >
                     <SelectTrigger>
                       <SelectValue />
@@ -326,6 +343,7 @@ export default function ModelsPage() {
                       systemPromptId: value === 'none' ? '' : value
                     })
                   }
+                  disabled={isPending}
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Select prompt" />
@@ -359,6 +377,7 @@ export default function ModelsPage() {
                     setFormData({ ...formData, image: e.target.value })
                   }
                   placeholder="https:// or Base64 or IconName"
+                  disabled={isPending}
                 />
               </div>
               <div className="space-y-2">
@@ -370,6 +389,7 @@ export default function ModelsPage() {
                     setFormData({ ...formData, aliases: e.target.value })
                   }
                   placeholder="gpt-4, gpt-4-turbo"
+                  disabled={isPending}
                 />
                 <p className="text-xs text-muted-foreground">
                   Model ID aliases, e.g. gpt-4, gpt-4-turbo
@@ -387,6 +407,7 @@ export default function ModelsPage() {
                     placeholder="{}"
                     className="font-mono"
                     rows={3}
+                    disabled={isPending}
                   />
                   <button
                     type="button"
@@ -407,6 +428,7 @@ export default function ModelsPage() {
                         )
                       })
                     }
+                    disabled={isPending}
                   >
                     {`{ "sizes":[], "aspectRatios":[], "resolutions":[], "voices":[], "reasoning":false }`}
                   </button>
@@ -422,6 +444,7 @@ export default function ModelsPage() {
                     placeholder="{}"
                     className="font-mono"
                     rows={3}
+                    disabled={isPending}
                   />
                   <button
                     type="button"
@@ -443,6 +466,7 @@ export default function ModelsPage() {
                         )
                       })
                     }
+                    disabled={isPending}
                   >
                     {`{ "temperature":0.7, "topP":1, "topK":0, "maxOutputTokens":4096, "frequencyPenalty":0, "presencePenalty":0 }`}
                   </button>
@@ -456,6 +480,7 @@ export default function ModelsPage() {
                     onCheckedChange={checked =>
                       setFormData({ ...formData, supportsVision: checked })
                     }
+                    disabled={isPending}
                   />
                   <Label htmlFor="supportsVision">Vision</Label>
                 </div>
@@ -466,6 +491,7 @@ export default function ModelsPage() {
                     onCheckedChange={checked =>
                       setFormData({ ...formData, supportsReasoning: checked })
                     }
+                    disabled={isPending}
                   />
                   <Label htmlFor="supportsReasoning">Reasoning</Label>
                 </div>
@@ -476,6 +502,7 @@ export default function ModelsPage() {
                     onCheckedChange={checked =>
                       setFormData({ ...formData, isEnabled: checked })
                     }
+                    disabled={isPending}
                   />
                   <Label htmlFor="isEnabled">Enabled</Label>
                 </div>
@@ -485,16 +512,17 @@ export default function ModelsPage() {
                   type="button"
                   variant="outline"
                   onClick={() => setIsOpen(false)}
+                  disabled={isPending}
                 >
                   Cancel
                 </Button>
-                <Button
-                  type="submit"
-                  disabled={
-                    createMutation.isPending || updateMutation.isPending
-                  }
-                >
-                  {editingId ? 'Update' : 'Create'}
+                <Button type="submit" disabled={isPending} className="gap-2">
+                  {isPending && <Loader2 className="size-4 animate-spin" />}
+                  {isPending
+                    ? 'Saving...'
+                    : editingId
+                      ? 'Save Changes'
+                      : 'Create'}
                 </Button>
               </div>
             </form>
@@ -574,9 +602,7 @@ export default function ModelsPage() {
                         variant="ghost"
                         size="sm"
                         onClick={() => {
-                          if (confirm('Delete this model?')) {
-                            deleteMutation.mutate({ id: model.id });
-                          }
+                          setDeleteId(model.id);
                         }}
                       >
                         <Trash2 className="size-4" />
@@ -600,6 +626,41 @@ export default function ModelsPage() {
           </tbody>
         </table>
       </div>
+
+      <AlertDialog
+        open={!!deleteId}
+        onOpenChange={open => !open && setDeleteId(null)}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Model</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete this model? This action cannot be
+              undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={deleteMutation.isPending}>
+              Cancel
+            </AlertDialogCancel>
+            <Button
+              onClick={() => {
+                if (deleteId) {
+                  deleteMutation.mutate({ id: deleteId });
+                }
+              }}
+              disabled={deleteMutation.isPending}
+              variant="destructive"
+              className="gap-2"
+            >
+              {deleteMutation.isPending && (
+                <Loader2 className="size-4 animate-spin" />
+              )}
+              {deleteMutation.isPending ? 'Deleting...' : 'Delete'}
+            </Button>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

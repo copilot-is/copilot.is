@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import { Save } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 
 import { api } from '@/trpc/react';
@@ -181,6 +181,7 @@ export default function SettingsPage() {
                   value={formData['app.name'] || ''}
                   onChange={e => handleChange('app.name', e.target.value)}
                   placeholder="Copilot"
+                  disabled={bulkUpdateMutation.isPending}
                 />
               </div>
               <div className="space-y-2">
@@ -190,6 +191,7 @@ export default function SettingsPage() {
                   value={formData['app.subtitle'] || ''}
                   onChange={e => handleChange('app.subtitle', e.target.value)}
                   placeholder="AI Chatbot"
+                  disabled={bulkUpdateMutation.isPending}
                 />
               </div>
               <div className="col-span-2 space-y-2">
@@ -202,6 +204,7 @@ export default function SettingsPage() {
                   }
                   placeholder="Your AI assistant..."
                   rows={3}
+                  disabled={bulkUpdateMutation.isPending}
                 />
               </div>
             </div>
@@ -215,7 +218,7 @@ export default function SettingsPage() {
               <div className="space-y-2">
                 <Label>Default Chat Model</Label>
                 <Select
-                  disabled={!chatModels?.length}
+                  disabled={!chatModels?.length || bulkUpdateMutation.isPending}
                   value={
                     !chatModels?.length
                       ? undefined
@@ -246,7 +249,9 @@ export default function SettingsPage() {
               <div className="space-y-2">
                 <Label>Default Image Model</Label>
                 <Select
-                  disabled={!imageModels?.length}
+                  disabled={
+                    !imageModels?.length || bulkUpdateMutation.isPending
+                  }
                   value={
                     !imageModels?.length
                       ? undefined
@@ -277,7 +282,9 @@ export default function SettingsPage() {
               <div className="space-y-2">
                 <Label>Default Video Model</Label>
                 <Select
-                  disabled={!videoModels?.length}
+                  disabled={
+                    !videoModels?.length || bulkUpdateMutation.isPending
+                  }
                   value={
                     !videoModels?.length
                       ? undefined
@@ -308,7 +315,9 @@ export default function SettingsPage() {
               <div className="space-y-2">
                 <Label>Default TTS Model</Label>
                 <Select
-                  disabled={!speechModels?.length}
+                  disabled={
+                    !speechModels?.length || bulkUpdateMutation.isPending
+                  }
                   value={
                     !speechModels?.length
                       ? undefined
@@ -354,6 +363,7 @@ export default function SettingsPage() {
                   onCheckedChange={checked =>
                     handleChange('speech.enabled', String(checked))
                   }
+                  disabled={bulkUpdateMutation.isPending}
                 />
                 <Label className="font-normal text-muted-foreground">
                   {formData['speech.enabled'] !== 'false'
@@ -368,7 +378,8 @@ export default function SettingsPage() {
                 <Select
                   disabled={
                     formData['speech.enabled'] === 'false' ||
-                    !speechModels?.length
+                    !speechModels?.length ||
+                    bulkUpdateMutation.isPending
                   }
                   value={
                     !speechModels?.length
@@ -402,7 +413,8 @@ export default function SettingsPage() {
                 <Select
                   disabled={
                     formData['speech.enabled'] === 'false' ||
-                    !speechVoices?.length
+                    !speechVoices?.length ||
+                    bulkUpdateMutation.isPending
                   }
                   value={
                     !speechVoices?.length
@@ -440,7 +452,7 @@ export default function SettingsPage() {
               <div className="space-y-2">
                 <Label>Title Generation Model</Label>
                 <Select
-                  disabled={!chatModels?.length}
+                  disabled={!chatModels?.length || bulkUpdateMutation.isPending}
                   value={
                     !chatModels?.length
                       ? undefined
@@ -469,7 +481,9 @@ export default function SettingsPage() {
               <div className="space-y-2">
                 <Label>Title Generation Prompt</Label>
                 <Select
-                  disabled={!systemPrompts?.length}
+                  disabled={
+                    !systemPrompts?.length || bulkUpdateMutation.isPending
+                  }
                   value={
                     !systemPrompts?.length
                       ? undefined
@@ -506,6 +520,7 @@ export default function SettingsPage() {
               <div className="space-y-2">
                 <Label>Default Chat System Prompt</Label>
                 <Select
+                  disabled={bulkUpdateMutation.isPending}
                   value={formData['default.chat.systemPrompt'] || 'none'}
                   onValueChange={value =>
                     handleChange(
@@ -541,8 +556,10 @@ export default function SettingsPage() {
           disabled={!hasChanges || bulkUpdateMutation.isPending}
           className="gap-2"
         >
-          <Save className="size-4" />
-          Save Changes
+          {bulkUpdateMutation.isPending && (
+            <Loader2 className="size-4 animate-spin" />
+          )}
+          {bulkUpdateMutation.isPending ? 'Saving...' : 'Save Changes'}
         </Button>
       </div>
     </div>

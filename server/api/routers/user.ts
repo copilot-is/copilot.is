@@ -33,11 +33,12 @@ export const userRouter = createTRPCRouter({
       })
     )
     .mutation(async ({ ctx, input }) => {
-      const updates: { name?: string; image?: string } = {};
+      const updates: { name?: string; image?: string; updatedAt?: Date } = {};
       if (input.name !== undefined) updates.name = input.name;
       if (input.image !== undefined) updates.image = input.image;
 
       if (Object.keys(updates).length > 0) {
+        updates.updatedAt = new Date();
         await ctx.db
           .update(users)
           .set(updates)
@@ -65,7 +66,7 @@ export const userRouter = createTRPCRouter({
               like(users.email, `%${search}%`)
             )
           : undefined,
-        orderBy: (users, { desc }) => [desc(users.emailVerified)],
+        orderBy: (users, { desc }) => [desc(users.createdAt)],
         with: {
           accounts: {
             columns: {
@@ -132,7 +133,7 @@ export const userRouter = createTRPCRouter({
 
       const result = await ctx.db
         .update(users)
-        .set({ role: input.role })
+        .set({ role: input.role, updatedAt: new Date() })
         .where(eq(users.id, input.id))
         .returning();
 

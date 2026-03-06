@@ -28,14 +28,20 @@ export const promptRouter = createTRPCRouter({
     .query(async ({ ctx, input }) => {
       return await ctx.db.query.prompts.findMany({
         where: input?.type ? eq(prompts.type, input.type) : undefined,
-        orderBy: (prompts, { asc }) => [asc(prompts.displayOrder)]
+        orderBy: (prompts, { asc, desc }) => [
+          asc(prompts.displayOrder),
+          desc(prompts.createdAt)
+        ]
       });
     }),
 
   getSystemPrompts: publicProcedure.query(async ({ ctx }) => {
     return await ctx.db.query.prompts.findMany({
       where: eq(prompts.type, 'system'),
-      orderBy: (prompts, { asc }) => [asc(prompts.displayOrder)]
+      orderBy: (prompts, { asc, desc }) => [
+        asc(prompts.displayOrder),
+        desc(prompts.createdAt)
+      ]
     });
   }),
 

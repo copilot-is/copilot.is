@@ -27,7 +27,10 @@ export const modelRouter = createTRPCRouter({
             ? eq(models.providerId, input.providerId)
             : undefined
         ),
-        orderBy: (models, { asc }) => [asc(models.displayOrder)],
+        orderBy: (models, { asc, desc }) => [
+          asc(models.displayOrder),
+          desc(models.createdAt)
+        ],
         with: {
           provider: true,
           systemPrompt: true

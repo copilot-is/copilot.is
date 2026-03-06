@@ -13,7 +13,10 @@ import { providers } from '@/server/db/schema';
 export const providerRouter = createTRPCRouter({
   list: adminProcedure.query(async ({ ctx }) => {
     const result = await ctx.db.query.providers.findMany({
-      orderBy: (providers, { asc }) => [asc(providers.displayOrder)],
+      orderBy: (providers, { asc, desc }) => [
+        asc(providers.displayOrder),
+        desc(providers.createdAt)
+      ],
       with: {
         models: true
       }
@@ -27,7 +30,10 @@ export const providerRouter = createTRPCRouter({
   getEnabled: publicProcedure.query(async ({ ctx }) => {
     return await ctx.db.query.providers.findMany({
       where: eq(providers.isEnabled, true),
-      orderBy: (providers, { asc }) => [asc(providers.displayOrder)],
+      orderBy: (providers, { asc, desc }) => [
+        asc(providers.displayOrder),
+        desc(providers.createdAt)
+      ],
       columns: {
         apiKey: false // Mask API key for public access
       }

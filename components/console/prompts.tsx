@@ -1,10 +1,19 @@
 'use client';
 
 import { useState } from 'react';
-import { Pencil, Plus, Search, Trash2 } from 'lucide-react';
+import { Loader2, Pencil, Plus, Search, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 
 import { api } from '@/trpc/react';
+import {
+  AlertDialog,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle
+} from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import {
@@ -62,6 +71,7 @@ type PromptFormData = {
 export default function PromptsPage() {
   const [isOpen, setIsOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [deleteId, setDeleteId] = useState<string | null>(null);
   const [filterType, setFilterType] = useState<string>('all');
   const [filterCapability, setFilterCapability] = useState<string>('all');
   const [search, setSearch] = useState('');
@@ -91,6 +101,7 @@ export default function PromptsPage() {
   const deleteMutation = api.prompt.delete.useMutation({
     onSuccess: () => {
       utils.prompt.list.invalidate();
+      setDeleteId(null);
     },
     onError: error => toast.error(error.message)
   });
@@ -164,6 +175,8 @@ export default function PromptsPage() {
       });
     }
   };
+
+  const isPending = createMutation.isPending || updateMutation.isPending;
 
   const filteredPrompts = prompts?.filter(p => {
     if (filterType !== 'all' && p.type !== filterType) return false;
@@ -258,6 +271,7 @@ export default function PromptsPage() {
                     }
                     placeholder="Default System Prompt"
                     required
+                    disabled={isPending}
                   />
                 </div>
                 <div className="space-y-2">
@@ -267,6 +281,7 @@ export default function PromptsPage() {
                     onValueChange={value =>
                       setFormData({ ...formData, type: value as any })
                     }
+                    disabled={isPending}
                   >
                     <SelectTrigger>
                       <SelectValue />
@@ -292,6 +307,7 @@ export default function PromptsPage() {
                         capability: value === 'none' ? null : (value as any)
                       })
                     }
+                    disabled={isPending}
                   >
                     <SelectTrigger>
                       <SelectValue placeholder="All capabilities" />
@@ -317,6 +333,7 @@ export default function PromptsPage() {
                         <Checkbox
                           checked={formData.providers.includes(p.value)}
                           onCheckedChange={() => toggleProvider(p.value)}
+                          disabled={isPending}
                         />
                         <span className="text-sm">{p.label}</span>
                       </label>
@@ -340,7 +357,8 @@ export default function PromptsPage() {
                       <button
                         type="button"
                         onClick={() => setFormData({ ...formData, image: '' })}
-                        className="absolute -right-2 -top-2 rounded-full bg-destructive p-1 text-destructive-foreground hover:bg-destructive/90"
+                        className="absolute -right-2 -top-2 rounded-full bg-destructive p-1 text-destructive-foreground hover:bg-destructive/90 disabled:opacity-50"
+                        disabled={isPending}
                       >
                         <Trash2 className="size-3" />
                       </button>
@@ -351,6 +369,7 @@ export default function PromptsPage() {
                         type="file"
                         accept="image/*"
                         className="hidden"
+                        disabled={isPending}
                         onChange={async e => {
                           const file = e.target.files?.[0];
                           if (!file) return;
@@ -399,6 +418,7 @@ export default function PromptsPage() {
                   placeholder="You are a helpful assistant..."
                   rows={8}
                   required
+                  disabled={isPending}
                 />
                 <p className="text-xs text-muted-foreground">
                   Variables: {'{provider}'}, {'{modelId}'}, {'{date}'}
@@ -409,16 +429,17 @@ export default function PromptsPage() {
                   type="button"
                   variant="outline"
                   onClick={() => setIsOpen(false)}
+                  disabled={isPending}
                 >
                   Cancel
                 </Button>
-                <Button
-                  type="submit"
-                  disabled={
-                    createMutation.isPending || updateMutation.isPending
-                  }
-                >
-                  {editingId ? 'Update' : 'Create'}
+                <Button type="submit" disabled={isPending} className="gap-2">
+                  {isPending && <Loader2 className="size-4 animate-spin" />}
+                  {isPending
+                    ? 'Saving...'
+                    : editingId
+                      ? 'Save Changes'
+                      : 'Create'}
                 </Button>
               </div>
             </form>
@@ -510,9 +531,7 @@ export default function PromptsPage() {
                         variant="ghost"
                         size="sm"
                         onClick={() => {
-                          if (confirm('Delete this prompt?')) {
-                            deleteMutation.mutate({ id: prompt.id });
-                          }
+                          setDeleteId(prompt.id);
                         }}
                       >
                         <Trash2 className="size-4" />
@@ -536,6 +555,41 @@ export default function PromptsPage() {
           </tbody>
         </table>
       </div>
+
+      <AlertDialog
+        open={!!deleteId}
+        onOpenChange={open => !open && setDeleteId(null)}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Prompt</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete this prompt? This action cannot be
+              undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={deleteMutation.isPending}>
+              Cancel
+            </AlertDialogCancel>
+            <Button
+              onClick={() => {
+                if (deleteId) {
+                  deleteMutation.mutate({ id: deleteId });
+                }
+              }}
+              disabled={deleteMutation.isPending}
+              variant="destructive"
+              className="gap-2"
+            >
+              {deleteMutation.isPending && (
+                <Loader2 className="size-4 animate-spin" />
+              )}
+              {deleteMutation.isPending ? 'Deleting...' : 'Delete'}
+            </Button>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
