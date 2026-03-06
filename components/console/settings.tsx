@@ -215,13 +215,24 @@ export default function SettingsPage() {
               <div className="space-y-2">
                 <Label>Default Chat Model</Label>
                 <Select
-                  value={formData['default.chat.modelId'] || ''}
+                  disabled={!chatModels?.length}
+                  value={
+                    !chatModels?.length
+                      ? undefined
+                      : formData['default.chat.modelId'] || ''
+                  }
                   onValueChange={value =>
                     handleChange('default.chat.modelId', value)
                   }
                 >
                   <SelectTrigger>
-                    <SelectValue placeholder="Select model" />
+                    <SelectValue
+                      placeholder={
+                        !chatModels?.length
+                          ? 'No available models'
+                          : 'Select model'
+                      }
+                    />
                   </SelectTrigger>
                   <SelectContent>
                     {chatModels?.map(m => (
@@ -235,13 +246,24 @@ export default function SettingsPage() {
               <div className="space-y-2">
                 <Label>Default Image Model</Label>
                 <Select
-                  value={formData['default.image.modelId'] || ''}
+                  disabled={!imageModels?.length}
+                  value={
+                    !imageModels?.length
+                      ? undefined
+                      : formData['default.image.modelId'] || ''
+                  }
                   onValueChange={value =>
                     handleChange('default.image.modelId', value)
                   }
                 >
                   <SelectTrigger>
-                    <SelectValue placeholder="Select model" />
+                    <SelectValue
+                      placeholder={
+                        !imageModels?.length
+                          ? 'No available models'
+                          : 'Select model'
+                      }
+                    />
                   </SelectTrigger>
                   <SelectContent>
                     {imageModels?.map(m => (
@@ -255,13 +277,24 @@ export default function SettingsPage() {
               <div className="space-y-2">
                 <Label>Default Video Model</Label>
                 <Select
-                  value={formData['default.video.modelId'] || ''}
+                  disabled={!videoModels?.length}
+                  value={
+                    !videoModels?.length
+                      ? undefined
+                      : formData['default.video.modelId'] || ''
+                  }
                   onValueChange={value =>
                     handleChange('default.video.modelId', value)
                   }
                 >
                   <SelectTrigger>
-                    <SelectValue placeholder="Select model" />
+                    <SelectValue
+                      placeholder={
+                        !videoModels?.length
+                          ? 'No available models'
+                          : 'Select model'
+                      }
+                    />
                   </SelectTrigger>
                   <SelectContent>
                     {videoModels?.map(m => (
@@ -275,13 +308,24 @@ export default function SettingsPage() {
               <div className="space-y-2">
                 <Label>Default TTS Model</Label>
                 <Select
-                  value={formData['default.tts.modelId'] || ''}
+                  disabled={!speechModels?.length}
+                  value={
+                    !speechModels?.length
+                      ? undefined
+                      : formData['default.tts.modelId'] || ''
+                  }
                   onValueChange={value =>
                     handleChange('default.tts.modelId', value)
                   }
                 >
                   <SelectTrigger>
-                    <SelectValue placeholder="Select model" />
+                    <SelectValue
+                      placeholder={
+                        !speechModels?.length
+                          ? 'No available models'
+                          : 'Select model'
+                      }
+                    />
                   </SelectTrigger>
                   <SelectContent>
                     {speechModels?.map(m => (
@@ -322,14 +366,27 @@ export default function SettingsPage() {
               <div className="space-y-2">
                 <Label>Default Speech Model</Label>
                 <Select
-                  disabled={formData['speech.enabled'] === 'false'}
-                  value={formData['default.speech.modelId'] || ''}
+                  disabled={
+                    formData['speech.enabled'] === 'false' ||
+                    !speechModels?.length
+                  }
+                  value={
+                    !speechModels?.length
+                      ? undefined
+                      : formData['default.speech.modelId'] || ''
+                  }
                   onValueChange={value =>
                     handleChange('default.speech.modelId', value)
                   }
                 >
                   <SelectTrigger>
-                    <SelectValue placeholder="Select model" />
+                    <SelectValue
+                      placeholder={
+                        !speechModels?.length
+                          ? 'No available models'
+                          : 'Select model'
+                      }
+                    />
                   </SelectTrigger>
                   <SelectContent>
                     {speechModels?.map(m => (
@@ -343,17 +400,30 @@ export default function SettingsPage() {
               <div className="space-y-2">
                 <Label>Default Speech Voice</Label>
                 <Select
-                  disabled={formData['speech.enabled'] === 'false'}
-                  value={formData['default.speech.voice'] || ''}
+                  disabled={
+                    formData['speech.enabled'] === 'false' ||
+                    !speechVoices?.length
+                  }
+                  value={
+                    !speechVoices?.length
+                      ? undefined
+                      : formData['default.speech.voice'] || ''
+                  }
                   onValueChange={value =>
                     handleChange('default.speech.voice', value)
                   }
                 >
                   <SelectTrigger>
-                    <SelectValue placeholder="Select voice" />
+                    <SelectValue
+                      placeholder={
+                        !speechVoices?.length
+                          ? 'No available voices'
+                          : 'Select voice'
+                      }
+                    />
                   </SelectTrigger>
                   <SelectContent>
-                    {speechVoices.map(v => (
+                    {speechVoices?.map(v => (
                       <SelectItem key={v} value={v}>
                         {v.charAt(0).toUpperCase() + v.slice(1)}
                       </SelectItem>
@@ -370,11 +440,22 @@ export default function SettingsPage() {
               <div className="space-y-2">
                 <Label>Title Generation Model</Label>
                 <Select
-                  value={formData['title.model'] || ''}
+                  disabled={!chatModels?.length}
+                  value={
+                    !chatModels?.length
+                      ? undefined
+                      : formData['title.model'] || ''
+                  }
                   onValueChange={value => handleChange('title.model', value)}
                 >
                   <SelectTrigger>
-                    <SelectValue placeholder="Select model" />
+                    <SelectValue
+                      placeholder={
+                        !chatModels?.length
+                          ? 'No available models'
+                          : 'Select model'
+                      }
+                    />
                   </SelectTrigger>
                   <SelectContent>
                     {chatModels?.map(m => (
@@ -388,11 +469,22 @@ export default function SettingsPage() {
               <div className="space-y-2">
                 <Label>Title Generation Prompt</Label>
                 <Select
-                  value={formData['title.prompt'] || ''}
+                  disabled={!systemPrompts?.length}
+                  value={
+                    !systemPrompts?.length
+                      ? undefined
+                      : formData['title.prompt'] || ''
+                  }
                   onValueChange={value => handleChange('title.prompt', value)}
                 >
                   <SelectTrigger>
-                    <SelectValue placeholder="Select prompt" />
+                    <SelectValue
+                      placeholder={
+                        !systemPrompts?.length
+                          ? 'No available prompts'
+                          : 'Select prompt'
+                      }
+                    />
                   </SelectTrigger>
                   <SelectContent>
                     {systemPrompts?.map(p => (

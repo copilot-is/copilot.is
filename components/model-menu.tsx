@@ -233,7 +233,7 @@ export function ModelMenu({
       >
         <SelectTrigger
           className={cn(
-            'h-9 rounded-full border shadow-none hover:bg-accent',
+            'h-9 rounded-full border shadow-none hover:bg-accent disabled:hover:bg-transparent',
             '[&>svg:last-child]:hidden'
           )}
         >
@@ -252,14 +252,15 @@ export function ModelMenu({
               </>
             ) : (
               <span className="text-sm text-muted-foreground">
-                Select model
+                {!models?.length ? 'No available models' : 'Select model'}
               </span>
             )}
           </div>
           <ChevronDown className="ml-2 size-4 shrink-0 opacity-50" />
         </SelectTrigger>
         <SelectContent>
-          {models && models.length > 0 ? (
+          {models &&
+            models.length > 0 &&
             Object.entries(groupedModels).map(
               ([providerId, providerModels]) => (
                 <SelectGroup key={providerId}>
@@ -322,12 +323,7 @@ export function ModelMenu({
                   ))}
                 </SelectGroup>
               )
-            )
-          ) : (
-            <div className="px-2 py-1 text-center text-sm text-muted-foreground">
-              No available models
-            </div>
-          )}
+            )}
         </SelectContent>
       </Select>
 
