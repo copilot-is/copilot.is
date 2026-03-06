@@ -109,9 +109,14 @@ export default function UsersPage() {
             <tr className="border-b bg-muted/50">
               <th className="p-3 text-left text-sm font-medium">User</th>
               <th className="p-3 text-left text-sm font-medium">Email</th>
-              <th className="p-3 text-left text-sm font-medium">Provider</th>
-              <th className="p-3 text-left text-sm font-medium">Verified</th>
-              <th className="p-3 text-left text-sm font-medium">Role</th>
+              <th className="w-32 p-3 text-left text-sm font-medium">
+                Provider
+              </th>
+              <th className="w-40 p-3 text-left text-sm font-medium">
+                Verified
+              </th>
+              <th className="w-40 p-3 text-left text-sm font-medium">Joined</th>
+              <th className="w-32 p-3 text-center text-sm font-medium">Role</th>
             </tr>
           </thead>
           <tbody>
@@ -160,52 +165,57 @@ export default function UsersPage() {
                 <td className="p-3 text-sm">
                   {formatDate(user.emailVerified)}
                 </td>
-                <td className="p-3">
-                  <Select
-                    value={user.role}
-                    disabled={updatingUserId === user.id}
-                    onValueChange={value => {
-                      setUpdatingUserId(user.id);
-                      updateRoleMutation.mutate({
-                        id: user.id,
-                        role: value as 'user' | 'admin'
-                      });
-                    }}
-                  >
-                    <SelectTrigger className="h-8 w-24">
-                      <div className="flex items-center gap-2">
-                        {updatingUserId === user.id ? (
-                          <Loader2 className="size-3 animate-spin" />
-                        ) : user.role === 'admin' ? (
-                          <ShieldCheck className="size-3" />
-                        ) : (
-                          <UserIcon className="size-3" />
-                        )}
-                        <span>{user.role === 'admin' ? 'Admin' : 'User'}</span>
-                      </div>
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="user">
+                <td className="p-3 text-sm">{formatDate(user.createdAt)}</td>
+                <td className="p-3 text-center">
+                  <div className="flex justify-center">
+                    <Select
+                      value={user.role}
+                      disabled={updatingUserId === user.id}
+                      onValueChange={value => {
+                        setUpdatingUserId(user.id);
+                        updateRoleMutation.mutate({
+                          id: user.id,
+                          role: value as 'user' | 'admin'
+                        });
+                      }}
+                    >
+                      <SelectTrigger className="h-8 w-28">
                         <div className="flex items-center gap-2">
-                          <UserIcon className="size-3" />
-                          User
+                          {updatingUserId === user.id ? (
+                            <Loader2 className="size-3 animate-spin" />
+                          ) : user.role === 'admin' ? (
+                            <ShieldCheck className="size-3" />
+                          ) : (
+                            <UserIcon className="size-3" />
+                          )}
+                          <span>
+                            {user.role === 'admin' ? 'Admin' : 'User'}
+                          </span>
                         </div>
-                      </SelectItem>
-                      <SelectItem value="admin">
-                        <div className="flex items-center gap-2">
-                          <ShieldCheck className="size-3" />
-                          Admin
-                        </div>
-                      </SelectItem>
-                    </SelectContent>
-                  </Select>
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="user">
+                          <div className="flex items-center gap-2">
+                            <UserIcon className="size-3" />
+                            User
+                          </div>
+                        </SelectItem>
+                        <SelectItem value="admin">
+                          <div className="flex items-center gap-2">
+                            <ShieldCheck className="size-3" />
+                            Admin
+                          </div>
+                        </SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </td>
               </tr>
             ))}
             {(!users || users.length === 0) && (
               <tr>
                 <td
-                  colSpan={5}
+                  colSpan={6}
                   className="p-6 text-center text-muted-foreground"
                 >
                   {search
