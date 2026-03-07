@@ -127,19 +127,32 @@ const getSettings = cache(
       return {};
     }
 
-    const results = await db
-      .select({ key: settings.key, value: settings.value })
-      .from(settings)
-      .where(inArray(settings.key, keys));
+    try {
+      const results = await db
+        .select({ key: settings.key, value: settings.value })
+        .from(settings)
+        .where(inArray(settings.key, keys));
 
-    const resultMap = new Map(results.map(r => [r.key, r.value]));
-    return keys.reduce(
-      (acc, key) => {
-        acc[key] = resultMap.get(key) ?? null;
-        return acc;
-      },
-      {} as Record<string, string | null>
-    );
+      const resultMap = new Map(results.map(r => [r.key, r.value]));
+      return keys.reduce(
+        (acc, key) => {
+          acc[key] = resultMap.get(key) ?? null;
+          return acc;
+        },
+        {} as Record<string, string | null>
+      );
+    } catch (error) {
+      console.warn(
+        'Failed to fetch settings, using defaults. DB might be unavailable during build.'
+      );
+      return keys.reduce(
+        (acc, key) => {
+          acc[key] = null;
+          return acc;
+        },
+        {} as Record<string, string | null>
+      );
+    }
   }
 );
 
