@@ -2,6 +2,8 @@ import { MetadataRoute } from 'next';
 
 import { getAppSettings } from '@/lib/queries';
 
+export const dynamic = 'force-dynamic';
+
 export default async function manifest(): Promise<MetadataRoute.Manifest> {
   const { appName, appDescription } = await getAppSettings();
 
