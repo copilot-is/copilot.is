@@ -126,6 +126,7 @@ export const modelRouter = createTRPCRouter({
           .object({
             sizes: z.array(z.string()).optional(),
             aspectRatios: z.array(z.string()).optional(),
+            resolutions: z.array(z.string()).optional(),
             voices: z.array(z.string()).optional(),
             reasoning: z.boolean().optional()
           })
