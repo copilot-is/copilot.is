@@ -37,6 +37,11 @@ jobs:
 
       - name: Build
         run: pnpm build
+        env:
+          DATABASE_URL: postgres://dummy:dummy@dummy:5432/dummy
+          AUTH_SECRET: dummy_auth_secret_for_build
+          APP_SECRET: dummy_app_secret_for_build
+          BLOB_READ_WRITE_TOKEN: vercel_blob_rw_dummy_token_for_build
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
