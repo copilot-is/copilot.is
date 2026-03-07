@@ -141,7 +141,7 @@ const getSettings = cache(
         },
         {} as Record<string, string | null>
       );
-    } catch (error) {
+    } catch {
       console.warn(
         'Failed to fetch settings, using defaults. DB might be unavailable during build.'
       );
