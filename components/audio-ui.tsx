@@ -121,14 +121,19 @@ export function AudioUI({
       unknown
     > | null;
     const availableVoices = (uiOptions?.voices as string[] | undefined) || [];
+    const defaultVoice = uiOptions?.voice as string | undefined;
 
     // Reset voice if the current voice is invalid for this model
     if (availableVoices.length > 0 && !availableVoices.includes(voice)) {
-      const defaultVoice = availableVoices[0];
-      setVoice(defaultVoice);
-      setPreference('audioVoice', defaultVoice);
+      const nextVoice = availableVoices.includes(preferences.audioVoice)
+        ? preferences.audioVoice
+        : defaultVoice && availableVoices.includes(defaultVoice)
+          ? defaultVoice
+          : availableVoices[0];
+      setVoice(nextVoice);
+      setPreference('audioVoice', nextVoice);
     }
-  }, [currentDbModel, voice, setPreference]);
+  }, [currentDbModel, voice, preferences.audioVoice, setPreference]);
 
   // Handle model change from ModelMenu
   const handleModelChange = useCallback(

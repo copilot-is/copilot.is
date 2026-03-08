@@ -125,28 +125,49 @@ export function ImageUI({
     const availableSizes = currentDbModel.uiOptions?.sizes as
       | string[]
       | undefined;
+    const defaultSize = currentDbModel.uiOptions?.size as string | undefined;
     const availableAspectRatios = currentDbModel.uiOptions?.aspectRatios as
       | string[]
+      | undefined;
+    const defaultAspectRatio = currentDbModel.uiOptions?.aspectRatio as
+      | string
       | undefined;
 
     // Reset size if the current size is invalid for this model
     if (availableSizes && availableSizes.length > 0) {
       if (!availableSizes.includes(size)) {
-        const defaultSize = availableSizes[0];
-        setSize(defaultSize);
-        setPreference('imageSize', defaultSize);
+        const nextSize = availableSizes.includes(preferences.imageSize)
+          ? preferences.imageSize
+          : defaultSize && availableSizes.includes(defaultSize)
+            ? defaultSize
+            : availableSizes[0];
+        setSize(nextSize);
+        setPreference('imageSize', nextSize);
       }
     }
 
     // Reset aspectRatio if the current aspectRatio is invalid for this model
     if (availableAspectRatios && availableAspectRatios.length > 0) {
       if (!availableAspectRatios.includes(aspectRatio)) {
-        const defaultAspectRatio = availableAspectRatios[0];
-        setAspectRatio(defaultAspectRatio);
-        setPreference('imageAspectRatio', defaultAspectRatio);
+        const nextAspectRatio = availableAspectRatios.includes(
+          preferences.imageAspectRatio
+        )
+          ? preferences.imageAspectRatio
+          : defaultAspectRatio && availableAspectRatios.includes(defaultAspectRatio)
+            ? defaultAspectRatio
+            : availableAspectRatios[0];
+        setAspectRatio(nextAspectRatio);
+        setPreference('imageAspectRatio', nextAspectRatio);
       }
     }
-  }, [currentDbModel, size, aspectRatio, setPreference]);
+  }, [
+    currentDbModel,
+    size,
+    aspectRatio,
+    preferences.imageSize,
+    preferences.imageAspectRatio,
+    setPreference
+  ]);
 
   // Handle model change from ModelMenu
   const handleModelChange = useCallback(

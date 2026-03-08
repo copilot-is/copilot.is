@@ -417,9 +417,15 @@ export default function ModelsPage() {
                         ...formData,
                         uiOptions: JSON.stringify(
                           {
+                            size: '1024x1024',
                             sizes: ['1024x1024'],
+                            aspectRatio: '16:9',
                             aspectRatios: ['16:9'],
+                            duration: 6,
+                            durations: [4, 6, 8],
+                            resolution: '720p',
                             resolutions: ['720p'],
+                            voice: '',
                             voices: [],
                             reasoning: false
                           },
@@ -430,7 +436,7 @@ export default function ModelsPage() {
                     }
                     disabled={isPending}
                   >
-                    {`{ "sizes":[], "aspectRatios":[], "resolutions":[], "voices":[], "reasoning":false }`}
+                    {`{ "size":"", "sizes":[], "aspectRatio":"", "aspectRatios":[], "duration":6, "durations":[4,6,8], "resolution":"", "resolutions":[], "voice":"", "voices":[], "reasoning":false }`}
                   </button>
                 </div>
                 <div className="space-y-2">

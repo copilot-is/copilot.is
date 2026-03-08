@@ -52,9 +52,15 @@ export const modelRouter = createTRPCRouter({
         isEnabled: z.boolean().default(true),
         uiOptions: z
           .object({
+            size: z.string().optional(),
             sizes: z.array(z.string()).optional(),
+            aspectRatio: z.string().optional(),
             aspectRatios: z.array(z.string()).optional(),
+            duration: z.number().optional(),
+            durations: z.array(z.number()).optional(),
+            resolution: z.string().optional(),
             resolutions: z.array(z.string()).optional(),
+            voice: z.string().optional(),
             voices: z.array(z.string()).optional(),
             reasoning: z.boolean().optional()
           })
@@ -124,9 +130,15 @@ export const modelRouter = createTRPCRouter({
         isEnabled: z.boolean().optional(),
         uiOptions: z
           .object({
+            size: z.string().optional(),
             sizes: z.array(z.string()).optional(),
+            aspectRatio: z.string().optional(),
             aspectRatios: z.array(z.string()).optional(),
+            duration: z.number().optional(),
+            durations: z.array(z.number()).optional(),
+            resolution: z.string().optional(),
             resolutions: z.array(z.string()).optional(),
+            voice: z.string().optional(),
             voices: z.array(z.string()).optional(),
             reasoning: z.boolean().optional()
           })

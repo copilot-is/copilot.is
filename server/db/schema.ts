@@ -308,9 +308,15 @@ export const models = createTable(
     supportsReasoning: boolean('supports_reasoning').default(false),
     isEnabled: boolean('is_enabled').notNull().default(true),
     uiOptions: jsonb('ui_options').$type<{
+      size?: string;
       sizes?: string[];
+      aspectRatio?: string;
       aspectRatios?: string[];
+      duration?: number;
+      durations?: number[];
+      resolution?: string;
       resolutions?: string[];
+      voice?: string;
       voices?: string[];
       reasoning?: boolean;
     }>(),

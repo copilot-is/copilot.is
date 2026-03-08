@@ -3,9 +3,15 @@ export type ModelCapability = 'chat' | 'image' | 'video' | 'audio';
 
 // UI options for different model types
 export type ModelUIOptions = {
+  size?: string;
   sizes?: string[];
+  aspectRatio?: string;
   aspectRatios?: string[];
+  duration?: number;
+  durations?: number[];
+  resolution?: string;
   resolutions?: string[];
+  voice?: string;
   voices?: string[];
   reasoning?: boolean;
 };

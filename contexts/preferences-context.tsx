@@ -22,6 +22,7 @@ export interface Preferences {
   videoModelId: string;
   videoAspectRatio: string;
   videoResolution: string;
+  videoDuration: number;
   // Audio (TTS)
   audioModelId: string;
   audioVoice: string;
@@ -72,6 +73,7 @@ export function PreferencesProvider({ children }: PreferencesProviderProps) {
       videoModelId: defaults.videoModelId ?? '',
       videoAspectRatio: '16:9',
       videoResolution: '720p',
+      videoDuration: 6,
       // Audio (TTS)
       audioModelId: defaults.ttsModelId ?? '',
       audioVoice: 'alloy',

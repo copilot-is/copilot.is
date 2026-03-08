@@ -113,6 +113,7 @@ export const generateVideo = async (params: {
   parentMessageId?: string;
   aspectRatio?: string;
   resolution?: string;
+  duration?: number;
 }) => {
   const res = await fetch('/api/video', {
     method: 'POST',

@@ -98,6 +98,10 @@ export function VideoUI({
   const [resolution, setResolution] = useState(
     preferences.videoResolution || ''
   );
+  // Track duration for video generation (seconds)
+  const [duration, setDuration] = useState<number | undefined>(
+    preferences.videoDuration
+  );
 
   // Find current model in database models (for API request options)
   const currentDbModel = useMemo(
@@ -121,35 +125,96 @@ export function VideoUI({
     [currentDbModel]
   );
 
-  // Validate and reset aspectRatio/resolution based on the current model's options
+  // Validate and reset aspectRatio/resolution/duration based on the current model's options
   useEffect(() => {
     if (!currentDbModel) return;
 
     const availableAspectRatios = currentDbModel.uiOptions?.aspectRatios as
       | string[]
       | undefined;
+    const defaultAspectRatio = currentDbModel.uiOptions?.aspectRatio as
+      | string
+      | undefined;
     const availableResolutions = currentDbModel.uiOptions?.resolutions as
       | string[]
       | undefined;
+    const defaultResolution = currentDbModel.uiOptions?.resolution as
+      | string
+      | undefined;
+    const availableDurationsRaw = currentDbModel.uiOptions?.durations as
+      | Array<number | string>
+      | undefined;
+    const availableDurations =
+      availableDurationsRaw
+        ?.map(v => (typeof v === 'number' ? v : Number(v)))
+        .filter(v => Number.isFinite(v)) || [];
+    const defaultDurationRaw = currentDbModel.uiOptions?.duration as
+      | number
+      | string
+      | undefined;
+    const defaultDuration =
+      typeof defaultDurationRaw === 'number'
+        ? defaultDurationRaw
+        : typeof defaultDurationRaw === 'string'
+          ? Number(defaultDurationRaw)
+          : undefined;
 
     // Reset aspectRatio if the current aspectRatio is invalid for this model
     if (availableAspectRatios && availableAspectRatios.length > 0) {
       if (!availableAspectRatios.includes(aspectRatio)) {
-        const defaultAspectRatio = availableAspectRatios[0];
-        setAspectRatio(defaultAspectRatio);
-        setPreference('videoAspectRatio', defaultAspectRatio);
+        const nextAspectRatio = availableAspectRatios.includes(
+          preferences.videoAspectRatio
+        )
+          ? preferences.videoAspectRatio
+          : defaultAspectRatio && availableAspectRatios.includes(defaultAspectRatio)
+            ? defaultAspectRatio
+            : availableAspectRatios[0];
+        setAspectRatio(nextAspectRatio);
+        setPreference('videoAspectRatio', nextAspectRatio);
       }
     }
 
     // Reset resolution if the current resolution is invalid for this model
     if (availableResolutions && availableResolutions.length > 0) {
       if (!availableResolutions.includes(resolution)) {
-        const defaultResolution = availableResolutions[0];
-        setResolution(defaultResolution);
-        setPreference('videoResolution', defaultResolution);
+        const nextResolution = availableResolutions.includes(
+          preferences.videoResolution
+        )
+          ? preferences.videoResolution
+          : defaultResolution && availableResolutions.includes(defaultResolution)
+            ? defaultResolution
+            : availableResolutions[0];
+        setResolution(nextResolution);
+        setPreference('videoResolution', nextResolution);
       }
     }
-  }, [currentDbModel, aspectRatio, resolution, setPreference]);
+
+    // Reset duration if the current duration is invalid for this model
+    if (availableDurations.length > 0) {
+      if (duration === undefined || !availableDurations.includes(duration)) {
+        const nextDuration = availableDurations.includes(
+          preferences.videoDuration
+        )
+          ? preferences.videoDuration
+          :
+          defaultDuration !== undefined &&
+          availableDurations.includes(defaultDuration)
+            ? defaultDuration
+            : availableDurations[0];
+        setDuration(nextDuration);
+        setPreference('videoDuration', nextDuration);
+      }
+    }
+  }, [
+    currentDbModel,
+    aspectRatio,
+    resolution,
+    duration,
+    preferences.videoAspectRatio,
+    preferences.videoDuration,
+    preferences.videoResolution,
+    setPreference
+  ]);
 
   // Handle model change from ModelMenu
   const handleModelChange = useCallback(
@@ -169,6 +234,10 @@ export function VideoUI({
     if (options.resolution !== undefined) {
       setResolution(options.resolution);
       setPreference('videoResolution', options.resolution);
+    }
+    if (options.duration !== undefined) {
+      setDuration(options.duration);
+      setPreference('videoDuration', options.duration);
     }
   };
 
@@ -201,7 +270,8 @@ export function VideoUI({
         modelId: currentModelId,
         userMessage,
         aspectRatio,
-        resolution
+        resolution,
+        duration
       });
 
       if ('error' in result) {
@@ -293,7 +363,8 @@ export function VideoUI({
         userMessage,
         parentMessageId: userMessage.id,
         aspectRatio,
-        resolution
+        resolution,
+        duration
       });
 
       if ('error' in result) {
@@ -374,6 +445,7 @@ export function VideoUI({
         <VideoPromptForm
           modelId={currentModelId}
           aspectRatio={aspectRatio}
+          duration={duration}
           resolution={resolution}
           input={input}
           setInput={setInput}

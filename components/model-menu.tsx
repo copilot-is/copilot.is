@@ -52,6 +52,8 @@ export interface ModelMenuProps extends Pick<
   aspectRatio?: string;
   /** Current resolution value (for video capability) */
   resolution?: string;
+  /** Current duration value in seconds (for video capability) */
+  duration?: number;
   /** Current voice value (for audio capability) */
   voice?: string;
 }
@@ -66,6 +68,8 @@ export interface ModelOptions {
   aspectRatio?: string;
   /** Resolution value (for video) */
   resolution?: string;
+  /** Duration value in seconds (for video) */
+  duration?: number;
   /** Voice value (for audio) */
   voice?: string;
 }
@@ -80,6 +84,7 @@ export function ModelMenu({
   size,
   aspectRatio,
   resolution,
+  duration,
   voice
 }: ModelMenuProps) {
   // Prevent hydration mismatch with Radix Select
@@ -102,18 +107,46 @@ export function ModelMenu({
 
   // Get available options from selected model
   const uiOptions = selectedModel?.uiOptions as Record<string, unknown> | null;
+  const defaultSize =
+    typeof uiOptions?.size === 'string' ? (uiOptions.size as string) : '';
   const availableSizes = useMemo(
     () => (uiOptions?.sizes as string[]) || [],
     [uiOptions?.sizes]
   );
+  const defaultAspectRatio =
+    typeof uiOptions?.aspectRatio === 'string'
+      ? (uiOptions.aspectRatio as string)
+      : '';
   const availableAspectRatios = useMemo(
     () => (uiOptions?.aspectRatios as string[]) || [],
     [uiOptions?.aspectRatios]
   );
+  const defaultDuration = useMemo(() => {
+    const value = uiOptions?.duration;
+    if (typeof value === 'number') return value;
+    if (typeof value === 'string') {
+      const parsed = Number(value);
+      return Number.isFinite(parsed) ? parsed : undefined;
+    }
+    return undefined;
+  }, [uiOptions?.duration]);
+  const availableDurations = useMemo(() => {
+    const values = uiOptions?.durations as unknown;
+    if (!Array.isArray(values)) return [];
+    return values
+      .map(v => (typeof v === 'number' ? v : Number(v)))
+      .filter(v => Number.isFinite(v));
+  }, [uiOptions?.durations]);
+  const defaultResolution =
+    typeof uiOptions?.resolution === 'string'
+      ? (uiOptions.resolution as string)
+      : '';
   const availableResolutions = useMemo(
     () => (uiOptions?.resolutions as string[]) || [],
     [uiOptions?.resolutions]
   );
+  const defaultVoice =
+    typeof uiOptions?.voice === 'string' ? (uiOptions.voice as string) : '';
   const availableVoices = useMemo(
     () => (uiOptions?.voices as string[]) || [],
     [uiOptions?.voices]
@@ -128,32 +161,94 @@ export function ModelMenu({
       supportsVision: selectedModel.supportsVision ?? undefined
     });
 
-    // Auto-select first size if available and no size is set
-    if (capability === 'image' && availableSizes.length > 0 && !size) {
-      onOptionsChange?.({ size: availableSizes[0] });
+    // Auto-select default size, fallback to the first available option.
+    if (
+      capability === 'image' &&
+      availableSizes.length > 0 &&
+      (!size || !availableSizes.includes(size))
+    ) {
+      const nextSize = availableSizes.includes(preferences.imageSize)
+        ? preferences.imageSize
+        : availableSizes.includes(defaultSize)
+        ? defaultSize
+        : availableSizes[0];
+      if (nextSize !== size) {
+        onOptionsChange?.({ size: nextSize });
+      }
     }
 
-    // Auto-select first aspectRatio if available and no aspectRatio is set
+    // Auto-select default aspectRatio, fallback to the first available option.
     if (
       (capability === 'image' || capability === 'video') &&
       availableAspectRatios.length > 0 &&
-      !aspectRatio
+      (!aspectRatio || !availableAspectRatios.includes(aspectRatio))
     ) {
-      onOptionsChange?.({ aspectRatio: availableAspectRatios[0] });
+      const preferenceAspectRatio =
+        capability === 'image'
+          ? preferences.imageAspectRatio
+          : preferences.videoAspectRatio;
+      const nextAspectRatio = availableAspectRatios.includes(
+        preferenceAspectRatio
+      )
+        ? preferenceAspectRatio
+        : availableAspectRatios.includes(defaultAspectRatio)
+        ? defaultAspectRatio
+        : availableAspectRatios[0];
+      if (nextAspectRatio !== aspectRatio) {
+        onOptionsChange?.({ aspectRatio: nextAspectRatio });
+      }
     }
 
-    // Auto-select first resolution if available and no resolution is set
+    // Auto-select default duration, fallback to the first available option.
+    if (
+      capability === 'video' &&
+      availableDurations.length > 0 &&
+      (duration === undefined || !availableDurations.includes(duration))
+    ) {
+      const nextDuration = availableDurations.includes(preferences.videoDuration)
+        ? preferences.videoDuration
+        :
+        defaultDuration !== undefined &&
+        availableDurations.includes(defaultDuration)
+          ? defaultDuration
+          : availableDurations[0];
+      if (nextDuration !== duration) {
+        onOptionsChange?.({ duration: nextDuration });
+      }
+    }
+
+    // Auto-select default resolution, fallback to the first available option.
     if (
       capability === 'video' &&
       availableResolutions.length > 0 &&
-      !resolution
+      (!resolution || !availableResolutions.includes(resolution))
     ) {
-      onOptionsChange?.({ resolution: availableResolutions[0] });
+      const nextResolution = availableResolutions.includes(
+        preferences.videoResolution
+      )
+        ? preferences.videoResolution
+        : availableResolutions.includes(defaultResolution)
+        ? defaultResolution
+        : availableResolutions[0];
+      if (nextResolution !== resolution) {
+        onOptionsChange?.({ resolution: nextResolution });
+      }
     }
 
-    // Auto-select first voice if available and no voice is set
-    if (capability === 'audio' && availableVoices.length > 0 && !voice) {
-      onOptionsChange?.({ voice: availableVoices[0] });
+    // Auto-select default voice, fallback to the first available option.
+    if (
+      capability === 'audio' &&
+      availableVoices.length > 0 &&
+      (!voice || !availableVoices.includes(voice))
+    ) {
+      const nextVoice = availableVoices.includes(preferences.audioVoice)
+        ? preferences.audioVoice
+        : availableVoices.includes(defaultVoice)
+        ? defaultVoice
+        : availableVoices[0];
+      if (nextVoice !== voice) {
+        onOptionsChange?.({ voice: nextVoice });
+      }
     }
   }, [
     selectedModel,
@@ -161,11 +256,24 @@ export function ModelMenu({
     size,
     aspectRatio,
     resolution,
+    duration,
     voice,
     availableSizes,
+    defaultSize,
     availableAspectRatios,
+    defaultAspectRatio,
+    availableDurations,
+    defaultDuration,
     availableResolutions,
+    defaultResolution,
     availableVoices,
+    defaultVoice,
+    preferences.imageSize,
+    preferences.imageAspectRatio,
+    preferences.videoAspectRatio,
+    preferences.videoDuration,
+    preferences.videoResolution,
+    preferences.audioVoice,
     onOptionsChange
   ]);
 
@@ -419,6 +527,33 @@ export function ModelMenu({
             {availableResolutions.map(r => (
               <SelectItem key={r} value={r}>
                 {VideoResolutionLabels[r] || r}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      )}
+
+      {/* Duration selector for video capability */}
+      {capability === 'video' && availableDurations.length > 0 && (
+        <Select
+          disabled={isDisabled}
+          value={duration !== undefined ? String(duration) : ''}
+          onValueChange={newDuration => {
+            const parsed = Number(newDuration);
+            if (Number.isFinite(parsed)) {
+              onOptionsChange?.({ duration: parsed });
+            }
+          }}
+        >
+          <SelectTrigger className="h-9 rounded-full shadow-none">
+            <span className="text-sm">
+              {duration !== undefined ? `${duration}s` : 'Duration'}
+            </span>
+          </SelectTrigger>
+          <SelectContent>
+            {availableDurations.map(d => (
+              <SelectItem key={d} value={String(d)}>
+                {`${d}s`}
               </SelectItem>
             ))}
           </SelectContent>

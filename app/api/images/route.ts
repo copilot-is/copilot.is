@@ -1,7 +1,7 @@
 import path from 'path';
 import { NextResponse } from 'next/server';
 import { put } from '@vercel/blob';
-import { generateImage, generateText, JSONValue } from 'ai';
+import { generateImage, generateText } from 'ai';
 
 import { ChatMessage } from '@/types';
 import { env } from '@/lib/env';
@@ -18,11 +18,8 @@ type PostData = {
   modelId: string;
   userMessage: Omit<ChatMessage, 'role'> & { role: 'user' };
   parentMessageId?: string;
-  n?: number;
-  size?: `${number}x${number}`;
+  size?: `${number}x${number}` | '512' | '1K' | '2K' | '4K';
   aspectRatio?: `${number}:${number}`;
-  seed?: number;
-  providerOptions?: Record<string, Record<string, JSONValue>>;
 };
 
 export async function POST(req: Request) {
@@ -38,11 +35,8 @@ export async function POST(req: Request) {
     modelId,
     userMessage,
     parentMessageId,
-    n = 1,
     size,
-    aspectRatio = '16:9',
-    seed,
-    providerOptions
+    aspectRatio = '16:9'
   } = json;
 
   if (!modelId || !userMessage) {
@@ -122,18 +116,8 @@ export async function POST(req: Request) {
     let imageBase64: string;
     let imageMediaType: string;
 
-    const isGeminiImageModel =
-      modelId.startsWith('gemini-2.5-flash-image') ||
-      modelId.startsWith('gemini-3-pro-image');
-
-    if (isGeminiImageModel) {
+    if (modelId.startsWith('gemini')) {
       // Gemini models generate images via generateText with multi-modal output
-      const mergedProviderOptions = {
-        ...(dbModel.provider.apiOptions && {
-          [dbModel.provider.type]: dbModel.provider.apiOptions
-        }),
-        ...providerOptions
-      } as any;
       const result = await generateText({
         model: getLanguageModel(dbModel.provider, modelId),
         prompt: textParts,
@@ -143,7 +127,15 @@ export async function POST(req: Request) {
         maxOutputTokens: dbModel.apiParams?.maxOutputTokens,
         frequencyPenalty: dbModel.apiParams?.frequencyPenalty,
         presencePenalty: dbModel.apiParams?.presencePenalty,
-        providerOptions: mergedProviderOptions
+        providerOptions: {
+          [dbModel.provider.type]: {
+            ...dbModel.provider.apiOptions,
+            imageConfig: {
+              aspectRatio,
+              ...(size && { imageSize: size })
+            }
+          }
+        } as any
       });
 
       const imageFile = result.files?.find(f =>
@@ -157,19 +149,21 @@ export async function POST(req: Request) {
       imageMediaType = imageFile.mediaType;
     } else {
       // Standard image models use generateImage API
+      const standardSize = size?.includes('x')
+        ? (size as `${number}x${number}`)
+        : undefined;
+
       const { image } = await generateImage({
         model: getImageModel(dbModel.provider, modelId),
         prompt: textParts,
-        n,
-        size,
+        n: 1,
+        size: standardSize,
         aspectRatio,
-        seed,
-        providerOptions: {
-          ...(dbModel.provider.apiOptions && {
+        ...(dbModel.provider.apiOptions && {
+          providerOptions: {
             [dbModel.provider.type]: dbModel.provider.apiOptions
-          }),
-          ...providerOptions
-        } as any
+          } as any
+        })
       });
 
       imageBase64 = image.base64;

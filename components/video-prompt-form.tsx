@@ -9,6 +9,7 @@ import { ModelMenu, ModelOptions } from '@/components/model-menu';
 export interface VideoPromptFormProps {
   modelId: string;
   aspectRatio?: string;
+  duration?: number;
   resolution?: string;
   input: string;
   setInput: (value: string) => void;
@@ -21,6 +22,7 @@ export interface VideoPromptFormProps {
 export function VideoPromptForm({
   modelId,
   aspectRatio,
+  duration,
   resolution,
   input,
   setInput,
@@ -72,6 +74,7 @@ export function VideoPromptForm({
           onModelChange={onModelChange}
           onOptionsChange={onOptionsChange}
           aspectRatio={aspectRatio}
+          duration={duration}
           resolution={resolution}
         />
         <div className="flex items-center space-x-2">
