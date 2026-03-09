@@ -3,9 +3,9 @@
 import { useEffect, useMemo, useState } from 'react';
 import { usePreferences } from '@/contexts/preferences-context';
 import { UseChatHelpers } from '@ai-sdk/react';
-import { ChevronDown, Eye, Lightbulb } from 'lucide-react';
+import { Eye, Lightbulb } from 'lucide-react';
 
-import { ChatMessage, Model } from '@/types';
+import { ChatMessage, Model, ModelCapability } from '@/types';
 import {
   AspectRatioLabels,
   ImageSizeLabels,
@@ -29,15 +29,12 @@ import {
 } from '@/components/ui/tooltip';
 import { ModelIcon } from '@/components/model-icon';
 
-// API capability type (matches tRPC router schema - excludes 'speech')
-type APICapability = 'chat' | 'image' | 'video' | 'audio';
-
 export interface ModelMenuProps extends Pick<
   UseChatHelpers<ChatMessage>,
   'status'
 > {
   /** The capability type for model selection */
-  capability?: APICapability;
+  capability?: ModelCapability;
   /** Pre-filtered models to display */
   models: Model[];
   /** Current model value (controlled) */
@@ -279,7 +276,13 @@ export function ModelMenu({
   ]);
 
   if (!mounted) {
-    return <Skeleton className="h-9 w-32 rounded-full" />;
+    return (
+      <div className="flex h-9 items-center rounded-full border px-3">
+        <Skeleton className="mr-2 size-4 rounded-full" />
+        <Skeleton className="mr-1 h-4 w-20" />
+        <Skeleton className="size-4 rounded-full" />
+      </div>
+    );
   }
 
   // Grouped models by provider for display
@@ -340,32 +343,22 @@ export function ModelMenu({
         value={selectedModel?.modelId || ''}
         onValueChange={handleModelChange}
       >
-        <SelectTrigger
-          className={cn(
-            'h-9 rounded-full border shadow-none hover:bg-accent disabled:hover:bg-transparent',
-            '[&>svg:last-child]:hidden'
+        <SelectTrigger className="h-9 rounded-full border shadow-none hover:bg-accent disabled:hover:bg-transparent">
+          {selectedModel ? (
+            <>
+              <ModelIcon
+                image={
+                  selectedModel.image || selectedModel.provider?.image || null
+                }
+                className="mr-2 size-4"
+              />
+              <span className="text-sm font-medium">{selectedModel.name}</span>
+            </>
+          ) : (
+            <span className="text-sm text-muted-foreground">
+              {!models?.length ? 'No available models' : 'Select model'}
+            </span>
           )}
-        >
-          <div className="flex items-center">
-            {selectedModel ? (
-              <>
-                <ModelIcon
-                  image={
-                    selectedModel.image || selectedModel.provider?.image || null
-                  }
-                  className="mr-2 size-4"
-                />
-                <span className="text-sm font-medium">
-                  {selectedModel.name}
-                </span>
-              </>
-            ) : (
-              <span className="text-sm text-muted-foreground">
-                {!models?.length ? 'No available models' : 'Select model'}
-              </span>
-            )}
-          </div>
-          <ChevronDown className="ml-2 size-4 shrink-0 opacity-50" />
         </SelectTrigger>
         <SelectContent>
           {models &&
