@@ -42,3 +42,6 @@ yarn-error.log*
 .vercel
 .vscode
 .env*.local
+
+# next-env.d.ts
+next-env.d.ts

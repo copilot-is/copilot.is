@@ -1,7 +1,9 @@
+import { Metadata } from 'next';
 import { redirect } from 'next/navigation';
 import { PreferencesProvider } from '@/contexts/preferences-context';
 import { SystemSettingsProvider } from '@/contexts/system-settings-context';
 
+import { getAppSettings } from '@/lib/queries';
 import { auth } from '@/server/auth';
 import { api } from '@/trpc/server';
 import { Separator } from '@/components/ui/separator';
@@ -12,6 +14,17 @@ import {
 } from '@/components/ui/sidebar';
 import { ConsoleBreadcrumb } from '@/components/console/breadcrumb';
 import { Sidebar } from '@/components/console/sidebar';
+
+export async function generateMetadata(): Promise<Metadata> {
+  const { appName } = await getAppSettings();
+
+  return {
+    title: {
+      default: `${appName} Console`,
+      template: `%s - ${appName} Console`
+    }
+  };
+}
 
 export default async function ConsoleLayout({
   children
