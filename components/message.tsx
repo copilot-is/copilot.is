@@ -11,8 +11,9 @@ import { MessageReasoning } from '@/components/message-reasoning';
 import { ModelIcon } from '@/components/model-icon';
 import { VideoPlayer } from '@/components/video-player';
 
-export interface MessageProps
-  extends Partial<Pick<UseChatHelpers<ChatMessage>, 'status'>> {
+export interface MessageProps extends Partial<
+  Pick<UseChatHelpers<ChatMessage>, 'status'>
+> {
   message: ChatMessage;
   image?: string | null;
   isLastMessage?: boolean;

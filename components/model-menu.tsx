@@ -170,8 +170,8 @@ export function ModelMenu({
       const nextSize = availableSizes.includes(preferences.imageSize)
         ? preferences.imageSize
         : availableSizes.includes(defaultSize)
-        ? defaultSize
-        : availableSizes[0];
+          ? defaultSize
+          : availableSizes[0];
       if (nextSize !== size) {
         onOptionsChange?.({ size: nextSize });
       }
@@ -192,8 +192,8 @@ export function ModelMenu({
       )
         ? preferenceAspectRatio
         : availableAspectRatios.includes(defaultAspectRatio)
-        ? defaultAspectRatio
-        : availableAspectRatios[0];
+          ? defaultAspectRatio
+          : availableAspectRatios[0];
       if (nextAspectRatio !== aspectRatio) {
         onOptionsChange?.({ aspectRatio: nextAspectRatio });
       }
@@ -205,11 +205,12 @@ export function ModelMenu({
       availableDurations.length > 0 &&
       (duration === undefined || !availableDurations.includes(duration))
     ) {
-      const nextDuration = availableDurations.includes(preferences.videoDuration)
+      const nextDuration = availableDurations.includes(
+        preferences.videoDuration
+      )
         ? preferences.videoDuration
-        :
-        defaultDuration !== undefined &&
-        availableDurations.includes(defaultDuration)
+        : defaultDuration !== undefined &&
+            availableDurations.includes(defaultDuration)
           ? defaultDuration
           : availableDurations[0];
       if (nextDuration !== duration) {
@@ -228,8 +229,8 @@ export function ModelMenu({
       )
         ? preferences.videoResolution
         : availableResolutions.includes(defaultResolution)
-        ? defaultResolution
-        : availableResolutions[0];
+          ? defaultResolution
+          : availableResolutions[0];
       if (nextResolution !== resolution) {
         onOptionsChange?.({ resolution: nextResolution });
       }
@@ -244,8 +245,8 @@ export function ModelMenu({
       const nextVoice = availableVoices.includes(preferences.audioVoice)
         ? preferences.audioVoice
         : availableVoices.includes(defaultVoice)
-        ? defaultVoice
-        : availableVoices[0];
+          ? defaultVoice
+          : availableVoices[0];
       if (nextVoice !== voice) {
         onOptionsChange?.({ voice: nextVoice });
       }

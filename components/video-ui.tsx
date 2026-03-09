@@ -166,7 +166,8 @@ export function VideoUI({
           preferences.videoAspectRatio
         )
           ? preferences.videoAspectRatio
-          : defaultAspectRatio && availableAspectRatios.includes(defaultAspectRatio)
+          : defaultAspectRatio &&
+              availableAspectRatios.includes(defaultAspectRatio)
             ? defaultAspectRatio
             : availableAspectRatios[0];
         setAspectRatio(nextAspectRatio);
@@ -181,7 +182,8 @@ export function VideoUI({
           preferences.videoResolution
         )
           ? preferences.videoResolution
-          : defaultResolution && availableResolutions.includes(defaultResolution)
+          : defaultResolution &&
+              availableResolutions.includes(defaultResolution)
             ? defaultResolution
             : availableResolutions[0];
         setResolution(nextResolution);
@@ -196,9 +198,8 @@ export function VideoUI({
           preferences.videoDuration
         )
           ? preferences.videoDuration
-          :
-          defaultDuration !== undefined &&
-          availableDurations.includes(defaultDuration)
+          : defaultDuration !== undefined &&
+              availableDurations.includes(defaultDuration)
             ? defaultDuration
             : availableDurations[0];
         setDuration(nextDuration);

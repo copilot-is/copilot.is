@@ -43,8 +43,9 @@ import {
 } from '@/components/ui/dialog';
 import { Textarea } from '@/components/ui/textarea';
 
-interface MessageActionsProps
-  extends Partial<Pick<UseChatHelpers<ChatMessage>, 'status' | 'setMessages'>> {
+interface MessageActionsProps extends Partial<
+  Pick<UseChatHelpers<ChatMessage>, 'status' | 'setMessages'>
+> {
   modelId: string;
   message: ChatMessage;
   reload?: () => void;

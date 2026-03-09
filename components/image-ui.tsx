@@ -153,7 +153,8 @@ export function ImageUI({
           preferences.imageAspectRatio
         )
           ? preferences.imageAspectRatio
-          : defaultAspectRatio && availableAspectRatios.includes(defaultAspectRatio)
+          : defaultAspectRatio &&
+              availableAspectRatios.includes(defaultAspectRatio)
             ? defaultAspectRatio
             : availableAspectRatios[0];
         setAspectRatio(nextAspectRatio);

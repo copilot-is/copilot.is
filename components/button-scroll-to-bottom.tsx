@@ -9,7 +9,8 @@ import { Button } from '@/components/ui/button';
 import { useScrollToBottom, useSticky } from '@/components/scroll-to-bottom';
 
 interface ButtonScrollToBottomProps
-  extends Partial<Pick<UseChatHelpers<ChatMessage>, 'status'>>,
+  extends
+    Partial<Pick<UseChatHelpers<ChatMessage>, 'status'>>,
     Pick<UseChatHelpers<ChatMessage>, 'messages'> {}
 
 export function ButtonScrollToBottom({

@@ -2,8 +2,8 @@
 
 import * as React from 'react';
 import { usePathname, useRouter } from 'next/navigation';
-import { Image, MessageSquare, Mic, Video } from 'lucide-react';
 
+import { contentTypes } from '@/lib/content-types';
 import {
   SidebarGroup,
   SidebarGroupContent,
@@ -11,13 +11,6 @@ import {
   SidebarMenuButton,
   SidebarMenuItem
 } from '@/components/ui/sidebar';
-
-const contentTypes = [
-  { type: 'chat', label: 'Chat', icon: MessageSquare, path: '/' },
-  { type: 'audio', label: 'Audio', icon: Mic, path: '/audio' },
-  { type: 'image', label: 'Image', icon: Image, path: '/image' },
-  { type: 'video', label: 'Video', icon: Video, path: '/video' }
-] as const;
 
 export function NewContent() {
   const router = useRouter();

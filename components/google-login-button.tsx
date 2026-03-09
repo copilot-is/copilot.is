@@ -7,8 +7,10 @@ import { signIn } from 'next-auth/react';
 import { Button, type ButtonProps } from '@/components/ui/button';
 import { IconGoogle } from '@/components/ui/icons';
 
-interface GoogleLoginButtonProps
-  extends Omit<ButtonProps, 'children' | 'disabled' | 'onClick'> {
+interface GoogleLoginButtonProps extends Omit<
+  ButtonProps,
+  'children' | 'disabled' | 'onClick'
+> {
   isLoading?: string | null;
   setIsLoading?: (provider: string | null) => void;
 }

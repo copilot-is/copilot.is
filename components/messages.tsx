@@ -10,7 +10,8 @@ import { MessageActions } from '@/components/message-actions';
 import { MessageLoading } from '@/components/message-loading';
 
 export interface MessagesProps
-  extends Partial<Pick<UseChatHelpers<ChatMessage>, 'status' | 'setMessages'>>,
+  extends
+    Partial<Pick<UseChatHelpers<ChatMessage>, 'status' | 'setMessages'>>,
     Pick<UseChatHelpers<ChatMessage>, 'messages'> {
   /** Display model (for existing messages) */
   modelId: string;

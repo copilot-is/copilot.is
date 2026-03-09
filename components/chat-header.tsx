@@ -1,9 +1,17 @@
 import { useEffect } from 'react';
-import Link from 'next/link';
+import { usePathname, useRouter } from 'next/navigation';
 import { useSystemSettings } from '@/contexts/system-settings-context';
 import { PlusCircle } from 'lucide-react';
 
+import { contentTypes } from '@/lib/content-types';
+import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger
+} from '@/components/ui/dropdown-menu';
 import { SidebarTrigger } from '@/components/ui/sidebar';
 
 interface ChatHeaderProps {
@@ -12,6 +20,13 @@ interface ChatHeaderProps {
 
 export function ChatHeader({ title }: ChatHeaderProps) {
   const { appName } = useSystemSettings();
+  const pathname = usePathname();
+  const router = useRouter();
+
+  const handleNewContent = (path: string) => {
+    router.push(path);
+    router.refresh();
+  };
 
   useEffect(() => {
     const documentTitle = title ? `${title} - ${appName}` : appName;
@@ -27,12 +42,34 @@ export function ChatHeader({ title }: ChatHeaderProps) {
       <div className="flex flex-1 items-center justify-center truncate px-1 font-semibold">
         {title}
       </div>
-      <Button variant="ghost" size="icon" asChild className="size-9 lg:hidden">
-        <Link href="/">
-          <PlusCircle className="size-6" />
-          <span className="sr-only">New Chat</span>
-        </Link>
-      </Button>
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="-ml-1 size-7 lg:hidden"
+          >
+            <PlusCircle />
+            <span className="sr-only">New content</span>
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end">
+          {contentTypes.map(({ type, label, icon: Icon, path }) => (
+            <DropdownMenuItem
+              key={type}
+              onSelect={() => handleNewContent(path)}
+              className={cn(
+                pathname === path && 'bg-accent text-accent-foreground'
+              )}
+            >
+              <div className="flex items-center gap-2">
+                <Icon className="size-4" />
+                <span>{label}</span>
+              </div>
+            </DropdownMenuItem>
+          ))}
+        </DropdownMenuContent>
+      </DropdownMenu>
     </header>
   );
 }
