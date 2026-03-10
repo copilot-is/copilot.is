@@ -1,5 +1,6 @@
 import { type Metadata, type Viewport } from 'next';
 import Script from 'next/script';
+import { Analytics } from '@vercel/analytics/react';
 
 import '@/app/globals.css';
 
@@ -65,6 +66,7 @@ export default function RootLayout({ children }: RootLayoutProps) {
           <Providers attribute="class" defaultTheme="system" enableSystem>
             {children}
             <TailwindIndicator />
+            <Analytics />
           </Providers>
         </TRPCReactProvider>
       </body>
