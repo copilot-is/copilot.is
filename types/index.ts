@@ -17,6 +17,6 @@ export type {
   ModelAPIParams,
   ModelProvider
 } from './model';
-export type { ProviderConfig } from './provider';
+export type { ProviderConfig, ProviderType } from './provider';
 export type { Result } from './result';
 export type { SharedLink } from './shared-link';

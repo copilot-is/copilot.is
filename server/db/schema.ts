@@ -14,7 +14,7 @@ import {
 } from 'drizzle-orm/pg-core';
 import { type AdapterAccount } from 'next-auth/adapters';
 
-import { ChatMessage, ChatType } from '@/types';
+import { ChatMessage, ChatType, type ProviderType } from '@/types';
 
 /**
  * This is an example of how to use the multi-project schema feature of Drizzle ORM. Use the same
@@ -231,14 +231,14 @@ export const emailVerificationCodes = createTable(
 
 /**
  * AI Provider - Stores API provider configurations
- * Supported types: openai, azure, google, vertex, anthropic, xai, deepseek
+ * Supported types: openai, azure, google, vertex, anthropic, bedrock, xai, deepseek
  */
 export const providers = createTable(
   'provider',
   {
     id: varchar('id', { length: 255 }).notNull().primaryKey(),
     name: varchar('name', { length: 100 }).notNull(),
-    type: varchar('type', { length: 50 }).notNull(),
+    type: varchar('type', { length: 50 }).$type<ProviderType>().notNull(),
     apiKey: text('api_key').notNull(),
     baseUrl: varchar('base_url', { length: 500 }),
     isEnabled: boolean('is_enabled').notNull().default(false),

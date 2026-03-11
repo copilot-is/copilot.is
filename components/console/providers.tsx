@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { Loader2, Pencil, Plus, Search, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 
+import type { ProviderType } from '@/types';
 import { ProviderTypes } from '@/lib/constant';
 import { api } from '@/trpc/react';
 import {
@@ -87,7 +88,7 @@ export default function ProvidersPage() {
 
   const [formData, setFormData] = useState({
     name: '',
-    type: 'openai' as const,
+    type: 'openai' as ProviderType,
     apiKey: '',
     image: '',
     baseUrl: '',
@@ -126,6 +127,18 @@ export default function ProvidersPage() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     let apiOptions: Record<string, unknown> | null | undefined;
+    const requiresJsonApiKey =
+      formData.type === 'vertex' || formData.type === 'bedrock';
+
+    if (requiresJsonApiKey && formData.apiKey) {
+      try {
+        JSON.parse(formData.apiKey);
+      } catch {
+        toast.error('API Key must be valid JSON for Vertex/Bedrock');
+        return;
+      }
+    }
+
     try {
       if (formData.apiOptions) {
         apiOptions = JSON.parse(formData.apiOptions);
@@ -152,6 +165,44 @@ export default function ProvidersPage() {
   };
 
   const isPending = createMutation.isPending || updateMutation.isPending;
+
+  const apiKeyPlaceholder = (() => {
+    if (formData.type === 'vertex') {
+      return `{
+  "project": "your-gcp-project-id",
+  "location": "us-central1",
+  "credentials": {
+    "type": "service_account",
+    "project_id": "your-gcp-project-id",
+    "private_key_id": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+    "private_key": "-----BEGIN PRIVATE KEY-----\\n...\\n-----END PRIVATE KEY-----\\n",
+    "client_email": "service-account@your-gcp-project-id.iam.gserviceaccount.com",
+    "client_id": "123456789012345678901"
+  }
+}`;
+    }
+    if (formData.type === 'bedrock') {
+      return `{
+  "region": "us-east-1",
+  "accessKeyId": "AKIAxxxxxxxxxxxxxxxx",
+  "secretAccessKey": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+  "sessionToken": "optional"
+}`;
+    }
+    return editingId
+      ? providers?.find(p => p.id === editingId)?.maskedKey
+      : 'Enter API Key';
+  })();
+
+  const requiresJsonApiKey =
+    formData.type === 'vertex' || formData.type === 'bedrock';
+
+  const apiKeyHelpText =
+    formData.type === 'vertex'
+      ? 'Vertex: paste JSON containing project/location and service account credentials.'
+      : formData.type === 'bedrock'
+        ? 'Bedrock: paste JSON containing region and AWS credentials.'
+        : null;
 
   const filteredProviders = providers?.filter(
     p =>
@@ -220,7 +271,7 @@ export default function ProvidersPage() {
                 <Select
                   value={formData.type}
                   onValueChange={value =>
-                    setFormData({ ...formData, type: value as any })
+                    setFormData({ ...formData, type: value as ProviderType })
                   }
                   disabled={isPending}
                 >
@@ -244,16 +295,17 @@ export default function ProvidersPage() {
                   onChange={e =>
                     setFormData({ ...formData, apiKey: e.target.value })
                   }
-                  placeholder={
-                    editingId
-                      ? providers?.find(p => p.id === editingId)?.maskedKey
-                      : 'Enter API Key'
-                  }
+                  placeholder={apiKeyPlaceholder}
                   required={!editingId}
                   disabled={isPending}
                   className="font-mono"
-                  rows={2}
+                  rows={requiresJsonApiKey ? 6 : 2}
                 />
+                {apiKeyHelpText ? (
+                  <p className="text-xs text-muted-foreground">
+                    {apiKeyHelpText}
+                  </p>
+                ) : null}
               </div>
               <div className="space-y-2">
                 <Label htmlFor="baseUrl">Base URL (optional)</Label>
@@ -270,14 +322,6 @@ export default function ProvidersPage() {
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
                   <Label htmlFor="image">Icon (optional)</Label>
-                  <a
-                    href="https://icons.lobehub.com/components/lobe-hub"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-xs text-muted-foreground hover:underline"
-                  >
-                    Browse Icons
-                  </a>
                 </div>
                 <div className="flex items-center gap-2">
                   <div className="flex size-9 shrink-0 items-center justify-center rounded-md border bg-muted/40 shadow-sm">

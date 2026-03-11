@@ -50,6 +50,7 @@ export const providerRouter = createTRPCRouter({
           'google',
           'vertex',
           'anthropic',
+          'bedrock',
           'xai',
           'deepseek'
         ]),
@@ -89,6 +90,7 @@ export const providerRouter = createTRPCRouter({
             'google',
             'vertex',
             'anthropic',
+            'bedrock',
             'xai',
             'deepseek'
           ])

@@ -1,3 +1,5 @@
+import type { ProviderType } from './provider';
+
 // Model capability type
 export type ModelCapability = 'chat' | 'image' | 'video' | 'audio';
 
@@ -30,7 +32,7 @@ export type ModelAPIParams = {
 export type ModelProvider = {
   id: string;
   name: string;
-  type: string;
+  type: ProviderType;
   image?: string | null;
   isEnabled: boolean;
 };

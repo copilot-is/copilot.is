@@ -1,3 +1,4 @@
+import { createAmazonBedrock } from '@ai-sdk/amazon-bedrock';
 import { createAnthropic } from '@ai-sdk/anthropic';
 import { createAzure } from '@ai-sdk/azure';
 import { createDeepSeek } from '@ai-sdk/deepseek';
@@ -9,7 +10,7 @@ import { ImageModel, LanguageModel, SpeechModel } from 'ai';
 
 import type { ProviderConfig } from '@/types';
 
-import { VertexAIModels } from './constant';
+import { BedrockModels, VertexAIModels } from './constant';
 import { decrypt } from './crypto';
 
 /**
@@ -17,6 +18,13 @@ import { decrypt } from './crypto';
  */
 function toVertexModelId(modelId: string): string {
   return VertexAIModels[modelId] || modelId;
+}
+
+/**
+ * Convert model ID to AWS Bedrock format if needed
+ */
+function toBedrockModelId(modelId: string): string {
+  return BedrockModels[modelId] || modelId;
 }
 
 /**
@@ -56,6 +64,16 @@ function createProviderSDK(config: ProviderConfig): any {
       });
     }
 
+    case 'bedrock': {
+      const bedrockKey = apiKey ? JSON.parse(apiKey) : undefined;
+      return createAmazonBedrock({
+        region: bedrockKey?.region || undefined,
+        accessKeyId: bedrockKey?.accessKeyId || undefined,
+        secretAccessKey: bedrockKey?.secretAccessKey || undefined,
+        sessionToken: bedrockKey?.sessionToken || undefined
+      });
+    }
+
     case 'anthropic':
       return createAnthropic({
         apiKey: apiKey || undefined,
@@ -88,7 +106,11 @@ export function getLanguageModel(
 ): LanguageModel {
   const sdk = createProviderSDK(provider);
   const resolvedModelId =
-    provider.type === 'vertex' ? toVertexModelId(modelId) : modelId;
+    provider.type === 'vertex'
+      ? toVertexModelId(modelId)
+      : provider.type === 'bedrock'
+        ? toBedrockModelId(modelId)
+        : modelId;
   return sdk(resolvedModelId);
 }
 

@@ -1,7 +1,14 @@
 'use client';
 
 import { useState } from 'react';
-import { Loader2, Pencil, Plus, Search, Trash2 } from 'lucide-react';
+import {
+  AlertCircle,
+  Loader2,
+  Pencil,
+  Plus,
+  Search,
+  Trash2
+} from 'lucide-react';
 import { toast } from 'sonner';
 
 import { api } from '@/trpc/react';
@@ -108,6 +115,50 @@ export default function ModelsPage() {
     uiOptions: '',
     apiParams: ''
   });
+
+  const uiOptionsPlaceholderByCapability: Record<string, string> = {
+    chat: `{
+  "reasoning": false
+}`,
+    image: `{
+  "size": "1024x1024",
+  "sizes": ["1024x1024"],
+  "aspectRatio": "16:9",
+  "aspectRatios": ["16:9"]
+}`,
+    video: `{
+  "duration": 6,
+  "durations": [4, 6, 8],
+  "resolution": "720p",
+  "resolutions": ["720p"],
+  "aspectRatio": "16:9",
+  "aspectRatios": ["16:9"]
+}`,
+    audio: `{
+  "voice": "",
+  "voices": []
+}`
+  };
+
+  const uiOptionsPlaceholder =
+    uiOptionsPlaceholderByCapability[formData.capability] ?? '{\n}';
+
+  const apiParamsPlaceholderByCapability: Record<string, string> = {
+    chat: `{
+  "temperature": 0.7,
+  "topP": 1,
+  "topK": 0,
+  "maxOutputTokens": 4096,
+  "frequencyPenalty": 0,
+  "presencePenalty": 0
+}`,
+    image: '{\n}',
+    video: '{}',
+    audio: '{}'
+  };
+
+  const apiParamsPlaceholder =
+    apiParamsPlaceholderByCapability[formData.capability] ?? '{}';
 
   const resetForm = () => {
     setFormData({
@@ -313,6 +364,20 @@ export default function ModelsPage() {
                   </Select>
                 </div>
                 <div className="space-y-2">
+                  <Label htmlFor="aliases">Model ID Aliases (optional)</Label>
+                  <Input
+                    id="aliases"
+                    value={formData.aliases}
+                    onChange={e =>
+                      setFormData({ ...formData, aliases: e.target.value })
+                    }
+                    placeholder="gpt-4, gpt-4-turbo"
+                    disabled={isPending}
+                  />
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
                   <Label htmlFor="capability">Capability</Label>
                   <Select
                     value={formData.capability}
@@ -333,43 +398,37 @@ export default function ModelsPage() {
                     </SelectContent>
                   </Select>
                 </div>
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="systemPromptId">System Prompt (optional)</Label>
-                <Select
-                  value={formData.systemPromptId || 'none'}
-                  onValueChange={value =>
-                    setFormData({
-                      ...formData,
-                      systemPromptId: value === 'none' ? '' : value
-                    })
-                  }
-                  disabled={isPending}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select prompt" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="none">None</SelectItem>
-                    {prompts?.map(p => (
-                      <SelectItem key={p.id} value={p.id}>
-                        {p.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <div className="space-y-2">
+                  <Label htmlFor="systemPromptId">
+                    System Prompt (optional)
+                  </Label>
+                  <Select
+                    value={formData.systemPromptId || 'none'}
+                    onValueChange={value =>
+                      setFormData({
+                        ...formData,
+                        systemPromptId: value === 'none' ? '' : value
+                      })
+                    }
+                    disabled={isPending}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select prompt" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="none">None</SelectItem>
+                      {prompts?.map(p => (
+                        <SelectItem key={p.id} value={p.id}>
+                          {p.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
                   <Label htmlFor="image">Icon (optional)</Label>
-                  <a
-                    href="https://icons.lobehub.com/components/lobe-hub"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-xs text-muted-foreground hover:underline"
-                  >
-                    Browse Icons
-                  </a>
                 </div>
                 <div className="flex items-center gap-2">
                   <div className="flex size-9 shrink-0 items-center justify-center rounded-md border bg-muted/40 shadow-sm">
@@ -398,102 +457,70 @@ export default function ModelsPage() {
                   disabled={isPending}
                 />
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="aliases">Aliases (optional)</Label>
-                <Input
-                  id="aliases"
-                  value={formData.aliases}
-                  onChange={e =>
-                    setFormData({ ...formData, aliases: e.target.value })
-                  }
-                  placeholder="gpt-4, gpt-4-turbo"
-                  disabled={isPending}
-                />
-                <p className="text-xs text-muted-foreground">
-                  Model ID aliases, e.g. gpt-4, gpt-4-turbo
-                </p>
-              </div>
               <div className="grid grid-cols-1 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="uiOptions">UI Options (JSON)</Label>
+                  <div className="flex items-center gap-2">
+                    <Label htmlFor="uiOptions">UI Options (JSON)</Label>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <button
+                          type="button"
+                          className="text-muted-foreground/60 hover:text-muted-foreground"
+                          aria-label="UI Options demo"
+                        >
+                          <AlertCircle className="size-3.5" />
+                        </button>
+                      </TooltipTrigger>
+                      <TooltipContent className="max-w-sm">
+                        <pre className="whitespace-pre-wrap font-mono text-xs">
+                          {uiOptionsPlaceholder}
+                        </pre>
+                      </TooltipContent>
+                    </Tooltip>
+                  </div>
                   <Textarea
                     id="uiOptions"
                     value={formData.uiOptions}
                     onChange={e =>
                       setFormData({ ...formData, uiOptions: e.target.value })
                     }
-                    placeholder="{}"
+                    placeholder={uiOptionsPlaceholder}
                     className="font-mono"
                     rows={3}
                     disabled={isPending}
                   />
-                  <button
-                    type="button"
-                    className="cursor-pointer text-left text-xs text-muted-foreground hover:text-primary"
-                    onClick={() =>
-                      setFormData({
-                        ...formData,
-                        uiOptions: JSON.stringify(
-                          {
-                            size: '1024x1024',
-                            sizes: ['1024x1024'],
-                            aspectRatio: '16:9',
-                            aspectRatios: ['16:9'],
-                            duration: 6,
-                            durations: [4, 6, 8],
-                            resolution: '720p',
-                            resolutions: ['720p'],
-                            voice: '',
-                            voices: [],
-                            reasoning: false
-                          },
-                          null,
-                          2
-                        )
-                      })
-                    }
-                    disabled={isPending}
-                  >
-                    {`{ "size":"", "sizes":[], "aspectRatio":"", "aspectRatios":[], "duration":6, "durations":[4,6,8], "resolution":"", "resolutions":[], "voice":"", "voices":[], "reasoning":false }`}
-                  </button>
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="apiParams">API Params (JSON)</Label>
+                  <div className="flex items-center gap-2">
+                    <Label htmlFor="apiParams">API Params (JSON)</Label>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <button
+                          type="button"
+                          className="text-muted-foreground/60 hover:text-muted-foreground"
+                          aria-label="API Params demo"
+                        >
+                          <AlertCircle className="size-3.5" />
+                        </button>
+                      </TooltipTrigger>
+                      <TooltipContent className="max-w-sm">
+                        <pre className="whitespace-pre-wrap font-mono text-xs">
+                          {apiParamsPlaceholder}
+                        </pre>
+                      </TooltipContent>
+                    </Tooltip>
+                  </div>
                   <Textarea
                     id="apiParams"
                     value={formData.apiParams}
                     onChange={e =>
                       setFormData({ ...formData, apiParams: e.target.value })
                     }
-                    placeholder="{}"
+                    placeholder={apiParamsPlaceholder}
                     className="font-mono"
                     rows={3}
                     disabled={isPending}
                   />
-                  <button
-                    type="button"
-                    className="cursor-pointer text-left text-xs text-muted-foreground hover:text-primary"
-                    onClick={() =>
-                      setFormData({
-                        ...formData,
-                        apiParams: JSON.stringify(
-                          {
-                            temperature: 0.7,
-                            topP: 1,
-                            topK: 0,
-                            maxOutputTokens: 4096,
-                            frequencyPenalty: 0,
-                            presencePenalty: 0
-                          },
-                          null,
-                          2
-                        )
-                      })
-                    }
-                    disabled={isPending}
-                  >
-                    {`{ "temperature":0.7, "topP":1, "topK":0, "maxOutputTokens":4096, "frequencyPenalty":0, "presencePenalty":0 }`}
-                  </button>
                 </div>
               </div>
               <div className="flex flex-wrap gap-4">
