@@ -39,6 +39,7 @@ import {
   TooltipContent,
   TooltipTrigger
 } from '@/components/ui/tooltip';
+import { IconPicker } from '@/components/console/icon-picker';
 import { ModelIcon } from '@/components/model-icon';
 
 export default function ProvidersPage() {
@@ -278,13 +279,30 @@ export default function ProvidersPage() {
                     Browse Icons
                   </a>
                 </div>
-                <Input
-                  id="image"
+                <div className="flex items-center gap-2">
+                  <div className="flex size-9 shrink-0 items-center justify-center rounded-md border bg-muted/40 shadow-sm">
+                    {formData.image ? (
+                      <ModelIcon image={formData.image} className="size-4" />
+                    ) : null}
+                  </div>
+                  <Input
+                    id="image"
+                    value={formData.image}
+                    onChange={e =>
+                      setFormData({ ...formData, image: e.target.value })
+                    }
+                    placeholder="https:// or Base64 or IconName (e.g. Gemini.Color)"
+                    disabled={isPending}
+                  />
+                </div>
+                <IconPicker
                   value={formData.image}
-                  onChange={e =>
-                    setFormData({ ...formData, image: e.target.value })
+                  onChange={value =>
+                    setFormData({
+                      ...formData,
+                      image: value
+                    })
                   }
-                  placeholder="https:// or Base64 or IconName"
                   disabled={isPending}
                 />
               </div>
