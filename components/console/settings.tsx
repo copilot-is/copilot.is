@@ -102,6 +102,9 @@ export default function SettingsPage() {
       settings.forEach(s => {
         data[s.key] = s.value || '';
       });
+      if (!data['speech.enabled']) {
+        data['speech.enabled'] = 'false';
+      }
       setFormData(data);
     }
   }, [settings]);
@@ -359,14 +362,14 @@ export default function SettingsPage() {
               <Label>Enable Speech</Label>
               <div className="flex items-center space-x-2">
                 <Switch
-                  checked={formData['speech.enabled'] !== 'false'}
+                  checked={formData['speech.enabled'] === 'true'}
                   onCheckedChange={checked =>
                     handleChange('speech.enabled', String(checked))
                   }
                   disabled={bulkUpdateMutation.isPending}
                 />
                 <Label className="font-normal text-muted-foreground">
-                  {formData['speech.enabled'] !== 'false'
+                  {formData['speech.enabled'] === 'true'
                     ? 'Enabled'
                     : 'Disabled'}
                 </Label>
@@ -377,7 +380,7 @@ export default function SettingsPage() {
                 <Label>Default Speech Model</Label>
                 <Select
                   disabled={
-                    formData['speech.enabled'] === 'false' ||
+                    formData['speech.enabled'] !== 'true' ||
                     !speechModels?.length ||
                     bulkUpdateMutation.isPending
                   }
@@ -412,7 +415,7 @@ export default function SettingsPage() {
                 <Label>Default Speech Voice</Label>
                 <Select
                   disabled={
-                    formData['speech.enabled'] === 'false' ||
+                    formData['speech.enabled'] !== 'true' ||
                     !speechVoices?.length ||
                     bulkUpdateMutation.isPending
                   }
