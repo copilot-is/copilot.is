@@ -235,6 +235,7 @@ export default function ModelsPage() {
       uiOptions,
       apiParams
     };
+
     if (editingId) {
       updateMutation.mutate({ id: editingId, ...data });
     } else {

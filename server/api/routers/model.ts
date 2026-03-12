@@ -1,4 +1,4 @@
-import { and, eq } from 'drizzle-orm';
+import { and, eq, ne } from 'drizzle-orm';
 import { z } from 'zod';
 
 import { generateUUID } from '@/lib/utils';
@@ -82,6 +82,21 @@ export const modelRouter = createTRPCRouter({
       })
     )
     .mutation(async ({ ctx, input }) => {
+      const normalizedModelId = input.modelId.trim();
+      const normalizedProviderId = input.providerId;
+
+      const existingModel = await ctx.db.query.models.findFirst({
+        where: and(
+          eq(models.modelId, normalizedModelId),
+          eq(models.providerId, normalizedProviderId)
+        )
+      });
+      if (existingModel) {
+        throw new Error(
+          'Model ID already exists; please choose a different Model ID'
+        );
+      }
+
       // Validate system prompt is of type 'system'
       if (input.systemPromptId) {
         const prompt = await ctx.db.query.prompts.findFirst({
@@ -99,7 +114,7 @@ export const modelRouter = createTRPCRouter({
       await ctx.db.insert(models).values({
         id,
         name: input.name,
-        modelId: input.modelId,
+        modelId: normalizedModelId,
         providerId: input.providerId,
         capability: input.capability,
         image: input.image,
@@ -163,6 +178,10 @@ export const modelRouter = createTRPCRouter({
     )
     .mutation(async ({ ctx, input }) => {
       const { id, ...updates } = input;
+      const sanitizedUpdates = { ...updates };
+      if (sanitizedUpdates.modelId) {
+        sanitizedUpdates.modelId = sanitizedUpdates.modelId.trim();
+      }
 
       // Validate system prompt is of type 'system'
       if (updates.systemPromptId) {
@@ -177,9 +196,36 @@ export const modelRouter = createTRPCRouter({
         }
       }
 
+      const existingModel = await ctx.db.query.models.findFirst({
+        where: eq(models.id, id)
+      });
+      if (!existingModel) {
+        throw new Error('Model not found');
+      }
+
+      const targetModelId = sanitizedUpdates.modelId
+        ? sanitizedUpdates.modelId
+        : existingModel.modelId;
+      const targetProviderId = sanitizedUpdates.providerId
+        ? sanitizedUpdates.providerId
+        : existingModel.providerId;
+
+      const duplicateModel = await ctx.db.query.models.findFirst({
+        where: and(
+          eq(models.modelId, targetModelId),
+          eq(models.providerId, targetProviderId),
+          ne(models.id, id)
+        )
+      });
+      if (duplicateModel) {
+        throw new Error(
+          'Model ID already exists; please choose a different Model ID'
+        );
+      }
+
       await ctx.db
         .update(models)
-        .set({ ...updates, updatedAt: new Date() })
+        .set({ ...sanitizedUpdates, updatedAt: new Date() })
         .where(eq(models.id, id));
     }),
 
