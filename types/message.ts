@@ -25,7 +25,8 @@ export type DBMessage = Omit<
 export const messageMetadataSchema = z.object({
   parentId: z.string().nullable().optional(),
   createdAt: z.coerce.date().optional(),
-  updatedAt: z.coerce.date().optional()
+  updatedAt: z.coerce.date().optional(),
+  reasonDuration: z.number().int().nonnegative().optional()
 });
 
 export type MessageMetadata = z.infer<typeof messageMetadataSchema>;

@@ -1,4 +1,4 @@
-import { and, eq } from 'drizzle-orm';
+import { and, eq, isNotNull } from 'drizzle-orm';
 import { z } from 'zod';
 
 import { generateUUID } from '@/lib/utils';
@@ -7,7 +7,7 @@ import {
   protectedProcedure,
   publicProcedure
 } from '@/server/api/trpc';
-import { chats, shares } from '@/server/db/schema';
+import { artifacts, chats, shares } from '@/server/db/schema';
 
 export const shareRouter = createTRPCRouter({
   create: protectedProcedure
@@ -107,6 +107,13 @@ export const shareRouter = createTRPCRouter({
                 orderBy: (messages, { asc }) => [asc(messages.createdAt)],
                 columns: {
                   chatId: false,
+                  userId: false
+                }
+              },
+              artifacts: {
+                where: isNotNull(artifacts.messageId),
+                orderBy: (artifacts, { asc }) => [asc(artifacts.createdAt)],
+                columns: {
                   userId: false
                 }
               }

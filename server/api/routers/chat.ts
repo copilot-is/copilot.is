@@ -1,9 +1,9 @@
-import { and, eq } from 'drizzle-orm';
+import { and, eq, isNotNull } from 'drizzle-orm';
 import { z } from 'zod';
 
 import { chatTypeSchema, messageSchema } from '@/types';
 import { createTRPCRouter, protectedProcedure } from '@/server/api/trpc';
-import { chats, messages } from '@/server/db/schema';
+import { artifacts, chats, messages } from '@/server/db/schema';
 
 export const chatRouter = createTRPCRouter({
   create: protectedProcedure
@@ -94,7 +94,8 @@ export const chatRouter = createTRPCRouter({
       z.object({
         id: z.string().min(1),
         type: chatTypeSchema.optional(),
-        includeMessages: z.boolean().default(true)
+        includeMessages: z.boolean().default(true),
+        includeArtifacts: z.boolean().default(false)
       })
     )
     .query(async ({ ctx, input }) => {
@@ -117,6 +118,18 @@ export const chatRouter = createTRPCRouter({
                 columns: {
                   userId: false,
                   chatId: false
+                }
+              }
+            : undefined,
+          artifacts: input.includeArtifacts
+            ? {
+                where: and(
+                  eq(artifacts.userId, ctx.session.user.id),
+                  isNotNull(artifacts.messageId)
+                ),
+                orderBy: (artifacts, { asc }) => [asc(artifacts.createdAt)],
+                columns: {
+                  userId: false
                 }
               }
             : undefined

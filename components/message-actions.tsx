@@ -48,7 +48,7 @@ interface MessageActionsProps extends Partial<
 > {
   modelId: string;
   message: ChatMessage;
-  reload?: () => void;
+  reload?: (message: ChatMessage) => void;
   isReadonly?: boolean;
   isLastMessage?: boolean;
 }
@@ -260,7 +260,7 @@ export function MessageActions({
               variant="ghost"
               size="icon"
               className="group/retry h-7 w-auto gap-1 px-1.5 text-muted-foreground"
-              onClick={() => reload()}
+              onClick={() => reload(message)}
               disabled={status !== 'ready' && status !== 'error'}
             >
               <RefreshCw className="size-4" />
@@ -335,7 +335,7 @@ export function MessageActions({
                             setEditDialogOpen(false);
 
                             if (message.role === 'user') {
-                              reload();
+                              reload(updated);
                             }
                           } catch (error: any) {
                             toast.error(

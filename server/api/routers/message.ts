@@ -1,9 +1,9 @@
-import { and, eq, or } from 'drizzle-orm';
+import { and, eq, inArray, or } from 'drizzle-orm';
 import { z } from 'zod';
 
 import { messageSchema } from '@/types';
 import { createTRPCRouter, protectedProcedure } from '@/server/api/trpc';
-import { messages } from '@/server/db/schema';
+import { artifacts, messages } from '@/server/db/schema';
 
 export const messageRouter = createTRPCRouter({
   list: protectedProcedure
@@ -40,6 +40,7 @@ export const messageRouter = createTRPCRouter({
             parts: message.parts,
             chatId: input.chatId,
             userId: ctx.session.user.id,
+            reasonDuration: message.metadata?.reasonDuration,
             createdAt: message.metadata?.createdAt,
             updatedAt: message.metadata?.updatedAt
           }))
@@ -49,6 +50,7 @@ export const messageRouter = createTRPCRouter({
           parentId: messages.parentId,
           role: messages.role,
           parts: messages.parts,
+          reasonDuration: messages.reasonDuration,
           createdAt: messages.createdAt,
           updatedAt: messages.updatedAt
         });
@@ -82,6 +84,7 @@ export const messageRouter = createTRPCRouter({
           parentId: messages.parentId,
           role: messages.role,
           parts: messages.parts,
+          reasonDuration: messages.reasonDuration,
           createdAt: messages.createdAt,
           updatedAt: messages.updatedAt
         });
@@ -101,19 +104,32 @@ export const messageRouter = createTRPCRouter({
         })
     )
     .mutation(async ({ ctx, input }) => {
-      let conditions;
+      const conditions = input.id
+        ? or(eq(messages.id, input.id), eq(messages.parentId, input.id))
+        : eq(messages.parentId, input.parentId!);
 
-      if (input.id) {
-        conditions = or(
-          eq(messages.id, input.id),
-          eq(messages.parentId, input.id)
-        );
-      } else if (input.parentId) {
-        conditions = eq(messages.parentId, input.parentId);
-      }
+      await ctx.db.transaction(async tx => {
+        const targetMessages = await tx
+          .select({ id: messages.id })
+          .from(messages)
+          .where(and(conditions, eq(messages.userId, ctx.session.user.id)));
 
-      await ctx.db
-        .delete(messages)
-        .where(and(conditions, eq(messages.userId, ctx.session.user.id)));
+        const targetMessageIds = targetMessages.map(message => message.id);
+
+        if (targetMessageIds.length > 0) {
+          await tx
+            .delete(artifacts)
+            .where(
+              and(
+                inArray(artifacts.messageId, targetMessageIds),
+                eq(artifacts.userId, ctx.session.user.id)
+              )
+            );
+        }
+
+        await tx
+          .delete(messages)
+          .where(and(conditions, eq(messages.userId, ctx.session.user.id)));
+      });
     })
 });

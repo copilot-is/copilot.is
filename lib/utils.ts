@@ -55,6 +55,7 @@ export function convertToChatMessages(messages: DBMessage[]): ChatMessage[] {
     parts: message.parts as UIMessagePart<CustomUIDataTypes, UITools>[],
     metadata: {
       parentId: message.parentId,
+      reasonDuration: message.reasonDuration ?? undefined,
       createdAt: message.createdAt,
       updatedAt: message.updatedAt
     }

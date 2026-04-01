@@ -1,3 +1,4 @@
+import { ArtifactProvider } from '@/contexts/artifact-context';
 import { PreferencesProvider } from '@/contexts/preferences-context';
 import { SystemSettingsProvider } from '@/contexts/system-settings-context';
 
@@ -15,12 +16,14 @@ export default async function Layout({ children }: LayoutProps) {
   return (
     <SystemSettingsProvider settings={settings}>
       <PreferencesProvider>
-        <SidebarProvider className="h-svh overflow-hidden">
-          <Sidebar />
-          <SidebarInset className="h-full overflow-hidden">
-            {children}
-          </SidebarInset>
-        </SidebarProvider>
+        <ArtifactProvider>
+          <SidebarProvider className="h-svh overflow-hidden">
+            <Sidebar />
+            <SidebarInset className="h-full overflow-hidden">
+              {children}
+            </SidebarInset>
+          </SidebarProvider>
+        </ArtifactProvider>
       </PreferencesProvider>
     </SystemSettingsProvider>
   );

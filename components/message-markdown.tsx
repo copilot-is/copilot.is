@@ -1,7 +1,7 @@
 import React from 'react';
 import remarkGfm from 'remark-gfm';
 
-import { CodeBlock } from '@/components/ui/codeblock';
+import { CodeBlock } from '@/components/codeblock';
 import { MemoizedReactMarkdown } from '@/components/markdown';
 
 interface MessageMarkdownProps {
@@ -31,7 +31,10 @@ export function MessageMarkdown({ content }: MessageMarkdownProps) {
               childArray[0] = firstChildAsString.replace('`▍`', '▍');
             }
 
-            const match = /language-(\w+)/.exec(className || '');
+            const languageClass = (className || '')
+              .split(/\s+/)
+              .find(token => token.startsWith('language-'));
+            const language = languageClass?.slice('language-'.length) || '';
 
             if (
               typeof firstChildAsString === 'string' &&
@@ -46,9 +49,9 @@ export function MessageMarkdown({ content }: MessageMarkdownProps) {
 
             return (
               <CodeBlock
-                key={Math.random()}
-                language={(match && match[1]) || ''}
+                language={language}
                 value={String(childArray).replace(/\n$/, '')}
+                showLineNumbers={false}
                 {...props}
               />
             );

@@ -4,7 +4,7 @@ import { format } from 'date-fns';
 
 import { convertToChatMessages } from '@/lib/utils';
 import { api } from '@/trpc/server';
-import { Messages } from '@/components/messages';
+import { SharedChatView } from '@/components/shared-chat-view';
 
 interface PageProps {
   params: Promise<{
@@ -44,11 +44,11 @@ export default async function Page(props: PageProps) {
           </div>
         </div>
       </div>
-      <Messages
+      <SharedChatView
         className="pb-5"
         modelId={chat.modelId}
         messages={chatMessages}
-        isReadonly={true}
+        artifacts={chat.artifacts ?? []}
       />
     </div>
   );

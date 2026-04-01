@@ -1,5 +1,6 @@
 import { z } from 'zod';
 
+import type { Artifact } from './artifact';
 import type { ChatMessage } from './message';
 
 export const chatTypeSchema = z.enum(['chat', 'audio', 'image', 'video']);
@@ -11,6 +12,7 @@ export type Chat = {
   type: ChatType;
   modelId: string;
   messages: ChatMessage[];
+  artifacts?: Artifact[];
   createdAt: Date;
   updatedAt: Date;
 };

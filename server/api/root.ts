@@ -1,3 +1,4 @@
+import { artifactRouter } from '@/server/api/routers/artifact';
 import { chatRouter } from '@/server/api/routers/chat';
 import { messageRouter } from '@/server/api/routers/message';
 import { modelRouter } from '@/server/api/routers/model';
@@ -16,6 +17,7 @@ import { createCallerFactory, createTRPCRouter } from '@/server/api/trpc';
 export const appRouter = createTRPCRouter({
   chat: chatRouter,
   message: messageRouter,
+  artifact: artifactRouter,
   share: shareRouter,
   // Admin console routers
   provider: providerRouter,

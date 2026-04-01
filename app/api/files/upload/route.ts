@@ -40,6 +40,7 @@ const createFileSchema = (type: UploadType) => {
       })
       .refine(
         file =>
+          (uploadConfig.allowedTypes as readonly string[]).includes('*') ||
           (uploadConfig.allowedTypes as readonly string[]).includes(file.type),
         {
           message: `File type should be ${uploadConfig.allowedTypes.map(t => t.split('/')[1]?.toUpperCase()).join(', ')}`

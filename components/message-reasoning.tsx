@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { ReasoningUIPart } from 'ai';
 import { AnimatePresence, motion } from 'framer-motion';
 import { ChevronDown, Lightbulb, Loader2 } from 'lucide-react';
@@ -11,14 +11,51 @@ export interface MessageReasoningProps {
   isLoading: boolean;
   isWaiting?: boolean;
   part: ReasoningUIPart;
+  reasonDuration?: number;
 }
+
+const formatReasonDuration = (
+  duration?: number,
+  options?: {
+    allowSubsecond?: boolean;
+  }
+) => {
+  if (!duration) return null;
+
+  if (options?.allowSubsecond && duration < 1000) {
+    const tenths = Math.max(0.1, Math.round(duration / 100) / 10);
+    return Number.isInteger(tenths) ? `${tenths}s` : `${tenths.toFixed(1)}s`;
+  }
+
+  if (duration < 1000) return null;
+
+  const totalSeconds = duration / 1000;
+
+  if (totalSeconds < 10) {
+    const roundedToTenth = Math.round(totalSeconds * 10) / 10;
+    return Number.isInteger(roundedToTenth)
+      ? `${roundedToTenth}s`
+      : `${roundedToTenth.toFixed(1)}s`;
+  }
+
+  if (totalSeconds < 60) {
+    return `${Math.round(totalSeconds)}s`;
+  }
+
+  const minutes = Math.floor(totalSeconds / 60);
+  const seconds = Math.round(totalSeconds % 60);
+
+  return `${minutes}m ${seconds}s`;
+};
 
 export function MessageReasoning({
   isLoading,
   isWaiting,
-  part
+  part,
+  reasonDuration
 }: MessageReasoningProps) {
   const [isExpanded, setIsExpanded] = useState(true);
+  const [liveDuration, setLiveDuration] = useState(reasonDuration ?? 0);
 
   const variants = {
     collapsed: {
@@ -35,8 +72,37 @@ export function MessageReasoning({
   const hasText = text.trim().length > 0;
 
   // Keep showing if it's loading, if it has text, or if we are still waiting for the first piece of normal text to arrive.
-  const showThinking = isLoading || (isWaiting && !hasText);
+  const showThinking = isLoading || isWaiting;
   const showReasoning = hasText || showThinking;
+
+  useEffect(() => {
+    if (!isLoading) {
+      setLiveDuration(reasonDuration ?? 0);
+      return;
+    }
+
+    const startedAt = Date.now();
+    const baseDuration = reasonDuration ?? 0;
+
+    setLiveDuration(baseDuration);
+
+    const intervalId = window.setInterval(() => {
+      setLiveDuration(baseDuration + (Date.now() - startedAt));
+    }, 100);
+
+    return () => {
+      window.clearInterval(intervalId);
+    };
+  }, [isLoading, reasonDuration]);
+
+  const currentThinkingDurationMs = isLoading
+    ? Math.max(liveDuration, 100)
+    : undefined;
+
+  const durationLabel = formatReasonDuration(
+    showThinking ? currentThinkingDurationMs : reasonDuration,
+    { allowSubsecond: isLoading }
+  );
 
   if (!showReasoning) {
     return null;
@@ -47,7 +113,7 @@ export function MessageReasoning({
       <Button
         variant="link"
         size="sm"
-        className="-ml-1 flex items-center gap-1 px-0 text-sm font-normal text-muted-foreground shadow-none hover:text-accent-foreground hover:no-underline"
+        className="-ml-1 flex items-center gap-1 px-0 text-sm font-normal text-muted-foreground shadow-none hover:text-accent-foreground hover:no-underline disabled:opacity-100"
         onClick={() => {
           setIsExpanded(!isExpanded);
         }}
@@ -56,12 +122,16 @@ export function MessageReasoning({
         {showThinking ? (
           <>
             <Loader2 className="animate-spin text-muted-foreground" />
-            <span className="text-muted-foreground">Thinking...</span>
+            <span className="text-muted-foreground">
+              {durationLabel ? `Thinking ${durationLabel}` : 'Thinking...'}
+            </span>
           </>
         ) : (
           <>
             <Lightbulb />
-            <span>Thoughts</span>
+            <span>
+              {durationLabel ? `Thoughts ${durationLabel}` : 'Thoughts'}
+            </span>
             <ChevronDown
               className={cn('transition-transform', {
                 'rotate-180': isExpanded

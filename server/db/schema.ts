@@ -53,12 +53,6 @@ export const chats = createTable(
   ]
 );
 
-export const chatsRelations = relations(chats, ({ one, many }) => ({
-  user: one(users, { fields: [chats.userId], references: [users.id] }),
-  model: one(models, { fields: [chats.modelId], references: [models.modelId] }),
-  messages: many(messages)
-}));
-
 export const messages = createTable(
   'message',
   {
@@ -77,6 +71,7 @@ export const messages = createTable(
     chatId: varchar('chat_id', { length: 255 })
       .notNull()
       .references(() => chats.id, { onDelete: 'cascade' }),
+    reasonDuration: integer('reason_duration'),
     createdAt: timestamp('created_at').notNull().defaultNow(),
     updatedAt: timestamp('updated_at').notNull().defaultNow()
   },
@@ -95,6 +90,62 @@ export const messagesRelations = relations(messages, ({ one }) => ({
     fields: [messages.parentId],
     references: [messages.id]
   })
+}));
+
+export const artifacts = createTable(
+  'artifact',
+  {
+    id: varchar('id', { length: 255 }).notNull().primaryKey(),
+    chatId: varchar('chat_id', { length: 255 })
+      .notNull()
+      .references(() => chats.id, { onDelete: 'cascade' }),
+    messageId: varchar('message_id', { length: 255 })
+      .notNull()
+      .references((): PgColumn => messages.id, { onDelete: 'cascade' }),
+    userId: varchar('user_id', { length: 255 })
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
+    title: varchar('title', { length: 255 }).notNull(),
+    type: varchar('type', { length: 32 })
+      .notNull()
+      .$type<
+        'code' | 'markdown' | 'html' | 'json' | 'text' | 'image' | 'file'
+      >(),
+    language: varchar('language', { length: 64 }),
+    content: text('content'),
+    fileUrl: text('file_url'),
+    fileName: varchar('file_name', { length: 255 }),
+    mimeType: varchar('mime_type', { length: 255 }),
+    size: integer('size'),
+    createdAt: timestamp('created_at').notNull().defaultNow(),
+    updatedAt: timestamp('updated_at').notNull().defaultNow()
+  },
+  artifact => [
+    index('artifact_chatId_idx').on(artifact.chatId),
+    index('artifact_messageId_idx').on(artifact.messageId),
+    index('artifact_userId_idx').on(artifact.userId),
+    index('artifact_createdAt_idx').on(artifact.createdAt),
+    index('artifact_chatId_createdAt_idx').on(
+      artifact.chatId,
+      artifact.createdAt
+    )
+  ]
+);
+
+export const artifactsRelations = relations(artifacts, ({ one }) => ({
+  chat: one(chats, { fields: [artifacts.chatId], references: [chats.id] }),
+  message: one(messages, {
+    fields: [artifacts.messageId],
+    references: [messages.id]
+  }),
+  user: one(users, { fields: [artifacts.userId], references: [users.id] })
+}));
+
+export const chatsRelations = relations(chats, ({ one, many }) => ({
+  user: one(users, { fields: [chats.userId], references: [users.id] }),
+  model: one(models, { fields: [chats.modelId], references: [models.modelId] }),
+  messages: many(messages),
+  artifacts: many(artifacts)
 }));
 
 export const shares = createTable(

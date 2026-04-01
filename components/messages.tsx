@@ -3,8 +3,9 @@
 import * as React from 'react';
 import { UseChatHelpers } from '@ai-sdk/react';
 
-import { ChatMessage } from '@/types';
+import { Artifact, ChatMessage } from '@/types';
 import { cn } from '@/lib/utils';
+import { ArtifactInlineList } from '@/components/artifact-inline';
 import { Message } from '@/components/message';
 import { MessageActions } from '@/components/message-actions';
 import { MessageLoading } from '@/components/message-loading';
@@ -21,10 +22,12 @@ export interface MessagesProps
   currentModelId?: string;
   /** Current image (for loading) */
   currentImage?: string | null;
-  reload?: () => void;
+  reload?: (message: ChatMessage) => void;
   isReadonly?: boolean;
   supportsReasoning?: boolean | null;
   className?: string;
+  artifacts?: Artifact[];
+  onSelectArtifact?: (id: string) => void;
 }
 
 export function Messages({
@@ -38,41 +41,154 @@ export function Messages({
   setMessages,
   isReadonly,
   supportsReasoning,
-  className
+  className,
+  artifacts,
+  onSelectArtifact
 }: MessagesProps) {
   if (!messages.length) {
     return null;
   }
 
+  const getReasoningText = (message: ChatMessage) =>
+    message.parts
+      .filter(part => part.type === 'reasoning')
+      .map(part => part.text || (part as any).reasoning || '')
+      .join('\n')
+      .trim();
+
+  const hasVisibleMessageContent = (message: ChatMessage) => {
+    return message.parts.some(part => {
+      if (part.type === 'text') {
+        return part.text.trim().length > 0 || part.state === 'streaming';
+      }
+
+      if (part.type === 'reasoning') {
+        return getReasoningText(message).length > 0;
+      }
+
+      return part.type === 'file';
+    });
+  };
+
+  const hasVisibleArtifactContent = (artifact: Artifact) => {
+    if (artifact.type === 'image' || artifact.type === 'file') {
+      return Boolean(artifact.fileUrl);
+    }
+
+    return (artifact.content ?? '').length > 0;
+  };
+
+  const artifactsByMessage = artifacts?.reduce<Record<string, Artifact[]>>(
+    (acc, artifact) => {
+      if (!artifact.messageId) return acc;
+      acc[artifact.messageId] ||= [];
+      acc[artifact.messageId].push(artifact);
+      return acc;
+    },
+    {}
+  );
+
+  const displayItems: Array<{
+    kind: 'message';
+    message: ChatMessage;
+    index: number;
+    artifacts: Artifact[];
+    hasVisibleArtifacts: boolean;
+    hideMessageBody?: boolean;
+    showActions?: boolean;
+  }> = [];
+
+  messages.forEach((message, index) => {
+    const messageArtifacts = message.id
+      ? (artifactsByMessage?.[message.id] ?? [])
+      : [];
+    const hasMessageContent = hasVisibleMessageContent(message);
+    const hasRenderableArtifacts = messageArtifacts.some(
+      hasVisibleArtifactContent
+    );
+    const isPendingAssistantPlaceholder =
+      message.role === 'assistant' &&
+      !hasMessageContent &&
+      !hasRenderableArtifacts &&
+      index === messages.length - 1 &&
+      (status === 'submitted' || status === 'streaming');
+    const hideMessageBody =
+      message.role === 'assistant' &&
+      !hasMessageContent &&
+      hasRenderableArtifacts;
+
+    const shouldRenderMessage =
+      message.role !== 'assistant' ||
+      hasMessageContent ||
+      hasRenderableArtifacts ||
+      isPendingAssistantPlaceholder;
+
+    if (!shouldRenderMessage) {
+      return;
+    }
+
+    displayItems.push({
+      kind: 'message',
+      message,
+      index,
+      artifacts: messageArtifacts,
+      hasVisibleArtifacts: hasRenderableArtifacts,
+      hideMessageBody,
+      showActions: true
+    });
+  });
+
   return (
     <div className={cn('mx-auto w-full max-w-4xl flex-1 px-4 py-6', className)}>
-      {messages.map((message: ChatMessage, index: number) => {
-        const isLastMessage = index === messages.length - 1;
+      {displayItems.map((item, visibleIndex) => {
+        const {
+          message,
+          index,
+          artifacts: messageArtifacts,
+          hasVisibleArtifacts,
+          hideMessageBody,
+          showActions
+        } = item;
+        const isLastMessage = visibleIndex === displayItems.length - 1;
+        const messageKey = message.id || `${message.role}-${index}`;
+
         return (
-          <Message
-            key={index}
-            status={status}
-            message={message}
-            image={image}
-            isLastMessage={isLastMessage}
-            supportsReasoning={supportsReasoning}
-          >
-            <MessageActions
-              modelId={currentModelId || modelId}
+          <div key={messageKey}>
+            <Message
               status={status}
-              reload={reload}
               message={message}
-              setMessages={setMessages}
+              image={image}
               isLastMessage={isLastMessage}
-              isReadonly={isReadonly}
-            />
-          </Message>
+              supportsReasoning={supportsReasoning}
+              hasVisibleArtifacts={hasVisibleArtifacts}
+              hideMessageBody={hideMessageBody}
+            >
+              {messageArtifacts.length > 0 && (
+                <ArtifactInlineList
+                  artifacts={messageArtifacts}
+                  onSelect={onSelectArtifact}
+                />
+              )}
+              {showActions !== false && (
+                <MessageActions
+                  modelId={currentModelId || modelId}
+                  status={status}
+                  reload={reload}
+                  message={message}
+                  setMessages={setMessages}
+                  isLastMessage={isLastMessage}
+                  isReadonly={isReadonly}
+                />
+              )}
+            </Message>
+          </div>
         );
       })}
 
-      {status === 'submitted' && (
-        <MessageLoading image={currentImage || image} />
-      )}
+      {status === 'submitted' &&
+        displayItems[displayItems.length - 1]?.message.role !== 'assistant' && (
+          <MessageLoading image={currentImage || image} />
+        )}
     </div>
   );
 }

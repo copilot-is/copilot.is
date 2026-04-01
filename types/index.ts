@@ -20,3 +20,5 @@ export type {
 export type { ProviderConfig, ProviderType } from './provider';
 export type { Result } from './result';
 export type { SharedLink } from './shared-link';
+export { artifactTypeSchema } from './artifact';
+export type { Artifact, ArtifactType } from './artifact';
