@@ -1,5 +1,6 @@
 import crypto from 'crypto';
 
+import type { VertexServiceAccountKey } from '@/types';
 import { env } from '@/lib/env';
 
 const ALGORITHM = 'aes-256-gcm';
@@ -10,6 +11,10 @@ function deriveKey(): Buffer {
 }
 
 export function encrypt(text: string): string {
+  if (!text) {
+    throw new Error('Cannot encrypt empty text');
+  }
+
   const key = deriveKey();
   const iv = crypto.randomBytes(IV_LENGTH);
   const cipher = crypto.createCipheriv(ALGORITHM, key, iv);
@@ -25,17 +30,11 @@ export function encrypt(text: string): string {
   ].join(':');
 }
 
-export function maskKey(encrypted: string): string {
-  try {
-    const text = decrypt(encrypted);
-    if (text.length <= 8) return '••••••••';
-    return text.slice(0, 4) + '••••••••' + text.slice(-4);
-  } catch {
-    return '••••••••';
-  }
-}
-
 export function decrypt(encrypted: string): string {
+  if (!encrypted) {
+    throw new Error('Encrypted text is required');
+  }
+
   const [ivHex, authTagHex, dataHex] = encrypted.split(':');
   if (!ivHex || !authTagHex || !dataHex) {
     throw new Error('Invalid encrypted format');
@@ -47,4 +46,43 @@ export function decrypt(encrypted: string): string {
   const decipher = crypto.createDecipheriv(ALGORITHM, key, iv);
   decipher.setAuthTag(authTag);
   return decipher.update(data, undefined, 'utf8') + decipher.final('utf8');
+}
+
+export function maskKey(text: string): string {
+  if (text.length <= 8) return '••••••••';
+  return text.slice(0, 4) + '••••••••' + text.slice(-4);
+}
+
+export function maskedKey(
+  providerType: string,
+  encrypted?: string | null
+): string | VertexServiceAccountKey {
+  let text = '';
+
+  try {
+    text = decrypt(encrypted || '');
+  } catch {
+    return '';
+  }
+
+  if (providerType === 'vertex') {
+    let vertexKey: VertexServiceAccountKey | null = null;
+
+    try {
+      vertexKey = JSON.parse(text) as VertexServiceAccountKey;
+    } catch {}
+
+    if (vertexKey?.location && vertexKey.credentials) {
+      return {
+        location: vertexKey.location,
+        credentials: {
+          ...vertexKey.credentials,
+          private_key_id: maskKey(vertexKey.credentials.private_key_id || ''),
+          private_key: maskKey(vertexKey.credentials.private_key || '')
+        }
+      };
+    }
+  }
+
+  return maskKey(text);
 }

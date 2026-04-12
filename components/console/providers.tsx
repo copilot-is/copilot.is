@@ -1,10 +1,14 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, type ChangeEvent } from 'react';
 import { Loader2, Pencil, Plus, Search, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 
-import type { ProviderType } from '@/types';
+import type {
+  ProviderType,
+  VertexAuthMode,
+  VertexServiceAccountKey
+} from '@/types';
 import { ProviderTypes } from '@/lib/constant';
 import { api } from '@/trpc/react';
 import {
@@ -48,6 +52,7 @@ export default function ProvidersPage() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [search, setSearch] = useState('');
+  const [vertexMaskedApiKey, setVertexMaskedApiKey] = useState('');
 
   const utils = api.useUtils();
   const { data: providers, isLoading } = api.provider.list.useQuery();
@@ -90,6 +95,8 @@ export default function ProvidersPage() {
     name: '',
     type: 'openai' as ProviderType,
     apiKey: '',
+    vertexAuthMode: 'service_account' as VertexAuthMode,
+    vertexLocation: '',
     image: '',
     baseUrl: '',
     isEnabled: true,
@@ -101,19 +108,40 @@ export default function ProvidersPage() {
       name: '',
       type: 'openai',
       apiKey: '',
+      vertexAuthMode: 'service_account',
+      vertexLocation: '',
       image: '',
       baseUrl: '',
       isEnabled: true,
       apiOptions: ''
     });
+    setVertexMaskedApiKey('');
   };
 
   const handleEdit = (provider: any) => {
+    const maskedVertexKey =
+      provider.type === 'vertex' &&
+      typeof provider.maskedKey === 'object' &&
+      provider.maskedKey !== null &&
+      !Array.isArray(provider.maskedKey) &&
+      typeof provider.maskedKey.location === 'string' &&
+      typeof provider.maskedKey.credentials === 'object' &&
+      provider.maskedKey.credentials !== null &&
+      !Array.isArray(provider.maskedKey.credentials)
+        ? {
+            location: provider.maskedKey.location,
+            credentials: provider.maskedKey
+              .credentials as VertexServiceAccountKey['credentials']
+          }
+        : null;
+
     setEditingId(provider.id);
     setFormData({
       name: provider.name,
       type: provider.type,
       apiKey: '',
+      vertexAuthMode: maskedVertexKey ? 'service_account' : 'api_key',
+      vertexLocation: maskedVertexKey?.location || '',
       image: provider.image || '',
       baseUrl: provider.baseUrl || '',
       isEnabled: provider.isEnabled,
@@ -121,27 +149,181 @@ export default function ProvidersPage() {
         ? JSON.stringify(provider.apiOptions, null, 2)
         : ''
     });
+    setVertexMaskedApiKey(
+      maskedVertexKey
+        ? JSON.stringify(maskedVertexKey.credentials, null, 2)
+        : ''
+    );
     setIsOpen(true);
+  };
+
+  const handleTypeChange = (value: string) => {
+    const nextType = value as ProviderType;
+
+    setFormData(current => ({
+      ...current,
+      type: nextType,
+      apiKey:
+        current.type === 'vertex' || nextType === 'vertex'
+          ? ''
+          : current.apiKey,
+      vertexAuthMode:
+        nextType === 'vertex' ? 'service_account' : current.vertexAuthMode,
+      vertexLocation: nextType === 'vertex' ? current.vertexLocation : ''
+    }));
+    setVertexMaskedApiKey('');
+  };
+
+  const handleVertexCredentialChange = async (
+    e: ChangeEvent<HTMLInputElement>
+  ) => {
+    const file = e.target.files?.[0];
+
+    if (!file) return;
+
+    try {
+      const text = await file.text();
+      const parsed = JSON.parse(text) as unknown;
+
+      if (
+        typeof parsed !== 'object' ||
+        parsed === null ||
+        Array.isArray(parsed)
+      ) {
+        toast.error('Credential file must contain a JSON object');
+        return;
+      }
+
+      const credentials = parsed as NonNullable<
+        VertexServiceAccountKey['credentials']
+      >;
+
+      if (
+        typeof credentials.project_id !== 'string' ||
+        !credentials.project_id.trim()
+      ) {
+        toast.error('Credential file must include project_id');
+        return;
+      }
+
+      setFormData(current => ({
+        ...current,
+        apiKey: JSON.stringify(credentials, null, 2)
+      }));
+      setVertexMaskedApiKey('');
+    } catch {
+      toast.error('Invalid credential JSON file');
+    } finally {
+      e.target.value = '';
+    }
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    let apiKey = formData.apiKey.trim();
     let apiOptions: Record<string, unknown> | null | undefined;
+    const editingProvider = providers?.find(p => p.id === editingId);
+    const editingVertexKey =
+      editingProvider?.type === 'vertex' &&
+      typeof editingProvider.maskedKey === 'object' &&
+      editingProvider.maskedKey !== null &&
+      !Array.isArray(editingProvider.maskedKey) &&
+      typeof editingProvider.maskedKey.location === 'string' &&
+      typeof editingProvider.maskedKey.credentials === 'object' &&
+      editingProvider.maskedKey.credentials !== null &&
+      !Array.isArray(editingProvider.maskedKey.credentials)
+        ? {
+            location: editingProvider.maskedKey.location,
+            credentials: editingProvider.maskedKey
+              .credentials as VertexServiceAccountKey['credentials']
+          }
+        : null;
+    const editingVertexAuthMode =
+      editingProvider?.type === 'vertex'
+        ? editingVertexKey
+          ? 'service_account'
+          : 'api_key'
+        : null;
     const requiresJsonApiKey =
-      formData.type === 'vertex' || formData.type === 'bedrock';
+      (formData.type === 'vertex' &&
+        formData.vertexAuthMode === 'service_account') ||
+      formData.type === 'bedrock';
+    const vertexLocation = formData.vertexLocation.trim();
 
-    if (requiresJsonApiKey && formData.apiKey) {
+    if (requiresJsonApiKey && apiKey) {
       try {
-        JSON.parse(formData.apiKey);
+        const parsedApiKey = JSON.parse(apiKey) as unknown;
+
+        if (
+          typeof parsedApiKey !== 'object' ||
+          parsedApiKey === null ||
+          Array.isArray(parsedApiKey)
+        ) {
+          throw new Error('Provider secret must be a JSON object');
+        }
       } catch {
         toast.error('API Key must be valid JSON for Vertex/Bedrock');
         return;
       }
     }
 
+    if (
+      formData.type === 'vertex' &&
+      formData.vertexAuthMode === 'service_account'
+    ) {
+      if (!vertexLocation) {
+        toast.error('Vertex location is required');
+        return;
+      }
+
+      if (!editingId && !apiKey) {
+        toast.error('Upload a Google Cloud credential JSON file');
+        return;
+      }
+
+      if (editingId && !apiKey && editingVertexAuthMode !== 'service_account') {
+        toast.error('Upload a Google Vertex AI credential JSON file.');
+        return;
+      }
+
+      if (apiKey) {
+        const credentials = JSON.parse(
+          apiKey
+        ) as VertexServiceAccountKey['credentials'];
+
+        apiKey = JSON.stringify({
+          location: vertexLocation,
+          credentials
+        });
+      } else if (editingId && editingVertexAuthMode === 'service_account') {
+        apiKey = JSON.stringify({
+          location: vertexLocation
+        });
+      }
+    }
+
+    if (
+      editingId &&
+      formData.type === 'vertex' &&
+      formData.vertexAuthMode === 'api_key' &&
+      !apiKey &&
+      editingVertexAuthMode !== 'api_key'
+    ) {
+      toast.error('Enter a Google Cloud API Key');
+      return;
+    }
+
     try {
       if (formData.apiOptions) {
         apiOptions = JSON.parse(formData.apiOptions);
+        if (
+          typeof apiOptions !== 'object' ||
+          apiOptions === null ||
+          Array.isArray(apiOptions)
+        ) {
+          toast.error('API Options must be a JSON object');
+          return;
+        }
       } else {
         // create: omit the field (undefined); update: clear it (null)
         apiOptions = editingId ? null : undefined;
@@ -150,8 +332,16 @@ export default function ProvidersPage() {
       toast.error('Invalid JSON format');
       return;
     }
+
+    const {
+      apiKey: _apiKey,
+      vertexAuthMode: _vertexAuthMode,
+      vertexLocation: _vertexLocation,
+      ...providerData
+    } = formData;
     const data = {
-      ...formData,
+      ...providerData,
+      ...(apiKey && { apiKey }),
       apiOptions
     };
 
@@ -165,23 +355,29 @@ export default function ProvidersPage() {
   };
 
   const isPending = createMutation.isPending || updateMutation.isPending;
+  const isVertex = formData.type === 'vertex';
+  const isBedrock = formData.type === 'bedrock';
+  const isVertexServiceAccount =
+    isVertex && formData.vertexAuthMode === 'service_account';
+  const isVertexApiKey = isVertex && formData.vertexAuthMode === 'api_key';
+  const vertexCredentialValue =
+    isVertexServiceAccount && !formData.apiKey && vertexMaskedApiKey
+      ? vertexMaskedApiKey
+      : formData.apiKey;
+  const isMaskedVertexCredential =
+    isVertexServiceAccount && !formData.apiKey && !!vertexMaskedApiKey;
 
   const apiKeyPlaceholder = (() => {
-    if (formData.type === 'vertex') {
-      return `{
-  "project": "your-gcp-project-id",
-  "location": "us-central1",
-  "credentials": {
-    "type": "service_account",
-    "project_id": "your-gcp-project-id",
-    "private_key_id": "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
-    "private_key": "-----BEGIN PRIVATE KEY-----\\n...\\n-----END PRIVATE KEY-----\\n",
-    "client_email": "service-account@your-gcp-project-id.iam.gserviceaccount.com",
-    "client_id": "123456789012345678901"
-  }
-}`;
+    const editingProvider = providers?.find(p => p.id === editingId);
+    const maskedKey =
+      typeof editingProvider?.maskedKey === 'string'
+        ? editingProvider.maskedKey
+        : undefined;
+
+    if (isVertexApiKey) {
+      return editingId ? maskedKey : 'Enter Google Cloud API Key';
     }
-    if (formData.type === 'bedrock') {
+    if (isBedrock) {
       return `{
   "region": "us-east-1",
   "accessKeyId": "AKIAxxxxxxxxxxxxxxxx",
@@ -189,20 +385,16 @@ export default function ProvidersPage() {
   "sessionToken": "optional"
 }`;
     }
-    return editingId
-      ? providers?.find(p => p.id === editingId)?.maskedKey
-      : 'Enter API Key';
+    return editingId ? maskedKey : 'Enter API Key';
   })();
 
-  const requiresJsonApiKey =
-    formData.type === 'vertex' || formData.type === 'bedrock';
+  const requiresJsonApiKey = isVertexServiceAccount || isBedrock;
 
-  const apiKeyHelpText =
-    formData.type === 'vertex'
-      ? 'Vertex: paste JSON containing project/location and service account credentials.'
-      : formData.type === 'bedrock'
-        ? 'Bedrock: paste JSON containing region and AWS credentials.'
-        : null;
+  const apiKeyHelpText = isVertexApiKey
+    ? 'Google Cloud API key for Gemini on Vertex AI.'
+    : isBedrock
+      ? 'Bedrock: paste JSON containing region and AWS credentials.'
+      : null;
 
   const filteredProviders = providers?.filter(
     p =>
@@ -270,9 +462,7 @@ export default function ProvidersPage() {
                 <Label htmlFor="type">Type</Label>
                 <Select
                   value={formData.type}
-                  onValueChange={value =>
-                    setFormData({ ...formData, type: value as ProviderType })
-                  }
+                  onValueChange={handleTypeChange}
                   disabled={isPending}
                 >
                   <SelectTrigger>
@@ -288,25 +478,125 @@ export default function ProvidersPage() {
                 </Select>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="apiKey">API Key</Label>
-                <Textarea
-                  id="apiKey"
-                  value={formData.apiKey}
-                  onChange={e =>
-                    setFormData({ ...formData, apiKey: e.target.value })
-                  }
-                  placeholder={apiKeyPlaceholder}
-                  required={!editingId}
-                  disabled={isPending}
-                  className="font-mono"
-                  rows={requiresJsonApiKey ? 6 : 2}
-                />
-                {apiKeyHelpText ? (
-                  <p className="text-xs text-muted-foreground">
-                    {apiKeyHelpText}
-                  </p>
+                {isVertex ? (
+                  <>
+                    <Label htmlFor="vertexAuthMode">Authentication</Label>
+                    <Select
+                      value={formData.vertexAuthMode}
+                      onValueChange={value =>
+                        setFormData(current => ({
+                          ...current,
+                          vertexAuthMode: value as VertexAuthMode,
+                          apiKey: ''
+                        }))
+                      }
+                      disabled={isPending}
+                    >
+                      <SelectTrigger id="vertexAuthMode">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="service_account">JSON</SelectItem>
+                        <SelectItem value="api_key">
+                          API Key (Gemini only)
+                        </SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </>
                 ) : null}
               </div>
+              <div className="space-y-2">
+                {isVertexServiceAccount ? (
+                  <>
+                    <Label htmlFor="vertexCredentials">Credential File</Label>
+                    <Input
+                      key="vertex-service-account-file"
+                      id="vertexCredentials"
+                      type="file"
+                      accept=".json,application/json"
+                      onChange={handleVertexCredentialChange}
+                      disabled={isPending}
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      Upload a Google Vertex AI credential JSON file.
+                    </p>
+                    <Textarea
+                      id="apiKey"
+                      value={vertexCredentialValue}
+                      onChange={e =>
+                        setFormData({ ...formData, apiKey: e.target.value })
+                      }
+                      placeholder="{}"
+                      required={!editingId}
+                      disabled={isPending}
+                      readOnly={isMaskedVertexCredential}
+                      className="font-mono"
+                      rows={6}
+                    />
+                  </>
+                ) : isVertexApiKey ? (
+                  <>
+                    <Label htmlFor="apiKey">API Key</Label>
+                    <Input
+                      key="vertex-api-key-input"
+                      id="apiKey"
+                      value={formData.apiKey}
+                      onChange={e =>
+                        setFormData({ ...formData, apiKey: e.target.value })
+                      }
+                      placeholder={apiKeyPlaceholder}
+                      required={!editingId}
+                      disabled={isPending}
+                    />
+                    {apiKeyHelpText ? (
+                      <p className="text-xs text-muted-foreground">
+                        {apiKeyHelpText}
+                      </p>
+                    ) : null}
+                  </>
+                ) : (
+                  <>
+                    <Label htmlFor="apiKey">API Key</Label>
+                    <Textarea
+                      id="apiKey"
+                      value={formData.apiKey}
+                      onChange={e =>
+                        setFormData({ ...formData, apiKey: e.target.value })
+                      }
+                      placeholder={apiKeyPlaceholder}
+                      required={!editingId}
+                      disabled={isPending}
+                      className="font-mono"
+                      rows={requiresJsonApiKey ? 6 : 2}
+                    />
+                    {apiKeyHelpText ? (
+                      <p className="text-xs text-muted-foreground">
+                        {apiKeyHelpText}
+                      </p>
+                    ) : null}
+                  </>
+                )}
+              </div>
+              {isVertexServiceAccount ? (
+                <div className="space-y-2">
+                  <Label htmlFor="vertexLocation">Location</Label>
+                  <Input
+                    id="vertexLocation"
+                    value={formData.vertexLocation}
+                    onChange={e =>
+                      setFormData({
+                        ...formData,
+                        vertexLocation: e.target.value
+                      })
+                    }
+                    placeholder="us-central1"
+                    disabled={isPending}
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Enter the Google Vertex AI region, e.g. us-central1.
+                  </p>
+                </div>
+              ) : null}
               <div className="space-y-2">
                 <Label htmlFor="baseUrl">Base URL (optional)</Label>
                 <Input

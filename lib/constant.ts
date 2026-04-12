@@ -5,7 +5,7 @@ export const ProviderTypes = [
   { value: 'openai', label: 'OpenAI' },
   { value: 'azure', label: 'Azure OpenAI' },
   { value: 'google', label: 'Google AI' },
-  { value: 'vertex', label: 'Google Vertex' },
+  { value: 'vertex', label: 'Google Vertex AI' },
   { value: 'anthropic', label: 'Anthropic' },
   { value: 'bedrock', label: 'AWS Bedrock' },
   { value: 'xai', label: 'xAI' },

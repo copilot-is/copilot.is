@@ -8,7 +8,7 @@ import { createOpenAI } from '@ai-sdk/openai';
 import { createXai } from '@ai-sdk/xai';
 import { ImageModel, LanguageModel, SpeechModel } from 'ai';
 
-import type { ProviderConfig } from '@/types';
+import type { ProviderConfig, VertexServiceAccountKey } from '@/types';
 
 import { BedrockModels, VertexAIModels } from './constant';
 import { decrypt } from './crypto';
@@ -54,18 +54,32 @@ function createProviderSDK(config: ProviderConfig): any {
       });
 
     case 'vertex': {
-      const vertexKey = apiKey ? JSON.parse(apiKey) : undefined;
+      let vertexKey: VertexServiceAccountKey | null = null;
+
+      if (apiKey) {
+        try {
+          vertexKey = JSON.parse(apiKey) as VertexServiceAccountKey;
+        } catch {}
+      }
+
+      if (vertexKey?.location && vertexKey.credentials) {
+        return createVertex({
+          project: vertexKey.credentials.project_id,
+          location: vertexKey.location,
+          googleAuthOptions: {
+            credentials: vertexKey.credentials
+          }
+        });
+      }
+
       return createVertex({
-        project: vertexKey?.project || undefined,
-        location: vertexKey?.location || undefined,
-        googleAuthOptions: vertexKey?.credentials
-          ? { credentials: vertexKey.credentials }
-          : undefined
+        apiKey: apiKey || undefined
       });
     }
 
     case 'bedrock': {
       const bedrockKey = apiKey ? JSON.parse(apiKey) : undefined;
+
       return createAmazonBedrock({
         region: bedrockKey?.region || undefined,
         accessKeyId: bedrockKey?.accessKeyId || undefined,

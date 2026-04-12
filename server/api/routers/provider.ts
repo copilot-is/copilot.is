@@ -1,7 +1,8 @@
 import { eq } from 'drizzle-orm';
 import { z } from 'zod';
 
-import { encrypt, maskKey } from '@/lib/crypto';
+import type { VertexServiceAccountKey } from '@/types';
+import { decrypt, encrypt, maskedKey } from '@/lib/crypto';
 import { generateUUID } from '@/lib/utils';
 import {
   adminProcedure,
@@ -23,7 +24,7 @@ export const providerRouter = createTRPCRouter({
     });
     return result.map(({ apiKey, ...provider }) => ({
       ...provider,
-      maskedKey: maskKey(apiKey)
+      maskedKey: maskedKey(provider.type, apiKey)
     }));
   }),
 
@@ -64,6 +65,7 @@ export const providerRouter = createTRPCRouter({
     )
     .mutation(async ({ ctx, input }) => {
       const id = generateUUID();
+
       await ctx.db.insert(providers).values({
         id,
         name: input.name,
@@ -83,33 +85,75 @@ export const providerRouter = createTRPCRouter({
       z.object({
         id: z.string().min(1),
         name: z.string().min(1).max(100).optional(),
-        type: z
-          .enum([
-            'openai',
-            'azure',
-            'google',
-            'vertex',
-            'anthropic',
-            'bedrock',
-            'xai',
-            'deepseek'
-          ])
-          .optional(),
+        type: z.enum([
+          'openai',
+          'azure',
+          'google',
+          'vertex',
+          'anthropic',
+          'bedrock',
+          'xai',
+          'deepseek'
+        ]),
         apiKey: z.string().optional(),
         image: z.string().optional(),
-        baseUrl: z.string().url().optional().or(z.literal('')),
+        baseUrl: z.url().optional().or(z.literal('')),
         isEnabled: z.boolean().optional(),
         apiOptions: z.record(z.string(), z.any()).nullable().optional(),
         displayOrder: z.number().int().optional()
       })
     )
     .mutation(async ({ ctx, input }) => {
+      const existingProvider = await ctx.db.query.providers.findFirst({
+        where: eq(providers.id, input.id)
+      });
+
+      if (!existingProvider) {
+        throw new Error('Provider not found');
+      }
+
       const { id, apiKey, apiOptions, baseUrl, ...updates } = input;
+      let resolvedApiKey = apiKey;
+
+      if (input.type === 'vertex' && apiKey) {
+        let vertexKey: VertexServiceAccountKey | null = null;
+
+        try {
+          vertexKey = JSON.parse(apiKey) as VertexServiceAccountKey;
+        } catch {}
+
+        if (vertexKey?.location && !vertexKey.credentials) {
+          const existingApiKey = existingProvider.apiKey
+            ? decrypt(existingProvider.apiKey)
+            : undefined;
+          let existingVertexKey: VertexServiceAccountKey | null = null;
+
+          if (existingApiKey) {
+            try {
+              existingVertexKey = JSON.parse(
+                existingApiKey
+              ) as VertexServiceAccountKey;
+            } catch {}
+          }
+
+          if (existingVertexKey?.credentials) {
+            resolvedApiKey = JSON.stringify({
+              location: vertexKey.location,
+              credentials: existingVertexKey.credentials
+            });
+          } else {
+            throw new Error('Invalid existing Google Vertex AI credentials');
+          }
+        }
+      }
+
       await ctx.db
         .update(providers)
         .set({
           ...updates,
-          ...(apiKey && { apiKey: encrypt(apiKey.trim()) }),
+          ...(resolvedApiKey && {
+            apiKey: encrypt(resolvedApiKey.trim())
+          }),
           ...(baseUrl !== undefined && { baseUrl: baseUrl || null }),
           ...(apiOptions !== undefined && { apiOptions }),
           updatedAt: new Date()
