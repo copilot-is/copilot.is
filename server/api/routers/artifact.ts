@@ -14,7 +14,7 @@ const artifactBaseSchema = z.object({
   type: artifactTypeSchema,
   language: z.string().trim().max(64).nullable().optional(),
   content: z.string().nullable().optional(),
-  fileUrl: z.string().url().nullable().optional(),
+  fileUrl: z.url().nullable().optional(),
   fileName: z.string().trim().max(255).nullable().optional(),
   mimeType: z.string().trim().max(255).nullable().optional(),
   size: z.number().int().nonnegative().nullable().optional()

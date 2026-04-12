@@ -235,7 +235,7 @@ export async function POST(req: Request) {
           type: artifactTypeSchema,
           language: z.string().optional(),
           content: z.string().optional(),
-          fileUrl: z.string().url().optional(),
+          fileUrl: z.url().optional(),
           fileName: z.string().optional(),
           mimeType: z.string().optional(),
           size: z.number().int().nonnegative().optional()

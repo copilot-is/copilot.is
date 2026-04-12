@@ -57,7 +57,7 @@ export const providerRouter = createTRPCRouter({
         ]),
         apiKey: z.string().min(1),
         image: z.string().optional(),
-        baseUrl: z.string().url().optional().or(z.literal('')),
+        baseUrl: z.url().optional().or(z.literal('')),
         isEnabled: z.boolean().default(false),
         apiOptions: z.record(z.string(), z.any()).optional(),
         displayOrder: z.number().int().default(0)
