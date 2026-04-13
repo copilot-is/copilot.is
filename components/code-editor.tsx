@@ -15,19 +15,20 @@ import { rust } from '@codemirror/lang-rust';
 import { sql } from '@codemirror/lang-sql';
 import { xml } from '@codemirror/lang-xml';
 import { yaml } from '@codemirror/lang-yaml';
-import { StreamLanguage } from '@codemirror/language';
+import {
+  defaultHighlightStyle,
+  StreamLanguage,
+  syntaxHighlighting
+} from '@codemirror/language';
 import { csharp } from '@codemirror/legacy-modes/mode/clike';
 import { dockerFile } from '@codemirror/legacy-modes/mode/dockerfile';
 import { nginx } from '@codemirror/legacy-modes/mode/nginx';
 import { properties } from '@codemirror/legacy-modes/mode/properties';
 import { shell } from '@codemirror/legacy-modes/mode/shell';
 import { toml } from '@codemirror/legacy-modes/mode/toml';
+import { EditorState } from '@codemirror/state';
 import { oneDark } from '@codemirror/theme-one-dark';
-import { githubLight } from '@uiw/codemirror-theme-github';
-import CodeMirror, {
-  EditorView,
-  ReactCodeMirrorRef
-} from '@uiw/react-codemirror';
+import { EditorView, lineNumbers } from '@codemirror/view';
 import { useTheme } from 'next-themes';
 
 import { normalizeCodeLanguage } from '@/lib/code-language';
@@ -97,7 +98,8 @@ export function CodeEditor({
   autoScrollToBottom = false,
   showLineNumbers = true
 }: CodeEditorProps) {
-  const editorRef = useRef<ReactCodeMirrorRef>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const editorRef = useRef<EditorView | null>(null);
   const { theme = 'system', systemTheme } = useTheme();
 
   const resolvedTheme = theme === 'system' ? (systemTheme ?? 'light') : theme;
@@ -106,44 +108,65 @@ export function CodeEditor({
     const languageExtension = getLanguageExtension(language);
 
     return [
+      EditorState.readOnly.of(true),
       EditorView.editable.of(false),
+      ...(showLineNumbers ? [lineNumbers()] : []),
       ...(wrapLongLines ? [EditorView.lineWrapping] : []),
+      ...(resolvedTheme === 'dark'
+        ? [oneDark]
+        : [syntaxHighlighting(defaultHighlightStyle, { fallback: true })]),
       ...(languageExtension ? [languageExtension] : [])
     ];
-  }, [language, wrapLongLines]);
+  }, [language, resolvedTheme, showLineNumbers, wrapLongLines]);
+
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container) return;
+
+    const view = new EditorView({
+      state: EditorState.create({
+        doc: value,
+        extensions
+      }),
+      parent: container
+    });
+
+    editorRef.current = view;
+
+    return () => {
+      editorRef.current = null;
+      view.destroy();
+    };
+  }, [extensions]);
+
+  useEffect(() => {
+    const view = editorRef.current;
+    if (!view) return;
+    if (view.state.doc.toString() === value) return;
+
+    view.dispatch({
+      changes: {
+        from: 0,
+        to: view.state.doc.length,
+        insert: value
+      }
+    });
+  }, [value]);
 
   useEffect(() => {
     if (!autoScrollToBottom) return;
 
     requestAnimationFrame(() => {
-      const scrollDOM = editorRef.current?.view?.scrollDOM;
+      const scrollDOM = editorRef.current?.scrollDOM;
       if (!scrollDOM) return;
       scrollDOM.scrollTop = scrollDOM.scrollHeight;
     });
   }, [autoScrollToBottom, value]);
 
   return (
-    <div className="min-w-0 [&_.cm-content]:font-mono [&_.cm-content]:text-sm [&_.cm-editor]:bg-transparent [&_.cm-editor]:outline-none [&_.cm-gutters]:border-0 [&_.cm-gutters]:bg-transparent [&_.cm-scroller]:font-mono">
-      <CodeMirror
-        ref={editorRef}
-        value={value}
-        theme={resolvedTheme === 'dark' ? oneDark : githubLight}
-        basicSetup={{
-          lineNumbers: showLineNumbers,
-          foldGutter: false,
-          highlightActiveLine: false,
-          highlightActiveLineGutter: false,
-          autocompletion: false,
-          closeBrackets: false,
-          searchKeymap: false,
-          completionKeymap: false,
-          lintKeymap: false
-        }}
-        editable={false}
-        readOnly={true}
-        indentWithTab={false}
-        extensions={extensions}
-      />
-    </div>
+    <div
+      ref={containerRef}
+      className="min-w-0 [&_.cm-content]:font-mono [&_.cm-content]:text-sm [&_.cm-editor]:bg-transparent [&_.cm-editor]:outline-none [&_.cm-gutters]:border-0 [&_.cm-gutters]:bg-transparent [&_.cm-scroller]:font-mono"
+    />
   );
 }
