@@ -81,14 +81,15 @@ export function ArtifactViewer({
   const canCopyContent = !isFile && !!(artifact.content ?? '').trim();
   const kind = getArtifactKind(artifact);
   const registry = artifactRegistry[kind];
-  const supportsPreview = supportsArtifactRuntimePreview(artifact);
+  const isStreaming = artifact.status === 'streaming';
+  const isDone = artifact.status === 'done';
+  const supportsPreview =
+    !isStreaming && supportsArtifactRuntimePreview(artifact);
   const languageLabel =
     kind === 'code' || kind === 'text'
       ? getArtifactLanguageLabel(artifact)
       : '';
   const headerActionButtonClassName = 'size-7 text-muted-foreground';
-  const isStreaming = artifact.status === 'streaming';
-  const isDone = artifact.status === 'done';
   const isHeaderActionDisabled = isStreaming;
   const canDownload = Boolean(artifact.fileUrl || artifact.content);
 

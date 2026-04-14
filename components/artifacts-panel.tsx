@@ -49,6 +49,12 @@ export function ArtifactsPanel({
     setViewMode(getArtifactPreviewModeDefault(selected));
   }, [selected?.id]);
 
+  useEffect(() => {
+    if (selected?.status !== 'streaming') return;
+    if (viewMode !== 'preview') return;
+    setViewMode('source');
+  }, [selected?.id, selected?.status, viewMode]);
+
   if (!open) {
     return null;
   }

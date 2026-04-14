@@ -363,6 +363,9 @@ export function supportsArtifactRuntimePreview(artifact: Artifact) {
 }
 
 export function getArtifactPreviewModeDefault(artifact: Artifact) {
+  if (artifact.status === 'streaming') {
+    return 'source' as const;
+  }
   if (isHtmlLikeArtifact(artifact)) {
     return 'preview' as const;
   }
