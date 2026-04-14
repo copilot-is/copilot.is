@@ -1,7 +1,15 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
-import { CheckCircle2, Copy, Download, LoaderCircle, X } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
+import {
+  CheckCircle2,
+  CodeXml,
+  Copy,
+  Download,
+  Eye,
+  LoaderCircle,
+  X
+} from 'lucide-react';
 import { toast } from 'sonner';
 
 import { Artifact } from '@/types';
@@ -25,6 +33,10 @@ import {
   getArtifactKind,
   getArtifactLanguageLabel
 } from '@/components/artifacts/registry';
+import {
+  ArtifactRuntimePreview,
+  supportsArtifactRuntimePreview
+} from '@/components/artifacts/runtime-preview';
 
 interface ArtifactViewerProps {
   artifact?: Artifact;
@@ -33,6 +45,8 @@ interface ArtifactViewerProps {
   onClose?: () => void;
   hideHeader?: boolean;
   hideContent?: boolean;
+  viewMode?: 'source' | 'preview';
+  onViewModeChange?: (mode: 'source' | 'preview') => void;
 }
 
 const isFileArtifact = (artifact?: Artifact) =>
@@ -44,9 +58,16 @@ export function ArtifactViewer({
   onSelectArtifact,
   onClose,
   hideHeader,
-  hideContent
+  hideContent,
+  viewMode: controlledViewMode,
+  onViewModeChange
 }: ArtifactViewerProps) {
   const { copyToClipboard } = useCopyToClipboard();
+  const [uncontrolledViewMode, setUncontrolledViewMode] = useState<
+    'source' | 'preview'
+  >('source');
+  const contentRef = useRef<HTMLDivElement>(null);
+  const viewMode = controlledViewMode ?? uncontrolledViewMode;
 
   if (!artifact) {
     return (
@@ -60,6 +81,7 @@ export function ArtifactViewer({
   const canCopyContent = !isFile && !!(artifact.content ?? '').trim();
   const kind = getArtifactKind(artifact);
   const registry = artifactRegistry[kind];
+  const supportsPreview = supportsArtifactRuntimePreview(artifact);
   const languageLabel =
     kind === 'code' || kind === 'text'
       ? getArtifactLanguageLabel(artifact)
@@ -67,7 +89,6 @@ export function ArtifactViewer({
   const headerActionButtonClassName = 'size-7 text-muted-foreground';
   const isStreaming = artifact.status === 'streaming';
   const isDone = artifact.status === 'done';
-  const contentRef = useRef<HTMLDivElement>(null);
   const isHeaderActionDisabled = isStreaming;
   const canDownload = Boolean(artifact.fileUrl || artifact.content);
 
@@ -101,11 +122,11 @@ export function ArtifactViewer({
     isStreaming
   ]);
 
-  const content = (
+  const sourceContent = (
     <div
       ref={contentRef}
       className={cn(
-        'min-h-0 flex-1 overflow-auto rounded-md bg-background p-4',
+        'h-full min-h-0 overflow-auto rounded-md bg-background p-4',
         (kind === 'code' || kind === 'sheet') && 'p-0',
         kind !== 'code' && kind !== 'sheet' && 'border'
       )}
@@ -113,6 +134,18 @@ export function ArtifactViewer({
       {registry.renderContent(artifact)}
     </div>
   );
+
+  const previewContent = (
+    <div className="h-full min-h-0 overflow-auto rounded-md bg-background">
+      <ArtifactRuntimePreview artifact={artifact} artifacts={artifacts} />
+    </div>
+  );
+
+  const content = !supportsPreview
+    ? sourceContent
+    : viewMode === 'preview'
+      ? previewContent
+      : sourceContent;
 
   const handleDownload = () => {
     if (artifact.fileUrl) {
@@ -152,11 +185,59 @@ export function ArtifactViewer({
     URL.revokeObjectURL(url);
   };
 
+  const viewModeButtons = supportsPreview ? (
+    <div className="relative grid shrink-0 grid-cols-2 items-center rounded-full border border-border/60 bg-transparent">
+      <div
+        className={cn(
+          'absolute inset-y-0.5 left-0.5 w-[calc(50%-2px)] rounded-full bg-accent transition-transform',
+          viewMode === 'preview' ? 'translate-x-0' : 'translate-x-full'
+        )}
+      />
+      <Button
+        variant="ghost"
+        size="icon"
+        className={cn(
+          'relative z-10 size-8 rounded-full bg-transparent text-muted-foreground hover:bg-transparent hover:text-accent-foreground',
+          viewMode === 'preview' &&
+            'text-accent-foreground hover:text-accent-foreground'
+        )}
+        onClick={() => {
+          if (controlledViewMode === undefined) {
+            setUncontrolledViewMode('preview');
+          }
+          onViewModeChange?.('preview');
+        }}
+      >
+        <Eye className="size-6" />
+        <span className="sr-only">Preview view</span>
+      </Button>
+      <Button
+        variant="ghost"
+        size="icon"
+        className={cn(
+          'relative z-10 size-8 rounded-full bg-transparent text-muted-foreground hover:bg-transparent hover:text-accent-foreground',
+          viewMode === 'source' &&
+            'text-accent-foreground hover:text-accent-foreground'
+        )}
+        onClick={() => {
+          if (controlledViewMode === undefined) {
+            setUncontrolledViewMode('source');
+          }
+          onViewModeChange?.('source');
+        }}
+      >
+        <CodeXml className="size-6" />
+        <span className="sr-only">Code view</span>
+      </Button>
+    </div>
+  ) : null;
+
   return (
     <div className="flex size-full min-h-0 flex-col justify-center gap-3">
       {!hideHeader && (
         <div className="relative flex gap-3">
           <div className="flex min-w-0 max-w-full items-center gap-2 pr-28">
+            {viewModeButtons}
             {artifacts.length > 1 ? (
               <Select
                 value={artifact.id}

@@ -96,3 +96,12 @@ export const BedrockModels: Record<string, string> = {
   'claude-opus-4-0': 'anthropic.claude-opus-4-20250514-v1:0',
   'claude-opus-4-20250514': 'anthropic.claude-opus-4-20250514-v1:0'
 };
+
+export const ArtifactSystemPrompt =
+  'When you produce structured outputs such as code, long documents, or files, create an artifact using create_artifact. ' +
+  'For non-file artifacts, include full content. For files/images, include fileUrl and mimeType. ' +
+  'For React/TSX/JSX/TypeScript/JavaScript artifacts that should support Preview, follow this contract strictly: ' +
+  'prefer a single self-contained file; if multiple files are needed, every code artifact must include an exact fileName path; ' +
+  'use index.tsx as the entry file; use only relative imports that exactly match sibling fileName values; ' +
+  'only import react, react-dom, or react-dom/client from packages; do not use path aliases, Next.js APIs, server code, env vars, assets, or package imports beyond the whitelist; ' +
+  'if a file contains JSX, its fileName must end with .tsx or .jsx; CSS imports are allowed only for local sibling files.';

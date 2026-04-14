@@ -18,6 +18,7 @@ import {
   MessageMetadata,
   type Artifact
 } from '@/types';
+import { ArtifactSystemPrompt } from '@/lib/constant';
 import { getLanguageModel } from '@/lib/provider';
 import {
   findModelByModelId,
@@ -131,10 +132,6 @@ export async function POST(req: Request) {
           date: new Date().toISOString()
         })
       : undefined;
-    const artifactSystemPrompt =
-      'When you produce structured outputs such as code, long documents, or files, create an artifact using create_artifact. ' +
-      'For non-file artifacts, include full content. For files/images, include fileUrl and mimeType.';
-
     let reasonStartedAt: Date | null = null;
     let reasonDuration = 0;
     const assistantMessageId = generateUUID();
@@ -242,6 +239,51 @@ export async function POST(req: Request) {
         });
         type CreateArtifactInput = z.infer<typeof createArtifactSchema>;
 
+        const PREVIEWABLE_CODE_LANGUAGES = new Set([
+          'react',
+          'tsx',
+          'jsx',
+          'typescript',
+          'javascript'
+        ]);
+        const PREVIEW_IMPORT_RE =
+          /\bimport\s+[\s\S]*?\s+from\s+['"]([^'"]+)['"]|\bimport\s*['"]([^'"]+)['"]|\brequire\(\s*['"]([^'"]+)['"]\s*\)/g;
+        const PREVIEW_ALLOWED_IMPORTS = new Set([
+          'react',
+          'react-dom',
+          'react-dom/client'
+        ]);
+        const looksLikeJsx = (code: string) =>
+          /<\s*[A-Za-z][\w:-]*(\s|\/?>)/.test(code) || /<>\s*/.test(code);
+        const isRelativeImport = (specifier: string) =>
+          specifier.startsWith('./') || specifier.startsWith('../');
+        const isStyleImport = (specifier: string) =>
+          /\.css($|\?)/.test(specifier) ||
+          /\.scss($|\?)/.test(specifier) ||
+          /\.sass($|\?)/.test(specifier);
+        const validatePreviewImports = (code: string) => {
+          const unsupported: string[] = [];
+
+          for (const match of code.matchAll(PREVIEW_IMPORT_RE)) {
+            const specifier = match[1] || match[2] || match[3];
+            if (
+              specifier &&
+              !PREVIEW_ALLOWED_IMPORTS.has(specifier) &&
+              !isRelativeImport(specifier) &&
+              !isStyleImport(specifier)
+            ) {
+              unsupported.push(specifier);
+            }
+          }
+
+          return Array.from(new Set(unsupported));
+        };
+        const isPreviewableCodeArtifact = (input: CreateArtifactInput) => {
+          if (input.type !== 'code') return false;
+          const language = input.language?.toLowerCase().trim();
+          return !!language && PREVIEWABLE_CODE_LANGUAGES.has(language);
+        };
+
         const assertArtifactPayload = (input: CreateArtifactInput) => {
           const isFileArtifact =
             input.type === 'image' || input.type === 'file';
@@ -255,6 +297,36 @@ export async function POST(req: Request) {
 
           if (input.content == null) {
             throw new Error('content is required for non-file artifacts');
+          }
+
+          if (!isPreviewableCodeArtifact(input)) {
+            return;
+          }
+
+          const fileName = input.fileName?.trim();
+          if (!fileName) {
+            throw new Error(
+              'Previewable React/code artifacts must include fileName.'
+            );
+          }
+
+          if (!/^[A-Za-z0-9._/-]+\.[A-Za-z0-9]+$/.test(fileName)) {
+            throw new Error(
+              'Previewable React/code artifact fileName must be a valid relative file path.'
+            );
+          }
+
+          const unsupportedImports = validatePreviewImports(input.content);
+          if (unsupportedImports.length > 0) {
+            throw new Error(
+              `Previewable React/code artifacts only support react imports and relative imports. Unsupported imports: ${unsupportedImports.join(', ')}`
+            );
+          }
+
+          if (looksLikeJsx(input.content) && !/\.(tsx|jsx)$/i.test(fileName)) {
+            throw new Error(
+              'Files containing JSX must use a .tsx or .jsx fileName.'
+            );
           }
         };
 
@@ -516,8 +588,8 @@ export async function POST(req: Request) {
         const res = streamText({
           model: getLanguageModel(provider, modelId),
           system: systemMessage
-            ? `${systemMessage}\n\n${artifactSystemPrompt}`
-            : artifactSystemPrompt,
+            ? `${systemMessage}\n\n${ArtifactSystemPrompt}`
+            : ArtifactSystemPrompt,
           messages: await convertToModelMessages(chatMessages),
           tools: artifactTools,
           ...(provider.apiOptions && {

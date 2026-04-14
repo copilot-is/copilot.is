@@ -15,11 +15,7 @@ import { rust } from '@codemirror/lang-rust';
 import { sql } from '@codemirror/lang-sql';
 import { xml } from '@codemirror/lang-xml';
 import { yaml } from '@codemirror/lang-yaml';
-import {
-  defaultHighlightStyle,
-  StreamLanguage,
-  syntaxHighlighting
-} from '@codemirror/language';
+import { StreamLanguage } from '@codemirror/language';
 import { csharp } from '@codemirror/legacy-modes/mode/clike';
 import { dockerFile } from '@codemirror/legacy-modes/mode/dockerfile';
 import { nginx } from '@codemirror/legacy-modes/mode/nginx';
@@ -29,6 +25,7 @@ import { toml } from '@codemirror/legacy-modes/mode/toml';
 import { EditorState } from '@codemirror/state';
 import { oneDark } from '@codemirror/theme-one-dark';
 import { EditorView, lineNumbers } from '@codemirror/view';
+import { githubLight } from '@uiw/codemirror-theme-github';
 import { useTheme } from 'next-themes';
 
 import { normalizeCodeLanguage } from '@/lib/code-language';
@@ -112,9 +109,7 @@ export function CodeEditor({
       EditorView.editable.of(false),
       ...(showLineNumbers ? [lineNumbers()] : []),
       ...(wrapLongLines ? [EditorView.lineWrapping] : []),
-      ...(resolvedTheme === 'dark'
-        ? [oneDark]
-        : [syntaxHighlighting(defaultHighlightStyle, { fallback: true })]),
+      ...(resolvedTheme === 'dark' ? [oneDark] : [githubLight]),
       ...(languageExtension ? [languageExtension] : [])
     ];
   }, [language, resolvedTheme, showLineNumbers, wrapLongLines]);

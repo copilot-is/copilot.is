@@ -1,6 +1,6 @@
 'use client';
 
-import { useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { X } from 'lucide-react';
 
 import { Artifact } from '@/types';
@@ -13,6 +13,7 @@ import {
   TooltipTrigger
 } from '@/components/ui/tooltip';
 import { ArtifactViewer } from '@/components/artifact-viewer';
+import { getArtifactPreviewModeDefault } from '@/components/artifacts/runtime-preview';
 
 interface ArtifactsPanelProps {
   open: boolean;
@@ -29,6 +30,7 @@ export function ArtifactsPanel({
   selectedId,
   onSelect
 }: ArtifactsPanelProps) {
+  const [viewMode, setViewMode] = useState<'source' | 'preview'>('source');
   const sortedArtifacts = useMemo(
     () =>
       [...artifacts].sort(
@@ -41,6 +43,11 @@ export function ArtifactsPanel({
     sortedArtifacts.find(artifact => artifact.id === selectedId) ??
     sortedArtifacts[0];
   const isDesktop = useMediaQuery('(min-width: 768px)');
+
+  useEffect(() => {
+    if (!selected) return;
+    setViewMode(getArtifactPreviewModeDefault(selected));
+  }, [selected?.id]);
 
   if (!open) {
     return null;
@@ -78,10 +85,18 @@ export function ArtifactsPanel({
             onSelectArtifact={onSelect}
             onClose={() => onOpenChange(false)}
             hideContent={true}
+            viewMode={viewMode}
+            onViewModeChange={setViewMode}
           />
         </div>
         <div className="min-h-0 flex-1 overflow-auto">
-          <ArtifactViewer artifact={selected} hideHeader={true} />
+          <ArtifactViewer
+            artifact={selected}
+            artifacts={sortedArtifacts}
+            hideHeader={true}
+            viewMode={viewMode}
+            onViewModeChange={setViewMode}
+          />
         </div>
       </div>
     );
