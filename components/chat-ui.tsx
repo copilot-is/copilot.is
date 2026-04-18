@@ -6,22 +6,21 @@ import { usePreferences } from '@/contexts/preferences-context';
 import { useSystemSettings } from '@/contexts/system-settings-context';
 import { useChat } from '@ai-sdk/react';
 import { DefaultChatTransport } from 'ai';
-import { MessageSquare } from 'lucide-react';
 import { toast } from 'sonner';
 
 import { Artifact, Attachment, ChatMessage, CustomUIDataTypes } from '@/types';
-import { cn, generateUUID, getMostRecentUserMessage } from '@/lib/utils';
+import { generateUUID, getMostRecentUserMessage } from '@/lib/utils';
 import { useChats } from '@/hooks/use-chats';
 import { api } from '@/trpc/react';
+import { ChatPanel } from '@/components/chat-panel';
 import { useSidebar } from '@/components/ui/sidebar';
 import { ArtifactsPanel } from '@/components/artifacts-panel';
-import { ButtonScrollToBottom } from '@/components/button-scroll-to-bottom';
-import { ChatHeader } from '@/components/chat-header';
-import { ChatPromptForm } from '@/components/chat-prompt-form';
-import { EmptyScreen } from '@/components/empty-screen';
-import { Messages } from '@/components/messages';
 import { ModelOptions } from '@/components/model-menu';
-import ScrollToBottom from '@/components/scroll-to-bottom';
+import {
+  ResizableHandle,
+  ResizablePanel,
+  ResizablePanelGroup
+} from '@/components/ui/resizable';
 
 interface ChatUIProps {
   id: string;
@@ -336,65 +335,89 @@ export function ChatUI({
 
   return (
     <div className="flex size-full overflow-hidden">
-      <div className="flex w-full flex-1 overflow-hidden">
-        <div className="flex min-w-0 flex-1 flex-col">
-          <ChatHeader title={title} />
-          <div className="w-full flex-1 overflow-hidden">
-            <ScrollToBottom
-              className="flex size-full flex-col items-center overflow-y-auto"
-              button={
-                <ButtonScrollToBottom status={status} messages={messages} />
-              }
-            >
-              <Messages
-                modelId={displayModelId}
-                image={displayImage}
-                currentModelId={currentModelId}
-                currentImage={currentImage}
-                status={status}
-                messages={messages}
-                setMessages={setMessages}
-                reload={handleReload}
-                supportsReasoning={supportsReasoning}
-                artifacts={artifactList}
-                onSelectArtifact={handleArtifactSelect}
-              />
-            </ScrollToBottom>
-          </div>
-          <div
-            className={cn('mx-auto w-full max-w-4xl bg-background px-4 pb-4', {
-              'mb-60 flex h-full flex-col items-center justify-center': noChat
-            })}
+      {isPanelOpen && !isMobile ? (
+        <ResizablePanelGroup
+          orientation="horizontal"
+          className="h-full w-full flex-1 overflow-hidden"
+        >
+          <ResizablePanel
+            defaultSize="44%"
+            minSize="35%"
+            className="flex h-full min-w-0 flex-col overflow-hidden"
           >
-            {noChat && (
-              <EmptyScreen
-                icon={
-                  <MessageSquare className="mx-auto mb-4 size-12 opacity-50" />
-                }
-                text="How can I help you today?"
-              />
-            )}
-            <ChatPromptForm
-              modelId={currentModelId}
-              stop={stop}
+            <ChatPanel
+              title={title}
+              noChat={noChat}
+              modelId={displayModelId}
+              image={displayImage}
+              currentModelId={currentModelId}
+              currentImage={currentImage}
+              supportsReasoning={supportsReasoning}
+              artifacts={artifactList}
+              messages={messages}
+              setMessages={setMessages}
               status={status}
+              stop={stop}
               input={input}
               setInput={setInput}
               onInputChange={e => setInput(e.target.value)}
               onSubmit={handleSubmit}
               onModelChange={handleModelChange}
               onOptionsChange={handleOptionsChange}
+              onSelectArtifact={handleArtifactSelect}
+              onReload={handleReload}
             />
-          </div>
+          </ResizablePanel>
+          <ResizableHandle withHandle />
+          <ResizablePanel
+            defaultSize="56%"
+            minSize="25%"
+            maxSize="65%"
+            className="h-full min-w-0 overflow-hidden"
+          >
+            <ArtifactsPanel
+              open={isPanelOpen}
+              onOpenChange={setPanelOpen}
+              artifacts={artifactList}
+              selectedId={activeId}
+              onSelect={handleArtifactSelect}
+              desktopContainerClassName="h-full w-full min-w-0 max-w-none border-l-0"
+            />
+          </ResizablePanel>
+        </ResizablePanelGroup>
+      ) : (
+        <div className="flex w-full flex-1 overflow-hidden">
+          <ChatPanel
+            title={title}
+            noChat={noChat}
+            modelId={displayModelId}
+            image={displayImage}
+            currentModelId={currentModelId}
+            currentImage={currentImage}
+            supportsReasoning={supportsReasoning}
+            artifacts={artifactList}
+            messages={messages}
+            setMessages={setMessages}
+            status={status}
+            stop={stop}
+            input={input}
+            setInput={setInput}
+            onInputChange={e => setInput(e.target.value)}
+            onSubmit={handleSubmit}
+            onModelChange={handleModelChange}
+            onOptionsChange={handleOptionsChange}
+            onSelectArtifact={handleArtifactSelect}
+            onReload={handleReload}
+          />
+          <ArtifactsPanel
+            open={isPanelOpen}
+            onOpenChange={setPanelOpen}
+            artifacts={artifactList}
+            selectedId={activeId}
+            onSelect={handleArtifactSelect}
+          />
         </div>
-        <ArtifactsPanel
-          open={isPanelOpen}
-          onOpenChange={setPanelOpen}
-          artifacts={artifactList}
-          selectedId={activeId}
-          onSelect={handleArtifactSelect}
-        />
-      </div>
+      )}
     </div>
   );
 }

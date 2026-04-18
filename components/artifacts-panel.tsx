@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { X } from 'lucide-react';
 
 import { Artifact } from '@/types';
+import { cn } from '@/lib/utils';
 import { useMediaQuery } from '@/hooks/use-media-query';
 import { Button } from '@/components/ui/button';
 import { Sheet, SheetContent, SheetTitle } from '@/components/ui/sheet';
@@ -21,6 +22,7 @@ interface ArtifactsPanelProps {
   artifacts: Artifact[];
   selectedId?: string | null;
   onSelect: (id: string) => void;
+  desktopContainerClassName?: string;
 }
 
 export function ArtifactsPanel({
@@ -28,7 +30,8 @@ export function ArtifactsPanel({
   onOpenChange,
   artifacts,
   selectedId,
-  onSelect
+  onSelect,
+  desktopContainerClassName
 }: ArtifactsPanelProps) {
   const [viewMode, setViewMode] = useState<'source' | 'preview'>('source');
   const sortedArtifacts = useMemo(
@@ -110,7 +113,12 @@ export function ArtifactsPanel({
   return (
     <>
       {isDesktop && (
-        <div className="h-full w-[min(56vw,760px)] max-w-[820px] min-w-[440px] flex-col border-l bg-background md:flex">
+        <div
+          className={cn(
+            'h-full w-[min(56vw,760px)] max-w-[820px] min-w-[440px] flex-col border-l bg-background md:flex',
+            desktopContainerClassName
+          )}
+        >
           <div className="min-h-0 flex-1">{content}</div>
         </div>
       )}
