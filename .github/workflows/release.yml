@@ -3,13 +3,16 @@ name: Release
 on:
   push:
     tags:
-      - 'v*' # Trigger on tags like v1.0.0
+      - 'v*'
 
 jobs:
   build-and-release:
     runs-on: ubuntu-latest
+    concurrency:
+      group: release-${{ github.ref_name }}
+      cancel-in-progress: false
     permissions:
-      contents: write # Needed for creating a release
+      contents: write
 
     steps:
       - name: Checkout repository
@@ -18,13 +21,39 @@ jobs:
       - name: Install pnpm
         uses: pnpm/action-setup@v4
         with:
-          version: 9
+          version: 10.22.0
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: 'pnpm'
+          cache: pnpm
+
+      - name: Validate tag matches package version
+        env:
+          TAG_NAME: ${{ github.ref_name }}
+        run: |
+          PACKAGE_VERSION=$(node -p "require('./package.json').version")
+          EXPECTED_TAG="v${PACKAGE_VERSION}"
+
+          if [ "$TAG_NAME" != "$EXPECTED_TAG" ]; then
+            echo "Tag ${TAG_NAME} does not match package.json version ${PACKAGE_VERSION}"
+            exit 1
+          fi
+
+      - name: Detect release channel
+        id: release_meta
+        env:
+          TAG_NAME: ${{ github.ref_name }}
+        run: |
+          echo "tag_name=${TAG_NAME}" >> "$GITHUB_OUTPUT"
+          echo "release_name=${TAG_NAME}" >> "$GITHUB_OUTPUT"
+
+          if [[ "$TAG_NAME" == *-* ]]; then
+            echo "prerelease=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "prerelease=false" >> "$GITHUB_OUTPUT"
+          fi
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
@@ -46,4 +75,7 @@ jobs:
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
+          tag_name: ${{ steps.release_meta.outputs.tag_name }}
+          name: ${{ steps.release_meta.outputs.release_name }}
           generate_release_notes: true
+          prerelease: ${{ steps.release_meta.outputs.prerelease == 'true' }}
