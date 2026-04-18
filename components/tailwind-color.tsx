@@ -21,7 +21,7 @@ export function TailwindColor() {
   ];
 
   return (
-    <div className="fixed bottom-8 right-1 z-50 flex flex-col items-end">
+    <div className="fixed right-1 bottom-8 z-50 flex flex-col items-end">
       {colors.map(color => (
         <div
           key={color}

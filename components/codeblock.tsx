@@ -46,8 +46,8 @@ const CodeBlock = memo(
         }
       >
         {showHeader && (
-          <div className="flex w-full items-center justify-between bg-[#FAFAFA] pl-3 pr-px dark:bg-[#282C34]">
-            <span className="text-xs lowercase text-muted-foreground">
+          <div className="flex w-full items-center justify-between bg-[#FAFAFA] pr-px pl-3 dark:bg-[#282C34]">
+            <span className="text-xs text-muted-foreground lowercase">
               {language}
             </span>
             <div className="flex items-center">
@@ -65,7 +65,7 @@ const CodeBlock = memo(
         )}
         <Suspense
           fallback={
-            <pre className="min-h-24 whitespace-pre-wrap break-words p-4 font-mono text-sm text-muted-foreground">
+            <pre className="min-h-24 p-4 font-mono text-sm wrap-break-word whitespace-pre-wrap text-muted-foreground">
               {value}
             </pre>
           }

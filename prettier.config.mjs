@@ -7,6 +7,7 @@ const config = {
   arrowParens: 'avoid',
   tabWidth: 2,
   trailingComma: 'none',
+  tailwindStylesheet: './app/globals.css',
   plugins: [
     '@ianvs/prettier-plugin-sort-imports',
     'prettier-plugin-tailwindcss'

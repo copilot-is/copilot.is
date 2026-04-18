@@ -13,6 +13,7 @@ import { ProviderTypes } from '@/lib/constant';
 import { api } from '@/trpc/react';
 import {
   AlertDialog,
+  AlertDialogAction,
   AlertDialogCancel,
   AlertDialogContent,
   AlertDialogDescription,
@@ -415,7 +416,7 @@ export default function ProvidersPage() {
       <div className="flex items-center justify-between gap-4">
         <div className="flex max-w-2xl flex-1 items-center gap-2">
           <div className="relative max-w-xs flex-1">
-            <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+            <Search className="absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
             <Input
               placeholder="Search providers..."
               value={search}
@@ -738,7 +739,7 @@ export default function ProvidersPage() {
                     }
                   />
                 </td>
-                <td className="whitespace-nowrap p-3 text-right">
+                <td className="p-3 text-right whitespace-nowrap">
                   <Tooltip>
                     <TooltipTrigger asChild>
                       <Button
@@ -800,7 +801,7 @@ export default function ProvidersPage() {
             <AlertDialogCancel disabled={deleteMutation.isPending}>
               Cancel
             </AlertDialogCancel>
-            <Button
+            <AlertDialogAction
               onClick={() => {
                 if (deleteId) {
                   deleteMutation.mutate({ id: deleteId });
@@ -814,7 +815,7 @@ export default function ProvidersPage() {
                 <Loader2 className="size-4 animate-spin" />
               )}
               {deleteMutation.isPending ? 'Deleting...' : 'Delete'}
-            </Button>
+            </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

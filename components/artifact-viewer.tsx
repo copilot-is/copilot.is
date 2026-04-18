@@ -187,18 +187,18 @@ export function ArtifactViewer({
   };
 
   const viewModeButtons = supportsPreview ? (
-    <div className="relative grid shrink-0 grid-cols-2 items-center rounded-full border border-border/60 bg-transparent">
+    <div className="relative flex shrink-0 items-center rounded-full border border-border/60 bg-transparent p-0.5">
       <div
         className={cn(
-          'absolute inset-y-0.5 left-0.5 w-[calc(50%-2px)] rounded-full bg-accent transition-transform',
-          viewMode === 'preview' ? 'translate-x-0' : 'translate-x-full'
+          'absolute inset-y-0.5 left-0.5 w-7 rounded-full bg-accent transition-transform',
+          viewMode === 'preview' ? 'translate-x-0' : 'translate-x-7'
         )}
       />
       <Button
         variant="ghost"
         size="icon"
         className={cn(
-          'relative z-10 size-8 rounded-full bg-transparent text-muted-foreground hover:bg-transparent hover:text-accent-foreground',
+          'relative z-10 size-7 rounded-full bg-transparent text-muted-foreground hover:bg-transparent hover:text-accent-foreground',
           viewMode === 'preview' &&
             'text-accent-foreground hover:text-accent-foreground'
         )}
@@ -209,14 +209,14 @@ export function ArtifactViewer({
           onViewModeChange?.('preview');
         }}
       >
-        <Eye className="size-6" />
+        <Eye className="size-4" />
         <span className="sr-only">Preview view</span>
       </Button>
       <Button
         variant="ghost"
         size="icon"
         className={cn(
-          'relative z-10 size-8 rounded-full bg-transparent text-muted-foreground hover:bg-transparent hover:text-accent-foreground',
+          'relative z-10 size-7 rounded-full bg-transparent text-muted-foreground hover:bg-transparent hover:text-accent-foreground',
           viewMode === 'source' &&
             'text-accent-foreground hover:text-accent-foreground'
         )}
@@ -227,7 +227,7 @@ export function ArtifactViewer({
           onViewModeChange?.('source');
         }}
       >
-        <CodeXml className="size-6" />
+        <CodeXml className="size-4" />
         <span className="sr-only">Code view</span>
       </Button>
     </div>
@@ -237,7 +237,7 @@ export function ArtifactViewer({
     <div className="flex size-full min-h-0 flex-col justify-center gap-3">
       {!hideHeader && (
         <div className="relative flex gap-3">
-          <div className="flex min-w-0 max-w-full items-center gap-2 pr-28">
+          <div className="flex max-w-full min-w-0 items-center gap-2 pr-28">
             {viewModeButtons}
             {artifacts.length > 1 ? (
               <Select
@@ -245,7 +245,7 @@ export function ArtifactViewer({
                 onValueChange={value => onSelectArtifact?.(value)}
                 disabled={isHeaderActionDisabled}
               >
-                <SelectTrigger className="h-6 w-fit min-w-0 max-w-full border-0 p-0 text-sm font-semibold shadow-none">
+                <SelectTrigger className="h-6 w-fit max-w-full min-w-0 border-0 p-0 text-sm font-semibold shadow-none">
                   <div className="flex min-w-0 items-center gap-2">
                     <SelectValue>
                       <span className="truncate">{artifact.title}</span>
@@ -280,7 +280,7 @@ export function ArtifactViewer({
             )}
             {statusIndicator}
           </div>
-          <div className="absolute right-0 top-1/2 flex -translate-y-1/2 items-center gap-2">
+          <div className="absolute top-1/2 right-0 flex -translate-y-1/2 items-center gap-2">
             {canCopyContent && (
               <Tooltip>
                 <TooltipTrigger asChild>

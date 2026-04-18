@@ -92,14 +92,14 @@ export function Message({
   return (
     <div
       tabIndex={0}
-      className="group mb-1 rounded-md last:mb-0 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+      className="group mb-1 rounded-md last:mb-0 focus-visible:ring-1 focus-visible:ring-ring focus-visible:outline-hidden"
     >
       <div
         className={cn('flex items-start', {
           'flex-row-reverse': message.role === 'user'
         })}
       >
-        <div className="flex size-9 shrink-0 select-none items-center justify-center rounded-full bg-muted">
+        <div className="flex size-9 shrink-0 items-center justify-center rounded-full bg-muted select-none">
           {message.role === 'user' && <User className="size-5" />}
           {message.role === 'assistant' && <ModelIcon image={image} />}
         </div>

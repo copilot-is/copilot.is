@@ -16,10 +16,9 @@ const compat = new FlatCompat({
 const eslintConfig = [
   ...ts.configs.recommended,
   nextPlugin.configs['core-web-vitals'],
-  ...compat.extends('prettier', 'plugin:tailwindcss/recommended'),
+  ...compat.extends('prettier'),
   {
     rules: {
-      'tailwindcss/no-custom-classname': 'off',
       '@next/next/no-img-element': 'off',
       '@typescript-eslint/no-explicit-any': 'off',
       '@typescript-eslint/no-unused-vars': [
@@ -28,12 +27,6 @@ const eslintConfig = [
       ],
       '@typescript-eslint/no-empty-object-type': 'off',
       '@typescript-eslint/no-require-imports': 'off'
-    },
-    settings: {
-      tailwindcss: {
-        callees: ['cn', 'cva'],
-        config: 'tailwind.config.ts'
-      }
     }
   },
   {

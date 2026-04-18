@@ -4,6 +4,7 @@ import * as React from 'react';
 import Link from 'next/link';
 import { useSystemSettings } from '@/contexts/system-settings-context';
 
+import { Separator } from '@/components/ui/separator';
 import {
   SidebarContent,
   SidebarFooter,
@@ -12,8 +13,7 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
   Sidebar as SidebarPrimitive,
-  SidebarRail,
-  SidebarSeparator
+  SidebarRail
 } from '@/components/ui/sidebar';
 import { NewContent } from '@/components/new-content';
 import { SidebarList } from '@/components/sidebar-list';
@@ -30,9 +30,9 @@ export function Sidebar({
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton
-              size="lg"
               asChild
-              className="gap-1 p-0 hover:bg-transparent hover:text-sidebar-foreground active:bg-transparent active:text-sidebar-foreground group-data-[collapsible=icon]:!h-12 group-data-[collapsible=icon]:!w-8"
+              size="lg"
+              className="gap-1 p-0 hover:bg-transparent hover:text-sidebar-foreground active:bg-transparent active:text-sidebar-foreground"
             >
               <Link href="/">
                 <div className="flex aspect-square size-8 items-center justify-center">
@@ -48,7 +48,9 @@ export function Sidebar({
       </SidebarHeader>
       <SidebarContent>
         <NewContent />
-        <SidebarSeparator />
+        <div className="px-2">
+          <Separator className="bg-sidebar-border" />
+        </div>
         <SidebarList />
       </SidebarContent>
       <SidebarFooter>

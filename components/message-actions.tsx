@@ -265,7 +265,7 @@ export function MessageActions({
             >
               <RefreshCw className="size-4" />
               <span className="sr-only">Retry</span>
-              <span className="hidden text-muted-foreground animate-out fade-out group-hover/retry:inline-block group-hover/retry:animate-in group-hover/retry:fade-in">
+              <span className="hidden animate-out text-muted-foreground fade-out group-hover/retry:inline-block group-hover/retry:animate-in group-hover/retry:fade-in">
                 {modelId}
               </span>
             </Button>

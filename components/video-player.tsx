@@ -132,7 +132,7 @@ export function VideoPlayer({ src }: VideoPlayerProps) {
       />
 
       {/* Control bar */}
-      <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 to-transparent p-4 opacity-0 transition-opacity group-hover:opacity-100">
+      <div className="absolute inset-x-0 bottom-0 bg-linear-to-t from-black/80 to-transparent p-4 opacity-0 transition-opacity group-hover:opacity-100">
         <div className="flex items-center gap-3">
           {/* Play/Pause Button */}
           <Button
@@ -155,7 +155,7 @@ export function VideoPlayer({ src }: VideoPlayerProps) {
               <div className="absolute inset-0 rounded-full bg-white/30" />
               {/* Progress track */}
               <div
-                className="absolute left-0 top-0 h-full rounded-full bg-primary transition-all"
+                className="absolute top-0 left-0 h-full rounded-full bg-primary transition-all"
                 style={{ width: `${progress}%` }}
               />
               {/* Input slider */}
@@ -166,7 +166,7 @@ export function VideoPlayer({ src }: VideoPlayerProps) {
                 step="0.01"
                 value={currentTime}
                 onChange={handleSeek}
-                className="absolute inset-0 size-full cursor-pointer appearance-none bg-transparent outline-none [&::-moz-range-thumb]:size-3 [&::-moz-range-thumb]:appearance-none [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:border-0 [&::-moz-range-thumb]:bg-white [&::-moz-range-thumb]:shadow-lg [&::-webkit-slider-thumb]:size-3 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-white [&::-webkit-slider-thumb]:shadow-lg"
+                className="absolute inset-0 size-full cursor-pointer appearance-none bg-transparent outline-hidden [&::-moz-range-thumb]:size-3 [&::-moz-range-thumb]:appearance-none [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:border-0 [&::-moz-range-thumb]:bg-white [&::-moz-range-thumb]:shadow-lg [&::-webkit-slider-thumb]:size-3 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-white [&::-webkit-slider-thumb]:shadow-lg"
               />
             </div>
             <div className="flex justify-between text-xs text-white">

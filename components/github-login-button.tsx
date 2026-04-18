@@ -4,11 +4,11 @@ import * as React from 'react';
 import { Loader2 } from 'lucide-react';
 import { signIn } from 'next-auth/react';
 
-import { Button, type ButtonProps } from '@/components/ui/button';
+import { Button } from '@/components/ui/button';
 import { IconGitHub } from '@/components/ui/icons';
 
 interface GitHubLoginButtonProps extends Omit<
-  ButtonProps,
+  React.ComponentProps<typeof Button>,
   'children' | 'disabled' | 'onClick'
 > {
   isLoading?: string | null;

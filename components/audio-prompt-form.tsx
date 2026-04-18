@@ -44,7 +44,7 @@ export function AudioPromptForm({
           tabIndex={0}
           spellCheck={false}
           placeholder="Enter text to convert to speech..."
-          className="flex-1 resize-none bg-transparent p-1 focus-within:outline-none"
+          className="flex-1 resize-none bg-transparent p-1 focus-within:outline-hidden"
           rows={1}
           minRows={1}
           maxRows={8}

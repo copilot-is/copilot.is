@@ -53,7 +53,7 @@ export const AttachmentsPreview = ({
             <Button
               type="button"
               variant="link"
-              className="group absolute -right-1.5 -top-1.5 size-5 p-0 disabled:opacity-100"
+              className="group absolute -top-1.5 -right-1.5 size-5 p-0 disabled:opacity-100"
               disabled={isPending || disabled}
               onClick={() =>
                 startTransition(() => removeAttachment(attachment.url, index))

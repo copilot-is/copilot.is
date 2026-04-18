@@ -79,7 +79,7 @@ const StatusPanel = ({
           <AlertCircle className="size-4" />
           Preview failed
         </div>
-        <pre className="whitespace-pre-wrap break-words font-mono text-xs">
+        <pre className="font-mono text-xs wrap-break-word whitespace-pre-wrap">
           {error}
         </pre>
       </div>

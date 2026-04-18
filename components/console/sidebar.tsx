@@ -31,9 +31,9 @@ export function Sidebar({
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton
-              size="lg"
               asChild
-              className="gap-1 p-0 hover:bg-transparent hover:text-sidebar-foreground active:bg-transparent active:text-sidebar-foreground group-data-[collapsible=icon]:!h-12 group-data-[collapsible=icon]:!w-8"
+              size="lg"
+              className="gap-1 p-0 hover:bg-transparent hover:text-sidebar-foreground active:bg-transparent active:text-sidebar-foreground"
             >
               <Link href="/console">
                 <div className="flex aspect-square size-8 items-center justify-center">

@@ -81,7 +81,7 @@ export function IconPicker({ value, onChange, disabled }: IconPickerProps) {
           >
             <ModelIcon image={icon.value} className="size-6" />
             {value === icon.value && (
-              <span className="absolute bottom-1 right-1 inline-flex size-3 items-center justify-center rounded-full bg-primary text-primary-foreground">
+              <span className="absolute right-1 bottom-1 inline-flex size-3 items-center justify-center rounded-full bg-primary text-primary-foreground">
                 <Check className="size-2.5" />
               </span>
             )}

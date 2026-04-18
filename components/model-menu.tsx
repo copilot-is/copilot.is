@@ -19,7 +19,8 @@ import {
   SelectGroup,
   SelectItem,
   SelectLabel,
-  SelectTrigger
+  SelectTrigger,
+  SelectValue
 } from '@/components/ui/select';
 import { Skeleton } from '@/components/ui/skeleton';
 import {
@@ -344,58 +345,61 @@ export function ModelMenu({
         onValueChange={handleModelChange}
       >
         <SelectTrigger className="h-9 rounded-full border shadow-none hover:bg-accent disabled:hover:bg-transparent">
-          {selectedModel ? (
-            <>
-              <ModelIcon
-                image={
-                  selectedModel.image || selectedModel.provider?.image || null
-                }
-                className="mr-2 size-4"
-              />
-              <span className="text-sm font-medium">{selectedModel.name}</span>
-            </>
-          ) : (
-            <span className="text-sm text-muted-foreground">
-              {!models?.length ? 'No available models' : 'Select model'}
-            </span>
-          )}
+          <SelectValue
+            placeholder={
+              !models?.length ? 'No available models' : 'Select model'
+            }
+          >
+            {selectedModel ? (
+              <span className="flex items-center gap-2">
+                <ModelIcon
+                  image={
+                    selectedModel.image || selectedModel.provider?.image || null
+                  }
+                  className="size-4"
+                />
+                <span className="text-sm font-medium">
+                  {selectedModel.name}
+                </span>
+              </span>
+            ) : null}
+          </SelectValue>
         </SelectTrigger>
-        <SelectContent>
+        <SelectContent position="popper">
           {models &&
             models.length > 0 &&
             Object.entries(groupedModels).map(
               ([providerId, providerModels]) => (
                 <SelectGroup key={providerId}>
-                  <SelectLabel asChild>
-                    <div className="flex items-center px-2 py-1.5">
-                      <ModelIcon
-                        className="mr-2 size-4 opacity-45 grayscale"
-                        image={providerModels[0]?.provider?.image || null}
-                      />
-                      <div className="text-xs font-normal text-muted-foreground">
-                        {providerModels[0]?.provider?.name || 'Unknown'}
-                      </div>
-                    </div>
+                  <SelectLabel className="flex items-center gap-2">
+                    <ModelIcon
+                      className="size-4 opacity-45 grayscale"
+                      image={providerModels[0]?.provider?.image || null}
+                    />
+                    <span className="font-normal">
+                      {providerModels[0]?.provider?.name || 'Unknown'}
+                    </span>
                   </SelectLabel>
                   {providerModels.map(m => (
                     <SelectItem
                       key={m.modelId}
                       value={m.modelId}
+                      textValue={`${m.name} ${m.modelId}`}
                       className="pr-2 data-[state=checked]:bg-accent [&>span:first-child]:hidden [&>span:last-child]:w-full"
                     >
-                      <div className="flex w-full items-start">
+                      <span className="flex w-full items-start">
                         <ModelIcon
                           image={m.image || m.provider?.image || null}
-                          className="mr-2 mt-0.5 size-4"
+                          className="mt-0.5 mr-2 size-4"
                         />
-                        <div>
-                          <div className="font-medium">{m.name}</div>
-                          <div className="text-xs text-muted-foreground">
+                        <span className="flex min-w-0 flex-1 flex-col">
+                          <span className="font-medium">{m.name}</span>
+                          <span className="text-xs text-muted-foreground">
                             {m.modelId}
-                          </div>
-                        </div>
+                          </span>
+                        </span>
                         {(m.supportsReasoning || m.supportsVision) && (
-                          <div className="ml-auto flex items-center gap-1 pl-3 pt-0.5">
+                          <span className="ml-auto flex items-center gap-1 pt-0.5 pl-3">
                             {m.supportsVision && (
                               <Tooltip>
                                 <TooltipTrigger asChild>
@@ -418,9 +422,9 @@ export function ModelMenu({
                                 </TooltipContent>
                               </Tooltip>
                             )}
-                          </div>
+                          </span>
                         )}
-                      </div>
+                      </span>
                     </SelectItem>
                   ))}
                 </SelectGroup>

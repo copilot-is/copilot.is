@@ -223,7 +223,7 @@ export function ArtifactPreviewFrameClient() {
     return (
       <div className="min-h-screen bg-white p-4 text-red-700">
         <div className="rounded-lg border border-red-200 bg-red-50 p-3">
-          <pre className="whitespace-pre-wrap break-words text-xs">
+          <pre className="text-xs wrap-break-word whitespace-pre-wrap">
             {state.message}
           </pre>
         </div>

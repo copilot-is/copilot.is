@@ -35,7 +35,7 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
           <TabsList className="flex h-full min-w-40 flex-col justify-start gap-2 bg-transparent p-0">
             <TabsTrigger
               value="general"
-              className="w-full justify-start gap-2 text-wrap py-2 shadow-none hover:bg-muted focus-visible:ring-1 focus-visible:ring-offset-1 data-[state=active]:bg-muted data-[state=active]:shadow-none"
+              className="w-full justify-start gap-2 py-2 text-wrap shadow-none hover:bg-muted focus-visible:ring-1 focus-visible:ring-offset-1 data-[state=active]:bg-muted data-[state=active]:shadow-none"
             >
               <Settings className="size-4" />
               General
@@ -43,7 +43,7 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
             {isSpeechAvailable && (
               <TabsTrigger
                 value="speech"
-                className="w-full justify-start gap-2 text-wrap py-2 shadow-none hover:bg-muted focus-visible:ring-1 focus-visible:ring-offset-1 data-[state=active]:bg-muted data-[state=active]:shadow-none"
+                className="w-full justify-start gap-2 py-2 text-wrap shadow-none hover:bg-muted focus-visible:ring-1 focus-visible:ring-offset-1 data-[state=active]:bg-muted data-[state=active]:shadow-none"
               >
                 <Volume2 className="size-4" />
                 Speech
@@ -51,7 +51,7 @@ export function SettingsDialog({ open, onOpenChange }: SettingsDialogProps) {
             )}
             <TabsTrigger
               value="profile"
-              className="w-full justify-start gap-2 text-wrap py-2 shadow-none hover:bg-muted focus-visible:ring-1 focus-visible:ring-offset-1 data-[state=active]:bg-muted data-[state=active]:shadow-none"
+              className="w-full justify-start gap-2 py-2 text-wrap shadow-none hover:bg-muted focus-visible:ring-1 focus-visible:ring-offset-1 data-[state=active]:bg-muted data-[state=active]:shadow-none"
             >
               <User className="size-4" />
               Profile

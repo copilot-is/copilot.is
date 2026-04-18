@@ -162,7 +162,7 @@ export const SettingsProfile = () => {
 
           {/* Name Form */}
           <div className="flex-1 space-y-1">
-            <label htmlFor="name" className="text-sm font-medium leading-none">
+            <label htmlFor="name" className="text-sm leading-none font-medium">
               Full Name
             </label>
             <Input

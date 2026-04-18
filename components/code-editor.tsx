@@ -161,7 +161,7 @@ export function CodeEditor({
   return (
     <div
       ref={containerRef}
-      className="min-w-0 [&_.cm-content]:font-mono [&_.cm-content]:text-sm [&_.cm-editor]:bg-transparent [&_.cm-editor]:outline-none [&_.cm-gutters]:border-0 [&_.cm-gutters]:bg-transparent [&_.cm-scroller]:font-mono"
+      className="min-w-0 [&_.cm-content]:font-mono [&_.cm-content]:text-sm [&_.cm-editor]:bg-transparent [&_.cm-editor]:outline-hidden [&_.cm-gutters]:border-0 [&_.cm-gutters]:bg-transparent [&_.cm-scroller]:font-mono"
     />
   );
 }

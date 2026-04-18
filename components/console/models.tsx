@@ -14,6 +14,7 @@ import { toast } from 'sonner';
 import { api } from '@/trpc/react';
 import {
   AlertDialog,
+  AlertDialogAction,
   AlertDialogCancel,
   AlertDialogContent,
   AlertDialogDescription,
@@ -271,7 +272,7 @@ export default function ModelsPage() {
       <div className="flex items-center justify-between gap-4">
         <div className="flex max-w-2xl flex-1 items-center gap-2">
           <div className="relative max-w-xs flex-1">
-            <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+            <Search className="absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
             <Input
               placeholder="Search models..."
               value={search}
@@ -473,7 +474,7 @@ export default function ModelsPage() {
                         </button>
                       </TooltipTrigger>
                       <TooltipContent className="max-w-sm">
-                        <pre className="whitespace-pre-wrap font-mono text-xs">
+                        <pre className="font-mono text-xs whitespace-pre-wrap">
                           {uiOptionsPlaceholder}
                         </pre>
                       </TooltipContent>
@@ -505,7 +506,7 @@ export default function ModelsPage() {
                         </button>
                       </TooltipTrigger>
                       <TooltipContent className="max-w-sm">
-                        <pre className="whitespace-pre-wrap font-mono text-xs">
+                        <pre className="font-mono text-xs whitespace-pre-wrap">
                           {apiParamsPlaceholder}
                         </pre>
                       </TooltipContent>
@@ -635,7 +636,7 @@ export default function ModelsPage() {
                     }
                   />
                 </td>
-                <td className="whitespace-nowrap p-3 text-right">
+                <td className="p-3 text-right whitespace-nowrap">
                   <Tooltip>
                     <TooltipTrigger asChild>
                       <Button
@@ -695,7 +696,7 @@ export default function ModelsPage() {
             <AlertDialogCancel disabled={deleteMutation.isPending}>
               Cancel
             </AlertDialogCancel>
-            <Button
+            <AlertDialogAction
               onClick={() => {
                 if (deleteId) {
                   deleteMutation.mutate({ id: deleteId });
@@ -709,7 +710,7 @@ export default function ModelsPage() {
                 <Loader2 className="size-4 animate-spin" />
               )}
               {deleteMutation.isPending ? 'Deleting...' : 'Delete'}
-            </Button>
+            </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

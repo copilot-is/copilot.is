@@ -10,7 +10,7 @@ interface MessageMarkdownProps {
 
 export function MessageMarkdown({ content }: MessageMarkdownProps) {
   return (
-    <div className="prose break-words dark:prose-invert prose-p:leading-relaxed prose-pre:bg-transparent prose-pre:p-0 prose-hr:my-3 [&_li_p]:!my-0">
+    <div className="prose wrap-break-word dark:prose-invert prose-p:leading-relaxed prose-pre:bg-transparent prose-pre:p-0 prose-hr:my-3 [&_li_p]:my-0!">
       <MemoizedReactMarkdown
         remarkPlugins={[remarkGfm]}
         components={{

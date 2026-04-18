@@ -51,7 +51,7 @@ export const artifactRegistry: Record<
         return <MessageMarkdown content={artifact.content ?? ''} />;
       }
       return (
-        <pre className="whitespace-pre-wrap text-sm">
+        <pre className="text-sm whitespace-pre-wrap">
           {artifact.content ?? ''}
         </pre>
       );

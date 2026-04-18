@@ -89,7 +89,7 @@ export default function UsersPage() {
       <div className="flex items-center justify-between gap-4">
         <div className="flex max-w-2xl flex-1 items-center gap-2">
           <div className="relative max-w-xs flex-1">
-            <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+            <Search className="absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
             <Input
               placeholder="Search by name or email..."
               value={searchInput}

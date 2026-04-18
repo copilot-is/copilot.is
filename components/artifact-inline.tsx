@@ -18,8 +18,8 @@ export function ArtifactInlineList({
     <div
       className={
         artifacts.length > 1
-          ? 'ml-12 mt-2 grid gap-2 sm:grid-cols-2'
-          : 'ml-12 mt-2 grid grid-cols-1 gap-2'
+          ? 'mt-2 ml-12 grid gap-2 sm:grid-cols-2'
+          : 'mt-2 ml-12 grid grid-cols-1 gap-2'
       }
     >
       {artifacts.map(artifact => (

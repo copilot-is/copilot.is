@@ -95,7 +95,7 @@ export function AudioPlayer({ src, className }: AudioPlayerProps) {
   return (
     <div
       className={cn(
-        'flex items-center gap-3 rounded-full bg-muted/50 py-2 pl-2 pr-4',
+        'flex items-center gap-3 rounded-full bg-muted/50 py-2 pr-4 pl-2',
         className
       )}
     >
@@ -122,7 +122,7 @@ export function AudioPlayer({ src, className }: AudioPlayerProps) {
           onClick={handleSeek}
         >
           <div
-            className="absolute left-0 top-0 h-full rounded-full bg-foreground transition-all"
+            className="absolute top-0 left-0 h-full rounded-full bg-foreground transition-all"
             style={{ width: `${progress}%` }}
           />
           <div

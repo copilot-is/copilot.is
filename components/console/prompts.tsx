@@ -7,6 +7,7 @@ import { toast } from 'sonner';
 import { api } from '@/trpc/react';
 import {
   AlertDialog,
+  AlertDialogAction,
   AlertDialogCancel,
   AlertDialogContent,
   AlertDialogDescription,
@@ -204,7 +205,7 @@ export default function PromptsPage() {
       <div className="flex items-center justify-between gap-4">
         <div className="flex max-w-2xl flex-1 items-center gap-2">
           <div className="relative max-w-xs flex-1">
-            <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+            <Search className="absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />
             <Input
               placeholder="Search prompts..."
               value={search}
@@ -357,7 +358,7 @@ export default function PromptsPage() {
                       <button
                         type="button"
                         onClick={() => setFormData({ ...formData, image: '' })}
-                        className="absolute -right-2 -top-2 rounded-full bg-destructive p-1 text-destructive-foreground hover:bg-destructive/90 disabled:opacity-50"
+                        className="absolute -top-2 -right-2 rounded-full bg-destructive p-1 text-destructive-foreground hover:bg-destructive/90 disabled:opacity-50"
                         disabled={isPending}
                       >
                         <Trash2 className="size-3" />
@@ -512,7 +513,7 @@ export default function PromptsPage() {
                     <span className="text-xs text-muted-foreground">All</span>
                   )}
                 </td>
-                <td className="whitespace-nowrap p-3 text-right">
+                <td className="p-3 text-right whitespace-nowrap">
                   <Tooltip>
                     <TooltipTrigger asChild>
                       <Button
@@ -572,7 +573,7 @@ export default function PromptsPage() {
             <AlertDialogCancel disabled={deleteMutation.isPending}>
               Cancel
             </AlertDialogCancel>
-            <Button
+            <AlertDialogAction
               onClick={() => {
                 if (deleteId) {
                   deleteMutation.mutate({ id: deleteId });
@@ -586,7 +587,7 @@ export default function PromptsPage() {
                 <Loader2 className="size-4 animate-spin" />
               )}
               {deleteMutation.isPending ? 'Deleting...' : 'Delete'}
-            </Button>
+            </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

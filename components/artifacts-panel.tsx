@@ -110,7 +110,7 @@ export function ArtifactsPanel({
   return (
     <>
       {isDesktop && (
-        <div className="h-full w-[min(56vw,760px)] min-w-[440px] max-w-[820px] flex-col border-l bg-background md:flex">
+        <div className="h-full w-[min(56vw,760px)] max-w-[820px] min-w-[440px] flex-col border-l bg-background md:flex">
           <div className="min-h-0 flex-1">{content}</div>
         </div>
       )}
