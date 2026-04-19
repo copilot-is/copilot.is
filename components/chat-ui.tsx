@@ -12,15 +12,15 @@ import { Artifact, Attachment, ChatMessage, CustomUIDataTypes } from '@/types';
 import { generateUUID, getMostRecentUserMessage } from '@/lib/utils';
 import { useChats } from '@/hooks/use-chats';
 import { api } from '@/trpc/react';
-import { ChatPanel } from '@/components/chat-panel';
-import { useSidebar } from '@/components/ui/sidebar';
-import { ArtifactsPanel } from '@/components/artifacts-panel';
-import { ModelOptions } from '@/components/model-menu';
 import {
   ResizableHandle,
   ResizablePanel,
   ResizablePanelGroup
 } from '@/components/ui/resizable';
+import { useSidebar } from '@/components/ui/sidebar';
+import { ArtifactsPanel } from '@/components/artifacts-panel';
+import { ChatPanel } from '@/components/chat-panel';
+import { ModelOptions } from '@/components/model-menu';
 
 interface ChatUIProps {
   id: string;

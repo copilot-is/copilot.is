@@ -4,13 +4,13 @@ import { useMemo, useState } from 'react';
 
 import { Artifact, ChatMessage } from '@/types';
 import { useMediaQuery } from '@/hooks/use-media-query';
-import { ArtifactsPanel } from '@/components/artifacts-panel';
-import { Messages } from '@/components/messages';
 import {
   ResizableHandle,
   ResizablePanel,
   ResizablePanelGroup
 } from '@/components/ui/resizable';
+import { ArtifactsPanel } from '@/components/artifacts-panel';
+import { Messages } from '@/components/messages';
 
 interface SharedChatViewProps {
   modelId: string;

@@ -16,12 +16,10 @@ import { EmptyScreen } from '@/components/empty-screen';
 import { Messages } from '@/components/messages';
 import ScrollToBottom from '@/components/scroll-to-bottom';
 
-interface ChatPanelProps
-  extends
-    Pick<
-      UseChatHelpers<ChatMessage>,
-      'messages' | 'setMessages' | 'status' | 'stop'
-    > {
+interface ChatPanelProps extends Pick<
+  UseChatHelpers<ChatMessage>,
+  'messages' | 'setMessages' | 'status' | 'stop'
+> {
   title?: string;
   noChat: boolean;
   modelId: string;
