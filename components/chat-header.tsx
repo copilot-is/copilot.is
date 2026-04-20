@@ -32,16 +32,16 @@ export function ChatHeader({ title }: ChatHeaderProps) {
   };
 
   useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  useEffect(() => {
     const documentTitle = title ? `${title} - ${appName}` : appName;
 
     if (documentTitle !== document.title) {
       document.title = documentTitle;
     }
   }, [title, appName]);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
 
   return (
     <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4">
@@ -55,7 +55,7 @@ export function ChatHeader({ title }: ChatHeaderProps) {
             <Button
               variant="ghost"
               size="icon"
-              className="-ml-1 size-7 lg:hidden"
+              className="-ml-1 size-7 md:hidden"
             >
               <PlusCircle />
               <span className="sr-only">New content</span>
@@ -79,10 +79,9 @@ export function ChatHeader({ title }: ChatHeaderProps) {
           </DropdownMenuContent>
         </DropdownMenu>
       ) : (
-        <Button variant="ghost" size="icon" className="-ml-1 size-7 lg:hidden">
-          <PlusCircle />
-          <span className="sr-only">New content</span>
-        </Button>
+        <div className="-ml-1 flex size-7 items-center justify-center md:hidden">
+          <PlusCircle className="size-4" />
+        </div>
       )}
     </header>
   );
