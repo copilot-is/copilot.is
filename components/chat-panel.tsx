@@ -1,12 +1,12 @@
 'use client';
 
 import type { ChangeEvent } from 'react';
+import dynamic from 'next/dynamic';
 import type { UseChatHelpers } from '@ai-sdk/react';
 import { MessageSquare } from 'lucide-react';
 
 import type { Artifact, Attachment, ChatMessage } from '@/types';
 import { cn } from '@/lib/utils';
-import { ButtonScrollToBottom } from '@/components/button-scroll-to-bottom';
 import { ChatHeader } from '@/components/chat-header';
 import {
   ChatPromptForm,
@@ -14,7 +14,10 @@ import {
 } from '@/components/chat-prompt-form';
 import { EmptyScreen } from '@/components/empty-screen';
 import { Messages } from '@/components/messages';
-import ScrollToBottom from '@/components/scroll-to-bottom';
+
+const ScrollToBottom = dynamic(() => import('@/components/scroll-to-bottom'), {
+  ssr: false
+});
 
 interface ChatPanelProps extends Pick<
   UseChatHelpers<ChatMessage>,
@@ -64,10 +67,7 @@ export function ChatPanel({
     <div className="flex h-full min-w-0 flex-1 flex-col overflow-hidden">
       <ChatHeader title={title} />
       <div className="min-h-0 w-full flex-1 overflow-hidden">
-        <ScrollToBottom
-          className="flex size-full flex-col items-center overflow-y-auto"
-          button={<ButtonScrollToBottom status={status} messages={messages} />}
-        >
+        <ScrollToBottom status={status} messages={messages}>
           <Messages
             modelId={modelId}
             image={image}

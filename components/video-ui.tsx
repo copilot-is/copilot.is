@@ -7,6 +7,7 @@ import React, {
   useRef,
   useState
 } from 'react';
+import dynamic from 'next/dynamic';
 import { usePreferences } from '@/contexts/preferences-context';
 import { useSystemSettings } from '@/contexts/system-settings-context';
 import { Video as VideoIcon } from 'lucide-react';
@@ -16,13 +17,15 @@ import { ChatMessage } from '@/types';
 import { generateVideo } from '@/lib/api';
 import { cn, generateUUID } from '@/lib/utils';
 import { useChats } from '@/hooks/use-chats';
-import { ButtonScrollToBottom } from '@/components/button-scroll-to-bottom';
 import { ChatHeader } from '@/components/chat-header';
 import { EmptyScreen } from '@/components/empty-screen';
 import { Messages } from '@/components/messages';
 import { ModelOptions } from '@/components/model-menu';
-import ScrollToBottom from '@/components/scroll-to-bottom';
 import { VideoPromptForm } from '@/components/video-prompt-form';
+
+const ScrollToBottom = dynamic(() => import('@/components/scroll-to-bottom'), {
+  ssr: false
+});
 
 interface VideoUIProps {
   id: string;
@@ -410,13 +413,8 @@ export function VideoUI({
       <ChatHeader title={title} />
       <div className="w-full flex-1 overflow-hidden">
         <ScrollToBottom
-          className="flex size-full flex-col items-center overflow-y-auto"
-          button={
-            <ButtonScrollToBottom
-              status={isLoading ? 'submitted' : 'ready'}
-              messages={messages}
-            />
-          }
+          status={isLoading ? 'submitted' : 'ready'}
+          messages={messages}
         >
           <Messages
             modelId={displayModelId}

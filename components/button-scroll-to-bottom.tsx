@@ -1,12 +1,12 @@
 'use client';
 
 import { useEffect } from 'react';
-import { UseChatHelpers } from '@ai-sdk/react';
+import type { UseChatHelpers } from '@ai-sdk/react';
 import { ArrowDown } from 'lucide-react';
+import { useScrollToBottom, useSticky } from 'react-scroll-to-bottom';
 
-import { ChatMessage } from '@/types';
+import type { ChatMessage } from '@/types';
 import { Button } from '@/components/ui/button';
-import { useScrollToBottom, useSticky } from '@/components/scroll-to-bottom';
 
 interface ButtonScrollToBottomProps
   extends
