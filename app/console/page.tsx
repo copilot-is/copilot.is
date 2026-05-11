@@ -10,10 +10,11 @@ export const metadata: Metadata = {
 };
 
 export default async function ConsolePage() {
-  const [providers, models, prompts, settings, userStats] = await Promise.all([
+  const [providers, models, promptStats, settings, userStats] =
+    await Promise.all([
     api.provider.list(),
     api.model.list(),
-    api.prompt.list(),
+    api.prompt.adminStats(),
     api.settings.list(),
     api.user.getStats()
   ]);
@@ -58,9 +59,9 @@ export default async function ConsolePage() {
               <Type className="size-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{prompts.length}</div>
+              <div className="text-2xl font-bold">{promptStats.total}</div>
               <p className="text-xs text-muted-foreground">
-                {prompts.filter(p => p.type === 'system').length} system prompts
+                {promptStats.system} system / {promptStats.user} user
               </p>
             </CardContent>
           </Card>

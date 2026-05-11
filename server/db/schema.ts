@@ -1,6 +1,7 @@
 import { relations, sql } from 'drizzle-orm';
 import {
   boolean,
+  check,
   index,
   integer,
   jsonb,
@@ -311,8 +312,9 @@ export const providersRelations = relations(providers, ({ many }) => ({
 
 /**
  * Prompt - System prompts and user templates
- * Types: system (for AI models), user (for user templates)
- * Capability: chat, image, video, audio (optional, for filtering)
+ * Types: system (for system workflows), user (for user-facing templates)
+ * OwnerKind: admin (admin-created prompt), user (user-created prompt)
+ * Capability: chat, image, video, audio
  * Providers: array of provider types (e.g., openai, xai, google)
  */
 export const prompts = createTable(
@@ -321,9 +323,15 @@ export const prompts = createTable(
     id: varchar('id', { length: 255 }).notNull().primaryKey(),
     name: varchar('name', { length: 100 }).notNull(),
     type: varchar('type', { length: 20 }).notNull().$type<'system' | 'user'>(),
-    capability: varchar('capability', { length: 32 }).$type<
-      'chat' | 'image' | 'video' | 'audio' | null
-    >(),
+    ownerKind: varchar('owner_kind', { length: 20 }).$type<'admin' | 'user'>(),
+    userId: varchar('user_id', { length: 255 }).references(() => users.id, {
+      onDelete: 'cascade'
+    }),
+    isPublic: boolean('is_public').notNull().default(false),
+    capability: varchar('capability', { length: 32 })
+      .notNull()
+      .default('chat')
+      .$type<'chat' | 'image' | 'video' | 'audio'>(),
     providers: jsonb('providers').$type<string[]>(),
     image: text('image'),
     content: text('content').notNull(),
@@ -333,9 +341,29 @@ export const prompts = createTable(
   },
   prompt => [
     index('prompt_type_idx').on(prompt.type),
-    index('prompt_capability_idx').on(prompt.capability)
+    index('prompt_capability_idx').on(prompt.capability),
+    index('prompt_owner_kind_idx').on(prompt.ownerKind),
+    index('prompt_user_id_idx').on(prompt.userId),
+    index('prompt_is_public_idx').on(prompt.isPublic),
+    check(
+      'prompt_owner_access_check',
+      sql`(
+        (${prompt.type} = 'system' and ${prompt.ownerKind} = 'admin' and ${prompt.userId} is not null and ${prompt.isPublic} = false)
+        or
+        (${prompt.type} = 'user' and ${prompt.ownerKind} = 'admin' and ${prompt.userId} is not null and ${prompt.isPublic} = true)
+        or
+        (${prompt.type} = 'user' and ${prompt.ownerKind} = 'user' and ${prompt.userId} is not null)
+      )`
+    )
   ]
 );
+
+export const promptsRelations = relations(prompts, ({ one }) => ({
+  user: one(users, {
+    fields: [prompts.userId],
+    references: [users.id]
+  })
+}));
 
 /**
  * Model - AI model configurations

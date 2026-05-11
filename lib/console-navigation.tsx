@@ -1,4 +1,11 @@
-import { Cpu, LayoutGrid, Settings, Type, Users, Zap } from 'lucide-react';
+import {
+  Cpu,
+  LayoutGrid,
+  Settings,
+  Type,
+  Users,
+  Zap
+} from 'lucide-react';
 
 export const ConsoleNavigation = {
   navMain: [

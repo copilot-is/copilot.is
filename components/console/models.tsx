@@ -66,7 +66,7 @@ export default function ModelsPage() {
   const utils = api.useUtils();
   const { data: models, isLoading } = api.model.list.useQuery();
   const { data: providers } = api.provider.list.useQuery();
-  const { data: prompts } = api.prompt.list.useQuery({ type: 'system' });
+  const { data: prompts } = api.prompt.adminList.useQuery({ type: 'system' });
 
   const createMutation = api.model.create.useMutation({
     onSuccess: () => {

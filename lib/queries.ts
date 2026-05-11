@@ -59,10 +59,26 @@ export const findModelByModelId = cache(
 // Prompt Queries
 // ============================================================================
 
-const getPromptById = cache(async (id: string): Promise<string | null> => {
-  const result = await db.select().from(prompts).where(eq(prompts.id, id));
-  return result[0]?.content ?? null;
-});
+type PromptRecord = typeof prompts.$inferSelect;
+
+const getPromptRecordById = cache(
+  async (id: string): Promise<PromptRecord | null> => {
+    const result = await db.select().from(prompts).where(eq(prompts.id, id));
+    return result[0] ?? null;
+  }
+);
+
+const getSystemPromptContentById = cache(
+  async (id: string): Promise<string | null> => {
+    const prompt = await getPromptRecordById(id);
+
+    if (!prompt || prompt.type !== 'system') {
+      return null;
+    }
+
+    return prompt.content;
+  }
+);
 
 // ============================================================================
 // Settings Queries
@@ -95,7 +111,7 @@ export const getTitleSettings = cache(async () => {
   const modelId = values['title.model'];
 
   const model = modelId ? await findModelByModelId(modelId) : undefined;
-  const prompt = promptId ? await getPromptById(promptId) : null;
+  const prompt = promptId ? await getSystemPromptContentById(promptId) : null;
 
   return {
     prompt: prompt || DEFAULT_TITLE_PROMPT,
@@ -111,13 +127,13 @@ export const getTitleSettings = cache(async () => {
 export const getSystemPrompt = cache(
   async (promptId?: string | null): Promise<string | null> => {
     if (promptId) {
-      const content = await getPromptById(promptId);
+      const content = await getSystemPromptContentById(promptId);
       if (content) return content;
     }
     const values = await getSettings(['default.chat.systemPrompt']);
     const defaultPromptId = values['default.chat.systemPrompt'];
     if (!defaultPromptId) return null;
-    return getPromptById(defaultPromptId);
+    return getSystemPromptContentById(defaultPromptId);
   }
 );
 

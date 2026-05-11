@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/button';
 import { AttachmentsButton } from '@/components/attachments-button';
 import { AttachmentsPreview } from '@/components/attachments-preview';
 import { ModelMenu, ModelOptions } from '@/components/model-menu';
+import { PromptPicker } from '@/components/prompt-picker';
 
 export type { ModelOptions };
 
@@ -124,6 +125,14 @@ export function ChatPromptForm({
             onOptionsChange={handleOptionsChange}
           />
           <div className="flex items-center space-x-2">
+            <PromptPicker
+              capability="chat"
+              currentValue={input}
+              onInsert={setInput}
+              disabled={
+                noModels || status === 'submitted' || status === 'streaming'
+              }
+            />
             {modelOptions.supportsVision && (
               <AttachmentsButton
                 disabled={status === 'submitted' || status === 'streaming'}

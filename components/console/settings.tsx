@@ -91,7 +91,7 @@ export default function SettingsPage() {
   const utils = api.useUtils();
   const { data: settings, isLoading } = api.settings.list.useQuery();
   const { data: models } = api.model.list.useQuery();
-  const { data: prompts } = api.prompt.list.useQuery({ type: 'system' });
+  const { data: prompts } = api.prompt.adminList.useQuery({ type: 'system' });
 
   const [formData, setFormData] = useState<Record<string, string>>({});
   const [hasChanges, setHasChanges] = useState(false);

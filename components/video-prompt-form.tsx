@@ -5,6 +5,7 @@ import Textarea from 'react-textarea-autosize';
 
 import { Button } from '@/components/ui/button';
 import { ModelMenu, ModelOptions } from '@/components/model-menu';
+import { PromptPicker } from '@/components/prompt-picker';
 
 export interface VideoPromptFormProps {
   modelId: string;
@@ -78,6 +79,12 @@ export function VideoPromptForm({
           resolution={resolution}
         />
         <div className="flex items-center space-x-2">
+          <PromptPicker
+            capability="video"
+            currentValue={input}
+            onInsert={setInput}
+            disabled={noModels || isLoading}
+          />
           <Button
             type="button"
             size="icon"

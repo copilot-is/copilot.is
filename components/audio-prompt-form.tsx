@@ -7,6 +7,7 @@ import Textarea from 'react-textarea-autosize';
 
 import { Button } from '@/components/ui/button';
 import { ModelMenu, ModelOptions } from '@/components/model-menu';
+import { PromptPicker } from '@/components/prompt-picker';
 
 export interface AudioPromptFormProps {
   modelId: string;
@@ -74,6 +75,12 @@ export function AudioPromptForm({
           voice={voice}
         />
         <div className="flex items-center space-x-2">
+          <PromptPicker
+            capability="audio"
+            currentValue={input}
+            onInsert={setInput}
+            disabled={noModels || isLoading}
+          />
           <Button
             type="button"
             size="icon"

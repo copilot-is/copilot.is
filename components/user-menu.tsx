@@ -9,7 +9,8 @@ import {
   LayoutDashboard,
   LogOut,
   Settings,
-  Shield
+  Shield,
+  Type
 } from 'lucide-react';
 import { signOut } from 'next-auth/react';
 
@@ -94,6 +95,15 @@ export function UserMenu() {
             >
               <Settings className="size-4" />
               Settings
+            </DropdownMenuItem>
+            <DropdownMenuItem asChild>
+              <Link
+                href="/prompts"
+                className="flex w-full items-center gap-2"
+              >
+                <Type className="size-4" />
+                Prompts
+              </Link>
             </DropdownMenuItem>
             {user.admin && (
               <DropdownMenuItem asChild>

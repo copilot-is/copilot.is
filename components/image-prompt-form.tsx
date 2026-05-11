@@ -7,6 +7,7 @@ import Textarea from 'react-textarea-autosize';
 
 import { Button } from '@/components/ui/button';
 import { ModelMenu, ModelOptions } from '@/components/model-menu';
+import { PromptPicker } from '@/components/prompt-picker';
 
 export interface ImagePromptFormProps {
   modelId: string;
@@ -77,6 +78,12 @@ export function ImagePromptForm({
           aspectRatio={aspectRatio}
         />
         <div className="flex items-center space-x-2">
+          <PromptPicker
+            capability="image"
+            currentValue={input}
+            onInsert={setInput}
+            disabled={noModels || isLoading}
+          />
           <Button
             type="button"
             size="icon"
