@@ -13,7 +13,8 @@ import {
   SidebarMenuButton,
   SidebarMenuItem,
   Sidebar as SidebarPrimitive,
-  SidebarRail
+  SidebarRail,
+  SidebarTrigger
 } from '@/components/ui/sidebar';
 import { NewContent } from '@/components/new-content';
 import { SidebarList } from '@/components/sidebar-list';
@@ -28,11 +29,11 @@ export function Sidebar({
     <SidebarPrimitive collapsible="icon" {...props}>
       <SidebarHeader className="h-16 justify-center border-b border-sidebar-border">
         <SidebarMenu>
-          <SidebarMenuItem>
+          <SidebarMenuItem className="relative">
             <SidebarMenuButton
               asChild
               size="lg"
-              className="gap-1 p-0 hover:bg-transparent hover:text-sidebar-foreground active:bg-transparent active:text-sidebar-foreground"
+              className="gap-1 p-0 transition-opacity duration-150 ease-out hover:bg-transparent hover:text-sidebar-foreground active:bg-transparent active:text-sidebar-foreground motion-reduce:transition-none group-data-[collapsible=icon]:group-hover/menu-item:opacity-0"
             >
               <Link href="/">
                 <div className="flex aspect-square size-8 items-center justify-center">
@@ -43,6 +44,7 @@ export function Sidebar({
                 </div>
               </Link>
             </SidebarMenuButton>
+            <SidebarTrigger className="pointer-events-auto absolute top-1/2 right-0 z-10 hidden size-8 -translate-y-1/2 opacity-100 transition-opacity duration-150 ease-out motion-reduce:transition-none md:flex group-data-[collapsible=icon]:pointer-events-none group-data-[collapsible=icon]:opacity-0 group-data-[collapsible=icon]:group-hover/menu-item:pointer-events-auto group-data-[collapsible=icon]:group-hover/menu-item:opacity-100" />
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarHeader>

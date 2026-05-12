@@ -6,13 +6,8 @@ import { SystemSettingsProvider } from '@/contexts/system-settings-context';
 import { getAppSettings } from '@/lib/queries';
 import { auth } from '@/server/auth';
 import { api } from '@/trpc/server';
-import { Separator } from '@/components/ui/separator';
-import {
-  SidebarInset,
-  SidebarProvider,
-  SidebarTrigger
-} from '@/components/ui/sidebar';
-import { ConsoleBreadcrumb } from '@/components/console/breadcrumb';
+import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar';
+import { ConsoleHeader } from '@/components/console/header';
 import { Sidebar } from '@/components/console/sidebar';
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -49,14 +44,7 @@ export default async function ConsoleLayout({
         <SidebarProvider>
           <Sidebar />
           <SidebarInset>
-            <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4">
-              <SidebarTrigger className="-ml-1" />
-              <Separator
-                orientation="vertical"
-                className="mr-2 data-[orientation=vertical]:h-4!"
-              />
-              <ConsoleBreadcrumb />
-            </header>
+            <ConsoleHeader />
             <div className="flex-1 p-6">{children}</div>
           </SidebarInset>
         </SidebarProvider>
