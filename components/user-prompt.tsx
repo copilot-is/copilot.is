@@ -6,7 +6,6 @@ import { toast } from 'sonner';
 
 import { useCopyToClipboard } from '@/hooks/use-copy-to-clipboard';
 import { api, RouterOutputs } from '@/trpc/react';
-import { Separator } from '@/components/ui/separator';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -36,7 +35,6 @@ import {
   SelectTrigger,
   SelectValue
 } from '@/components/ui/select';
-import { SidebarTrigger } from '@/components/ui/sidebar';
 import { Switch } from '@/components/ui/switch';
 import { Textarea } from '@/components/ui/textarea';
 import {
@@ -120,7 +118,7 @@ const PromptThumbnail = ({
   );
 };
 
-export const PromptsPage = () => {
+export const UserPrompt = () => {
   const { copyToClipboard } = useCopyToClipboard();
   const utils = api.useUtils();
   const imageInputRef = useRef<HTMLInputElement>(null);
@@ -314,16 +312,7 @@ export const PromptsPage = () => {
 
   return (
     <div className="flex flex-col">
-      <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4">
-        <SidebarTrigger className="-ml-1" />
-        <Separator
-          orientation="vertical"
-          className="mr-2 data-[orientation=vertical]:h-4!"
-        />
-        <h1 className="truncate text-base font-semibold">Prompts</h1>
-      </header>
-
-      <div className="space-y-4 p-4 md:p-6">
+      <div className="space-y-4">
         <div className="grid gap-2 sm:grid-cols-[minmax(0,1fr)_128px_auto]">
           <div className="relative flex-1">
             <Search className="absolute top-1/2 left-3 size-4 -translate-y-1/2 text-muted-foreground" />

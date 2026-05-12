@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Monitor, Moon, Sun } from 'lucide-react';
 import { useTheme } from 'next-themes';
 
@@ -14,12 +14,15 @@ import {
   SelectValue
 } from '@/components/ui/select';
 import { ClearHistoryDialog } from '@/components/clear-history-dialog';
-import { SharedLinksDialog } from '@/components/shared-links-dialog';
 
 export const SettingsGeneral = () => {
   const { theme, setTheme } = useTheme();
-  const [isSharedLinks, setIsSharedLinks] = useState(false);
+  const [mounted, setMounted] = useState(false);
   const [isHistoryOpen, setIsHistoryOpen] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const renderThemeIcon = (value: string) => {
     switch (value) {
@@ -36,10 +39,13 @@ export const SettingsGeneral = () => {
     <div className="space-y-4">
       <div className="flex items-center justify-between space-y-0">
         <UiLabel>Theme</UiLabel>
-        <Select onValueChange={value => setTheme(value)} value={theme}>
+        <Select
+          onValueChange={value => setTheme(value)}
+          value={mounted ? theme : undefined}
+        >
           <SelectTrigger className="w-auto rounded-full capitalize">
             <SelectValue placeholder="Select a theme">
-              {theme && (
+              {mounted && theme && (
                 <div className="flex items-center gap-2">
                   {renderThemeIcon(theme)}
                   {theme}
@@ -70,16 +76,6 @@ export const SettingsGeneral = () => {
         </Select>
       </div>
       <div className="flex items-center justify-between space-y-0">
-        <UiLabel>Shared links</UiLabel>
-        <Button
-          className="rounded-full font-normal"
-          variant="outline"
-          onClick={() => setIsSharedLinks(true)}
-        >
-          Manage
-        </Button>
-      </div>
-      <div className="flex items-center justify-between space-y-0">
         <UiLabel>Delete all chats</UiLabel>
         <Button
           className="rounded-full"
@@ -89,7 +85,6 @@ export const SettingsGeneral = () => {
           Delete all
         </Button>
       </div>
-      <SharedLinksDialog open={isSharedLinks} onOpenChange={setIsSharedLinks} />
       <ClearHistoryDialog
         open={isHistoryOpen}
         onOpenChange={setIsHistoryOpen}

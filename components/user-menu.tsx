@@ -1,6 +1,5 @@
 'use client';
 
-import { useState } from 'react';
 import Link from 'next/link';
 import {
   ChevronsUpDown,
@@ -9,8 +8,7 @@ import {
   LayoutDashboard,
   LogOut,
   Settings,
-  Shield,
-  Type
+  Shield
 } from 'lucide-react';
 import { signOut } from 'next-auth/react';
 
@@ -30,11 +28,9 @@ import {
   useSidebar
 } from '@/components/ui/sidebar';
 import { Skeleton } from '@/components/ui/skeleton';
-import { SettingsDialog } from '@/components/settings-dialog';
 
 export function UserMenu() {
   const { user, isLoading } = useCurrentUser();
-  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const { isMobile, state } = useSidebar();
   const isCollapsed = state === 'collapsed';
 
@@ -89,20 +85,13 @@ export function UserMenu() {
             align="end"
             sideOffset={4}
           >
-            <DropdownMenuItem
-              className="flex items-center gap-2"
-              onClick={() => setIsSettingsOpen(true)}
-            >
-              <Settings className="size-4" />
-              Settings
-            </DropdownMenuItem>
             <DropdownMenuItem asChild>
               <Link
-                href="/prompts"
+                href="/settings/general"
                 className="flex w-full items-center gap-2"
               >
-                <Type className="size-4" />
-                Prompts
+                <Settings className="size-4" />
+                Settings
               </Link>
             </DropdownMenuItem>
             {user.admin && (
@@ -158,7 +147,6 @@ export function UserMenu() {
           </DropdownMenuContent>
         </DropdownMenu>
       </SidebarMenuItem>
-      <SettingsDialog open={isSettingsOpen} onOpenChange={setIsSettingsOpen} />
     </SidebarMenu>
   );
 }
