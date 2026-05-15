@@ -373,7 +373,7 @@ export const models = createTable(
   'model',
   {
     id: varchar('id', { length: 255 }).notNull().primaryKey(),
-    name: varchar('name', { length: 100 }).notNull(),
+    name: varchar('name', { length: 255 }).notNull(),
     modelId: varchar('model_id', { length: 255 }).notNull(),
     providerId: varchar('provider_id', { length: 255 })
       .notNull()

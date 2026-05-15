@@ -1,15 +1,16 @@
-import { eq } from 'drizzle-orm';
+import { and, eq, inArray } from 'drizzle-orm';
 import { z } from 'zod';
 
 import type { VertexServiceAccountKey } from '@/types';
 import { decrypt, encrypt, maskedKey } from '@/lib/crypto';
+import { getProviderModels } from '@/lib/provider';
 import { generateUUID } from '@/lib/utils';
 import {
   adminProcedure,
   createTRPCRouter,
   publicProcedure
 } from '@/server/api/trpc';
-import { providers } from '@/server/db/schema';
+import { models, providers } from '@/server/db/schema';
 
 export const providerRouter = createTRPCRouter({
   list: adminProcedure.query(async ({ ctx }) => {
@@ -180,5 +181,92 @@ export const providerRouter = createTRPCRouter({
         .update(providers)
         .set({ isEnabled: input.isEnabled, updatedAt: new Date() })
         .where(eq(providers.id, input.id));
+    }),
+
+  fetchModels: adminProcedure
+    .input(z.object({ providerId: z.string().min(1) }))
+    .query(async ({ ctx, input }) => {
+      const provider = await ctx.db.query.providers.findFirst({
+        where: eq(providers.id, input.providerId),
+        with: {
+          models: true
+        }
+      });
+
+      if (!provider) {
+        throw new Error('Provider not found');
+      }
+
+      const apiModelIds = await getProviderModels(provider);
+      const existingIds = new Set(provider.models.map(model => model.modelId));
+
+      return apiModelIds.map(modelId => ({
+        modelId,
+        name: modelId,
+        exists: existingIds.has(modelId)
+      }));
+    }),
+
+  syncModels: adminProcedure
+    .input(
+      z.object({
+        providerId: z.string().min(1),
+        items: z
+          .array(
+            z.object({
+              modelId: z.string().min(1).max(255),
+              capability: z.enum(['chat', 'image', 'video', 'audio'])
+            })
+          )
+          .min(1)
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      const provider = await ctx.db.query.providers.findFirst({
+        where: eq(providers.id, input.providerId)
+      });
+
+      if (!provider) {
+        throw new Error('Provider not found');
+      }
+
+      if (input.items.length === 0) {
+        throw new Error('No models selected');
+      }
+
+      const existingModels = await ctx.db.query.models.findMany({
+        where: and(
+          eq(models.providerId, input.providerId),
+          inArray(
+            models.modelId,
+            input.items.map(model => model.modelId)
+          )
+        )
+      });
+      const existingIds = new Set(existingModels.map(model => model.modelId));
+      const modelsToCreate = input.items.filter(
+        model => !existingIds.has(model.modelId)
+      );
+
+      if (modelsToCreate.length > 0) {
+        await ctx.db.insert(models).values(
+          modelsToCreate.map(model => ({
+            id: generateUUID(),
+            name: model.modelId,
+            modelId: model.modelId,
+            providerId: input.providerId,
+            capability: model.capability,
+            supportsVision: false,
+            supportsReasoning: false,
+            isEnabled: true,
+            displayOrder: 0
+          }))
+        );
+      }
+
+      return {
+        created: modelsToCreate.length,
+        skipped: input.items.length - modelsToCreate.length
+      };
     })
 });

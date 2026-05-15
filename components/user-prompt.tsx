@@ -4,6 +4,7 @@ import { useMemo, useRef, useState } from 'react';
 import { Copy, Loader2, Pencil, Plus, Search, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 
+import { CAPABILITIES } from '@/lib/constant';
 import { useCopyToClipboard } from '@/hooks/use-copy-to-clipboard';
 import { api, RouterOutputs } from '@/trpc/react';
 import {
@@ -42,13 +43,6 @@ import {
   TooltipContent,
   TooltipTrigger
 } from '@/components/ui/tooltip';
-
-const CAPABILITIES = [
-  { value: 'chat', label: 'Chat' },
-  { value: 'image', label: 'Image' },
-  { value: 'video', label: 'Video' },
-  { value: 'audio', label: 'Audio' }
-] as const;
 
 const PROVIDERS = [
   { value: 'openai', label: 'OpenAI' },
@@ -180,8 +174,7 @@ export const UserPrompt = () => {
     onError: error => toast.error(error.message)
   });
 
-  const isSubmitting =
-    createMutation.isPending || updateMutation.isPending;
+  const isSubmitting = createMutation.isPending || updateMutation.isPending;
   const isFormBusy = isSubmitting || isUploadingImage;
 
   const filteredPrompts = useMemo(() => {
@@ -262,9 +255,7 @@ export const UserPrompt = () => {
     }));
   };
 
-  const handleImageChange = async (
-    e: React.ChangeEvent<HTMLInputElement>
-  ) => {
+  const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
@@ -343,10 +334,12 @@ export const UserPrompt = () => {
         </div>
 
         <div className="overflow-x-auto rounded-md border">
-          <table className="min-w-[720px] w-full">
+          <table className="w-full min-w-[720px]">
             <thead>
               <tr className="border-b bg-muted/50">
-                <th className="w-20 p-3 text-left text-sm font-medium">Image</th>
+                <th className="w-20 p-3 text-left text-sm font-medium">
+                  Image
+                </th>
                 <th className="p-3 text-left text-sm font-medium">Name</th>
                 <th className="p-3 text-left text-sm font-medium">Providers</th>
                 <th className="w-28 p-3 text-left text-sm font-medium">

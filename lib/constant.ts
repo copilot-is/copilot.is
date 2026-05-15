@@ -1,3 +1,5 @@
+import type { ModelCapability } from '@/types/model';
+
 /**
  * Provider types for the console
  */
@@ -11,6 +13,16 @@ export const ProviderTypes = [
   { value: 'xai', label: 'xAI' },
   { value: 'deepseek', label: 'DeepSeek' }
 ] as const;
+
+/**
+ * Model and prompt capabilities
+ */
+export const CAPABILITIES = [
+  { value: 'chat', label: 'Chat' },
+  { value: 'image', label: 'Image' },
+  { value: 'video', label: 'Video' },
+  { value: 'audio', label: 'Audio' }
+] satisfies Array<{ value: ModelCapability; label: string }>;
 
 /**
  * Image size labels mapping

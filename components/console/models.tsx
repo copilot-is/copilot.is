@@ -11,6 +11,7 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 
+import { CAPABILITIES } from '@/lib/constant';
 import { api } from '@/trpc/react';
 import {
   AlertDialog,
@@ -48,13 +49,6 @@ import {
 } from '@/components/ui/tooltip';
 import { IconPicker } from '@/components/console/icon-picker';
 import { ModelIcon } from '@/components/model-icon';
-
-const CAPABILITIES = [
-  { value: 'chat', label: 'Chat' },
-  { value: 'image', label: 'Image' },
-  { value: 'video', label: 'Video' },
-  { value: 'audio', label: 'Audio' }
-];
 
 export default function ModelsPage() {
   const [isOpen, setIsOpen] = useState(false);

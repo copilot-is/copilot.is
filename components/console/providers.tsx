@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, type ChangeEvent } from 'react';
-import { Loader2, Pencil, Plus, Search, Trash2 } from 'lucide-react';
+import { Loader2, Pencil, Plus, RefreshCw, Search, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 
 import type {
@@ -46,6 +46,7 @@ import {
   TooltipTrigger
 } from '@/components/ui/tooltip';
 import { IconPicker } from '@/components/console/icon-picker';
+import { ProviderModelSyncDialog } from '@/components/console/provider-model-sync-dialog';
 import { ModelIcon } from '@/components/model-icon';
 
 export default function ProvidersPage() {
@@ -54,6 +55,9 @@ export default function ProvidersPage() {
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [search, setSearch] = useState('');
   const [vertexMaskedApiKey, setVertexMaskedApiKey] = useState('');
+  const [modelSyncProviderId, setModelSyncProviderId] = useState<string | null>(
+    null
+  );
 
   const utils = api.useUtils();
   const { data: providers, isLoading } = api.provider.list.useQuery();
@@ -117,6 +121,18 @@ export default function ProvidersPage() {
       apiOptions: ''
     });
     setVertexMaskedApiKey('');
+  };
+
+  const modelSyncProvider = providers?.find(
+    provider => provider.id === modelSyncProviderId
+  );
+
+  const openModelSyncDialog = (providerId: string) => {
+    setModelSyncProviderId(providerId);
+  };
+
+  const closeModelSyncDialog = () => {
+    setModelSyncProviderId(null);
   };
 
   const handleEdit = (provider: any) => {
@@ -701,7 +717,7 @@ export default function ProvidersPage() {
               <th className="w-20 p-3 text-center text-sm font-medium">
                 Enabled
               </th>
-              <th className="w-24 p-3 text-right text-sm font-medium">
+              <th className="w-36 p-3 text-right text-sm font-medium">
                 Actions
               </th>
             </tr>
@@ -740,6 +756,18 @@ export default function ProvidersPage() {
                   />
                 </td>
                 <td className="p-3 text-right whitespace-nowrap">
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => openModelSyncDialog(provider.id)}
+                      >
+                        <RefreshCw className="size-4" />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>Sync API Models</TooltipContent>
+                  </Tooltip>
                   <Tooltip>
                     <TooltipTrigger asChild>
                       <Button
@@ -819,6 +847,17 @@ export default function ProvidersPage() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      <ProviderModelSyncDialog
+        open={!!modelSyncProviderId}
+        providerId={modelSyncProviderId}
+        providerName={modelSyncProvider?.name}
+        onOpenChange={open => {
+          if (!open) {
+            closeModelSyncDialog();
+          }
+        }}
+      />
     </div>
   );
 }

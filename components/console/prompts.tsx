@@ -4,6 +4,8 @@ import { useMemo, useState } from 'react';
 import { Loader2, Pencil, Plus, Search, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 
+import type { ModelCapability } from '@/types/model';
+import { CAPABILITIES } from '@/lib/constant';
 import { api, RouterOutputs } from '@/trpc/react';
 import {
   AlertDialog,
@@ -45,13 +47,6 @@ const PROMPT_TYPES = [
   { value: 'user', label: 'User' }
 ] as const;
 
-const CAPABILITIES = [
-  { value: 'chat', label: 'Chat' },
-  { value: 'image', label: 'Image' },
-  { value: 'video', label: 'Video' },
-  { value: 'audio', label: 'Audio' }
-] as const;
-
 const PROVIDERS = [
   { value: 'openai', label: 'OpenAI' },
   { value: 'anthropic', label: 'Anthropic' },
@@ -67,7 +62,7 @@ type PromptTypeFilter = 'all' | PromptType;
 type PromptFormData = {
   name: string;
   type: PromptType;
-  capability: 'chat' | 'image' | 'video' | 'audio';
+  capability: ModelCapability;
   providers: string[];
   image: string;
   content: string;
@@ -82,7 +77,10 @@ const EMPTY_FORM: PromptFormData = {
   content: ''
 };
 
-const matchesCapability = (capability: string | null | undefined, filterCapability: string) => {
+const matchesCapability = (
+  capability: string | null | undefined,
+  filterCapability: string
+) => {
   if (filterCapability === 'all') return true;
   return capability === null || capability === filterCapability;
 };
