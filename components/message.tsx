@@ -6,6 +6,7 @@ import { ChatMessage } from '@/types';
 import { cn } from '@/lib/utils';
 import { IconLoading } from '@/components/ui/icons';
 import { AudioPlayer } from '@/components/audio-player';
+import { MediaLightbox } from '@/components/media-lightbox';
 import { MessageMarkdown } from '@/components/message-markdown';
 import { MessageReasoning } from '@/components/message-reasoning';
 import { ModelIcon } from '@/components/model-icon';
@@ -160,10 +161,17 @@ export function Message({
                   if (part.mediaType.startsWith('image/')) {
                     return (
                       <div key={index} className="my-2 max-w-80">
-                        <img
-                          className="max-h-96 rounded-lg"
+                        <MediaLightbox
+                          type="image"
                           src={part.url}
                           alt={part.filename || 'Generated image'}
+                          trigger={
+                            <img
+                              className="max-h-96 cursor-zoom-in rounded-lg transition-opacity hover:opacity-90"
+                              src={part.url}
+                              alt={part.filename || 'Generated image'}
+                            />
+                          }
                         />
                       </div>
                     );

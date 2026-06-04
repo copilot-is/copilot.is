@@ -468,7 +468,7 @@ export function ModelMenu({
               {size ? ImageSizeLabels[size] || size : 'Size'}
             </span>
           </SelectTrigger>
-          <SelectContent>
+          <SelectContent position="popper">
             {availableSizes.map(s => (
               <SelectItem key={s} value={s}>
                 {ImageSizeLabels[s] || s}
@@ -495,7 +495,7 @@ export function ModelMenu({
                   : 'Aspect'}
               </span>
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent position="popper">
               {availableAspectRatios.map(r => (
                 <SelectItem key={r} value={r}>
                   {AspectRatioLabels[r] || r}
@@ -521,7 +521,7 @@ export function ModelMenu({
                 : 'Resolution'}
             </span>
           </SelectTrigger>
-          <SelectContent>
+          <SelectContent position="popper">
             {availableResolutions.map(r => (
               <SelectItem key={r} value={r}>
                 {VideoResolutionLabels[r] || r}
@@ -548,7 +548,7 @@ export function ModelMenu({
               {duration !== undefined ? `${duration}s` : 'Duration'}
             </span>
           </SelectTrigger>
-          <SelectContent>
+          <SelectContent position="popper">
             {availableDurations.map(d => (
               <SelectItem key={d} value={String(d)}>
                 {`${d}s`}
@@ -570,7 +570,7 @@ export function ModelMenu({
               {voice ? voice.charAt(0).toUpperCase() + voice.slice(1) : 'Voice'}
             </span>
           </SelectTrigger>
-          <SelectContent>
+          <SelectContent position="popper">
             {availableVoices.map(v => (
               <SelectItem key={v} value={v}>
                 {v.charAt(0).toUpperCase() + v.slice(1)}

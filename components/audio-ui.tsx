@@ -336,6 +336,7 @@ export function AudioUI({
             reload={handleReload}
             status={isLoading ? 'submitted' : 'ready'}
             isReadonly={false}
+            pendingMedia={{ type: 'audio' }}
           />
         </ScrollToBottom>
       </div>

@@ -389,6 +389,7 @@ export function ImageUI({
             reload={handleReload}
             status={isLoading ? 'submitted' : 'ready'}
             isReadonly={false}
+            pendingMedia={{ type: 'image', aspectRatio, size }}
           />
         </ScrollToBottom>
       </div>

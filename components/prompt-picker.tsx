@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Loader2, Type } from 'lucide-react';
 
 import { api } from '@/trpc/react';
@@ -36,6 +36,12 @@ export function PromptPicker({
   disabled = false
 }: PromptPickerProps) {
   const [open, setOpen] = useState(false);
+
+  // Prevent hydration mismatch with the Radix Popover's generated id.
+  // Render a non-Radix placeholder until mounted (matches ModelMenu).
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
+
   const { data: prompts, isLoading } = api.prompt.listUsable.useQuery(
     { capability },
     {
@@ -47,6 +53,21 @@ export function PromptPicker({
     onInsert(prependPrompt(content, currentValue));
     setOpen(false);
   };
+
+  if (!mounted) {
+    return (
+      <Button
+        type="button"
+        variant="outline"
+        size="icon"
+        className="size-9 rounded-full text-muted-foreground shadow-none"
+        disabled
+      >
+        <Type className="size-4" />
+        <span className="sr-only">Open prompts</span>
+      </Button>
+    );
+  }
 
   return (
     <Popover open={open} onOpenChange={setOpen}>

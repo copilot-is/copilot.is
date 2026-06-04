@@ -6,6 +6,7 @@ import { UseChatHelpers } from '@ai-sdk/react';
 import { Artifact, ChatMessage } from '@/types';
 import { cn } from '@/lib/utils';
 import { ArtifactInlineList } from '@/components/artifact-inline';
+import { PendingMedia } from '@/components/media-placeholder';
 import { Message } from '@/components/message';
 import { MessageActions } from '@/components/message-actions';
 import { MessageLoading } from '@/components/message-loading';
@@ -28,6 +29,8 @@ export interface MessagesProps
   className?: string;
   artifacts?: Artifact[];
   onSelectArtifact?: (id: string) => void;
+  /** Describes the media being generated, to show a shaped loading placeholder. */
+  pendingMedia?: PendingMedia;
 }
 
 export function Messages({
@@ -43,7 +46,8 @@ export function Messages({
   supportsReasoning,
   className,
   artifacts,
-  onSelectArtifact
+  onSelectArtifact,
+  pendingMedia
 }: MessagesProps) {
   if (!messages.length) {
     return null;
@@ -187,7 +191,10 @@ export function Messages({
 
       {status === 'submitted' &&
         displayItems[displayItems.length - 1]?.message.role !== 'assistant' && (
-          <MessageLoading image={currentImage || image} />
+          <MessageLoading
+            image={currentImage || image}
+            pendingMedia={pendingMedia}
+          />
         )}
     </div>
   );

@@ -427,6 +427,7 @@ export function VideoUI({
             reload={handleReload}
             status={isLoading ? 'submitted' : 'ready'}
             isReadonly={false}
+            pendingMedia={{ type: 'video', aspectRatio }}
           />
         </ScrollToBottom>
       </div>
