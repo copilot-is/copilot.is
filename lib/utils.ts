@@ -25,6 +25,55 @@ export function generateUUID(): string {
   return uuidv4();
 }
 
+/**
+ * Coerce a value (drizzle `numeric` string, number, or nullish) into a JS
+ * number. Returns `null` for null/undefined/empty/non-finite input — callers
+ * use `?? 0` when they want a numeric default.
+ */
+export function parseNumber(
+  v: string | number | null | undefined
+): number | null {
+  if (v == null || v === '') return null;
+  const n = Number(v);
+  return Number.isFinite(n) ? n : null;
+}
+
+/** Format a number with locale thousands separators (e.g. 1234 → "1,234"). */
+export function formatNumber(n: number): string {
+  return Number(n).toLocaleString();
+}
+
+/**
+ * Format a USD amount preserving full precision (matches the `numeric(20,10)`
+ * DB scale) with trailing zeros trimmed, so displayed cost/price always equals
+ * the stored value and never silently truncates. Examples:
+ *   0.08604231 → "$0.08604231"   12.5 → "$12.5"   0 → "$0"
+ */
+export function formatUsd(v: string | number | null | undefined): string {
+  const n = typeof v === 'number' ? v : Number(v);
+  if (!Number.isFinite(n)) return '$0';
+  const trimmed = n.toFixed(10).replace(/\.?0+$/, '');
+  return `$${trimmed || '0'}`;
+}
+
+/**
+ * Start instant of the usage-report window: local 00:00 of `(today - days + 1)`.
+ * `days=1` → today 00:00 (local); `days=7` → six days ago 00:00 (local).
+ *
+ * Runs in the browser, so `new Date(y, m, d)` resolves against the user's local
+ * timezone — the returned Date is an absolute instant. Sent to the server as
+ * `from` for a pure `createdAt >= from` (timestamptz) comparison, so the KPI
+ * window and the local-day chart buckets cover exactly the same N calendar days.
+ */
+export function reportWindowStart(days: number): Date {
+  const now = new Date();
+  return new Date(
+    now.getFullYear(),
+    now.getMonth(),
+    now.getDate() - (days - 1)
+  );
+}
+
 export function formatString(
   formatString: string,
   args: Record<string, any>

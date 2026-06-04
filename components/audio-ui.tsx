@@ -22,6 +22,7 @@ import { ChatHeader } from '@/components/chat-header';
 import { EmptyScreen } from '@/components/empty-screen';
 import { Messages } from '@/components/messages';
 import { ModelOptions } from '@/components/model-menu';
+import { UsageLimitAlert } from '@/components/usage-limit-alert';
 
 const ScrollToBottom = dynamic(() => import('@/components/scroll-to-bottom'), {
   ssr: false
@@ -350,6 +351,7 @@ export function AudioUI({
             text="Enter text to convert to speech"
           />
         )}
+        <UsageLimitAlert />
         <AudioPromptForm
           modelId={currentModelId}
           voice={voice}

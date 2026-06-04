@@ -469,7 +469,7 @@ export const UserPrompt = () => {
           setIsOpen(true);
         }}
       >
-        <DialogContent className="max-h-[85vh] overflow-y-auto sm:max-w-lg">
+        <DialogContent className="sm:max-w-lg">
           <DialogHeader>
             <DialogTitle>
               {editingId ? 'Edit Prompt' : 'Add Prompt'}
@@ -478,164 +478,166 @@ export const UserPrompt = () => {
           </DialogHeader>
 
           <form onSubmit={handleSubmit} className="space-y-3.5">
-            <div className="grid gap-3 sm:grid-cols-[1fr_132px]">
+            <div className="-mx-6 max-h-[60vh] space-y-3.5 overflow-y-auto px-6">
+              <div className="grid gap-3 sm:grid-cols-[1fr_132px]">
+                <div className="space-y-2">
+                  <Label htmlFor="prompt-name">Name</Label>
+                  <Input
+                    id="prompt-name"
+                    value={formData.name}
+                    onChange={e =>
+                      setFormData(current => ({
+                        ...current,
+                        name: e.target.value
+                      }))
+                    }
+                    placeholder="Research prompt"
+                    required
+                    disabled={isFormBusy}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="prompt-capability">Capability</Label>
+                  <Select
+                    value={formData.capability}
+                    onValueChange={value =>
+                      setFormData(current => ({
+                        ...current,
+                        capability: value as PromptCapability
+                      }))
+                    }
+                    disabled={isFormBusy}
+                  >
+                    <SelectTrigger id="prompt-capability">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {CAPABILITIES.map(capability => (
+                        <SelectItem
+                          key={capability.value}
+                          value={capability.value}
+                        >
+                          {capability.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
               <div className="space-y-2">
-                <Label htmlFor="prompt-name">Name</Label>
-                <Input
-                  id="prompt-name"
-                  value={formData.name}
+                <Label htmlFor="prompt-content">Content</Label>
+                <Textarea
+                  id="prompt-content"
+                  value={formData.content}
                   onChange={e =>
                     setFormData(current => ({
                       ...current,
-                      name: e.target.value
+                      content: e.target.value
                     }))
                   }
-                  placeholder="Research prompt"
+                  rows={6}
+                  placeholder="Rewrite this draft to sound more concise and confident..."
                   required
                   disabled={isFormBusy}
                 />
               </div>
+
               <div className="space-y-2">
-                <Label htmlFor="prompt-capability">Capability</Label>
-                <Select
-                  value={formData.capability}
-                  onValueChange={value =>
+                <Label>Image</Label>
+                <div className="flex items-center gap-3">
+                  <PromptThumbnail
+                    name={formData.name || 'Prompt image'}
+                    image={formData.image}
+                    content={formData.content || 'Preview'}
+                  />
+                  <div className="space-y-2">
+                    <input
+                      ref={imageInputRef}
+                      type="file"
+                      accept="image/jpeg,image/png,image/gif,image/webp"
+                      className="hidden"
+                      disabled={isFormBusy}
+                      onChange={handleImageChange}
+                    />
+                    <div className="flex flex-wrap gap-2">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => imageInputRef.current?.click()}
+                        disabled={isFormBusy}
+                      >
+                        {isUploadingImage && (
+                          <Loader2 className="size-4 animate-spin" />
+                        )}
+                        {formData.image ? 'Replace image' : 'Upload image'}
+                      </Button>
+                      {formData.image && (
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={() =>
+                            setFormData(current => ({
+                              ...current,
+                              image: ''
+                            }))
+                          }
+                          disabled={isFormBusy}
+                        >
+                          Remove
+                        </Button>
+                      )}
+                    </div>
+                    <p className="text-xs text-muted-foreground">Max 5MB.</p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label>Providers</Label>
+                <div className="grid gap-2 sm:grid-cols-2">
+                  {PROVIDERS.map(provider => (
+                    <label
+                      key={provider.value}
+                      className="flex items-center gap-2 text-sm"
+                    >
+                      <Checkbox
+                        checked={formData.providers.includes(provider.value)}
+                        onCheckedChange={() =>
+                          handleProviderToggle(provider.value)
+                        }
+                        disabled={isFormBusy}
+                      />
+                      <span>{provider.label}</span>
+                    </label>
+                  ))}
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Leave empty to allow all providers.
+                </p>
+              </div>
+
+              <div className="flex items-center justify-between rounded-lg border p-2.5">
+                <div className="space-y-1">
+                  <Label htmlFor="prompt-public">Public</Label>
+                  <p className="text-xs text-muted-foreground">
+                    {getVisibilitySummary(formData.isPublic)}
+                  </p>
+                </div>
+                <Switch
+                  id="prompt-public"
+                  checked={formData.isPublic}
+                  onCheckedChange={checked =>
                     setFormData(current => ({
                       ...current,
-                      capability: value as PromptCapability
+                      isPublic: checked
                     }))
                   }
                   disabled={isFormBusy}
-                >
-                  <SelectTrigger id="prompt-capability">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {CAPABILITIES.map(capability => (
-                      <SelectItem
-                        key={capability.value}
-                        value={capability.value}
-                      >
-                        {capability.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="prompt-content">Content</Label>
-              <Textarea
-                id="prompt-content"
-                value={formData.content}
-                onChange={e =>
-                  setFormData(current => ({
-                    ...current,
-                    content: e.target.value
-                  }))
-                }
-                rows={6}
-                placeholder="Rewrite this draft to sound more concise and confident..."
-                required
-                disabled={isFormBusy}
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label>Image</Label>
-              <div className="flex items-center gap-3">
-                <PromptThumbnail
-                  name={formData.name || 'Prompt image'}
-                  image={formData.image}
-                  content={formData.content || 'Preview'}
                 />
-                <div className="space-y-2">
-                  <input
-                    ref={imageInputRef}
-                    type="file"
-                    accept="image/jpeg,image/png,image/gif,image/webp"
-                    className="hidden"
-                    disabled={isFormBusy}
-                    onChange={handleImageChange}
-                  />
-                  <div className="flex flex-wrap gap-2">
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      onClick={() => imageInputRef.current?.click()}
-                      disabled={isFormBusy}
-                    >
-                      {isUploadingImage && (
-                        <Loader2 className="size-4 animate-spin" />
-                      )}
-                      {formData.image ? 'Replace image' : 'Upload image'}
-                    </Button>
-                    {formData.image && (
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        onClick={() =>
-                          setFormData(current => ({
-                            ...current,
-                            image: ''
-                          }))
-                        }
-                        disabled={isFormBusy}
-                      >
-                        Remove
-                      </Button>
-                    )}
-                  </div>
-                  <p className="text-xs text-muted-foreground">Max 5MB.</p>
-                </div>
               </div>
-            </div>
-
-            <div className="space-y-2">
-              <Label>Providers</Label>
-              <div className="grid gap-2 sm:grid-cols-2">
-                {PROVIDERS.map(provider => (
-                  <label
-                    key={provider.value}
-                    className="flex items-center gap-2 text-sm"
-                  >
-                    <Checkbox
-                      checked={formData.providers.includes(provider.value)}
-                      onCheckedChange={() =>
-                        handleProviderToggle(provider.value)
-                      }
-                      disabled={isFormBusy}
-                    />
-                    <span>{provider.label}</span>
-                  </label>
-                ))}
-              </div>
-              <p className="text-xs text-muted-foreground">
-                Leave empty to allow all providers.
-              </p>
-            </div>
-
-            <div className="flex items-center justify-between rounded-lg border p-2.5">
-              <div className="space-y-1">
-                <Label htmlFor="prompt-public">Public</Label>
-                <p className="text-xs text-muted-foreground">
-                  {getVisibilitySummary(formData.isPublic)}
-                </p>
-              </div>
-              <Switch
-                id="prompt-public"
-                checked={formData.isPublic}
-                onCheckedChange={checked =>
-                  setFormData(current => ({
-                    ...current,
-                    isPublic: checked
-                  }))
-                }
-                disabled={isFormBusy}
-              />
             </div>
 
             <DialogFooter>

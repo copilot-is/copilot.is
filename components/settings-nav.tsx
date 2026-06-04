@@ -2,9 +2,9 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Link2, Settings, Type, Volume2 } from 'lucide-react';
-
 import { useSystemSettings } from '@/contexts/system-settings-context';
+import { BarChart3, Link2, Settings, Type, Volume2 } from 'lucide-react';
+
 import { cn } from '@/lib/utils';
 
 const SETTINGS_NAV_ITEMS = [
@@ -19,6 +19,12 @@ const SETTINGS_NAV_ITEMS = [
     icon: Volume2,
     label: 'Speech',
     value: 'speech'
+  },
+  {
+    href: '/settings/usage',
+    icon: BarChart3,
+    label: 'Usage',
+    value: 'usage'
   },
   {
     href: '/settings/shared-links',

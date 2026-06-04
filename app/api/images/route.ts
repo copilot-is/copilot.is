@@ -5,8 +5,10 @@ import { generateImage, generateText } from 'ai';
 
 import { ChatMessage } from '@/types';
 import { env } from '@/lib/env';
+import { preflightGate } from '@/lib/preflight';
 import { getImageModel, getLanguageModel } from '@/lib/provider';
 import { findModelByModelId, getTitleSettings } from '@/lib/queries';
+import { recordImageUsage } from '@/lib/usage';
 import { generateUUID } from '@/lib/utils';
 import { auth } from '@/server/auth';
 import { api } from '@/trpc/server';
@@ -40,20 +42,29 @@ export async function POST(req: Request) {
   } = json;
 
   if (!modelId || !userMessage) {
-    return NextResponse.json(
-      { error: 'Invalid modelId and userMessage parameters' },
-      { status: 400 }
-    );
+    return NextResponse.json({ error: 'Invalid request.' }, { status: 400 });
   }
 
   // Fetch model from database to validate
   const dbModel = await findModelByModelId(modelId, 'image');
   if (!dbModel?.provider) {
+    console.error(`[images] model unavailable: ${modelId}`);
     return NextResponse.json(
-      { error: `Model ${modelId} is not available` },
+      {
+        error:
+          'This model is currently unavailable. Please choose a different model.'
+      },
       { status: 403 }
     );
   }
+
+  const gate = await preflightGate({
+    userId: session.user.id,
+    modelKey: dbModel.modelId,
+    modelLabel: dbModel.name,
+    capability: 'image'
+  });
+  if (gate) return gate;
 
   let title = 'Untitled';
   const chat = await api.chat.detail({
@@ -115,6 +126,10 @@ export async function POST(req: Request) {
 
     let imageBase64: string;
     let imageMediaType: string;
+    // Token counts for token-billed image models (e.g. gpt-image-1). Undefined
+    // for per-image models — recordImageUsage falls back to per-image pricing.
+    let inputTokens: number | undefined;
+    let outputTokens: number | undefined;
 
     if (modelId.startsWith('gemini')) {
       // Gemini models generate images via generateText with multi-modal output
@@ -147,13 +162,15 @@ export async function POST(req: Request) {
 
       imageBase64 = imageFile.base64;
       imageMediaType = imageFile.mediaType;
+      inputTokens = result.usage?.inputTokens;
+      outputTokens = result.usage?.outputTokens;
     } else {
       // Standard image models use generateImage API
       const standardSize = size?.includes('x')
         ? (size as `${number}x${number}`)
         : undefined;
 
-      const { image } = await generateImage({
+      const { image, usage } = await generateImage({
         model: getImageModel(dbModel.provider, modelId),
         prompt: textParts,
         n: 1,
@@ -168,6 +185,8 @@ export async function POST(req: Request) {
 
       imageBase64 = image.base64;
       imageMediaType = image.mediaType;
+      inputTokens = usage?.inputTokens;
+      outputTokens = usage?.outputTokens;
     }
 
     const buffer = Buffer.from(imageBase64, 'base64');
@@ -208,6 +227,17 @@ export async function POST(req: Request) {
     await api.message.create({
       chatId: id,
       messages: [assistantMessage]
+    });
+
+    await recordImageUsage({
+      userId: session.user.id,
+      chatId: id,
+      messageId: assistantMessage.id,
+      modelId,
+      providerId: dbModel.provider.id,
+      imageCount: 1,
+      inputTokens,
+      outputTokens
     });
 
     return NextResponse.json({

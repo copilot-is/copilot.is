@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import Image from 'next/image';
+import Link from 'next/link';
 import {
   Github,
   Loader2,
@@ -19,7 +20,8 @@ import {
   Select,
   SelectContent,
   SelectItem,
-  SelectTrigger
+  SelectTrigger,
+  SelectValue
 } from '@/components/ui/select';
 
 const ProviderIcon = ({ provider }: { provider: string }) => {
@@ -36,25 +38,59 @@ const ProviderIcon = ({ provider }: { provider: string }) => {
   }
 };
 
+const QUOTA_NONE = '__none__';
+
 export default function UsersPage() {
   const [search, setSearch] = useState('');
   const [searchInput, setSearchInput] = useState('');
-  const [updatingUserId, setUpdatingUserId] = useState<string | null>(null);
+  const [updatingRoleUserId, setUpdatingRoleUserId] = useState<string | null>(
+    null
+  );
+  const [updatingQuotaUserId, setUpdatingQuotaUserId] = useState<string | null>(
+    null
+  );
 
   const utils = api.useUtils();
   const { data: users, isLoading } = api.user.list.useQuery({
     search: search || undefined
   });
   const { data: stats } = api.user.getStats.useQuery();
+  const { data: quotaOptions } = api.quota.listForSelect.useQuery();
 
   const updateRoleMutation = api.user.updateRole.useMutation({
     onSuccess: async () => {
       await utils.user.list.invalidate();
       await utils.user.getStats.invalidate();
-      setUpdatingUserId(null);
+      setUpdatingRoleUserId(null);
     },
     onError: error => {
-      setUpdatingUserId(null);
+      setUpdatingRoleUserId(null);
+      toast.error(error.message);
+    }
+  });
+
+  const setQuotaMutation = api.quota.setUserQuota.useMutation({
+    onSuccess: async () => {
+      await utils.user.list.invalidate();
+      await utils.quota.getByUser.invalidate();
+      setUpdatingQuotaUserId(null);
+      toast.success('Quota override updated');
+    },
+    onError: error => {
+      setUpdatingQuotaUserId(null);
+      toast.error(error.message);
+    }
+  });
+
+  const removeQuotaMutation = api.quota.removeUserQuota.useMutation({
+    onSuccess: async () => {
+      await utils.user.list.invalidate();
+      await utils.quota.getByUser.invalidate();
+      setUpdatingQuotaUserId(null);
+      toast.success('Quota override removed');
+    },
+    onError: error => {
+      setUpdatingQuotaUserId(null);
       toast.error(error.message);
     }
   });
@@ -112,11 +148,15 @@ export default function UsersPage() {
               <th className="w-32 p-3 text-left text-sm font-medium">
                 Provider
               </th>
-              <th className="w-40 p-3 text-left text-sm font-medium">
+              <th className="w-28 p-3 text-center text-sm font-medium">Plan</th>
+              <th className="w-32 p-3 text-left text-sm font-medium">
                 Verified
               </th>
-              <th className="w-40 p-3 text-left text-sm font-medium">Joined</th>
+              <th className="w-32 p-3 text-left text-sm font-medium">Joined</th>
               <th className="w-32 p-3 text-center text-sm font-medium">Role</th>
+              <th className="w-40 p-3 text-center text-sm font-medium">
+                Quota
+              </th>
             </tr>
           </thead>
           <tbody>
@@ -126,7 +166,10 @@ export default function UsersPage() {
                 className="border-b transition-colors hover:bg-muted/30"
               >
                 <td className="p-3">
-                  <div className="flex items-center gap-3">
+                  <Link
+                    href={`/console/users/${user.id}`}
+                    className="flex items-center gap-3 hover:text-primary"
+                  >
                     <div className="size-8 overflow-hidden rounded-full border bg-muted">
                       {user.image ? (
                         <Image
@@ -146,7 +189,7 @@ export default function UsersPage() {
                     <span className="font-medium">
                       {user.name || 'No name'}
                     </span>
-                  </div>
+                  </Link>
                 </td>
                 <td className="p-3 text-sm text-muted-foreground">
                   {user.email}
@@ -162,6 +205,11 @@ export default function UsersPage() {
                     )}
                   </div>
                 </td>
+                <td className="p-3 text-center text-sm">
+                  <span className={user.plan ? '' : 'text-muted-foreground'}>
+                    {user.plan?.name ?? 'Free'}
+                  </span>
+                </td>
                 <td className="p-3 text-sm">
                   {formatDate(user.emailVerified)}
                 </td>
@@ -170,9 +218,9 @@ export default function UsersPage() {
                   <div className="flex justify-center">
                     <Select
                       value={user.role}
-                      disabled={updatingUserId === user.id}
+                      disabled={updatingRoleUserId === user.id}
                       onValueChange={value => {
-                        setUpdatingUserId(user.id);
+                        setUpdatingRoleUserId(user.id);
                         updateRoleMutation.mutate({
                           id: user.id,
                           role: value as 'user' | 'admin'
@@ -181,7 +229,7 @@ export default function UsersPage() {
                     >
                       <SelectTrigger className="h-8 w-28">
                         <div className="flex items-center gap-2">
-                          {updatingUserId === user.id ? (
+                          {updatingRoleUserId === user.id ? (
                             <Loader2 className="size-3 animate-spin" />
                           ) : user.role === 'admin' ? (
                             <ShieldCheck className="size-3" />
@@ -210,12 +258,52 @@ export default function UsersPage() {
                     </Select>
                   </div>
                 </td>
+                <td className="p-3 text-center">
+                  <div className="flex justify-center">
+                    <Select
+                      value={user.quota?.id ?? QUOTA_NONE}
+                      disabled={
+                        updatingQuotaUserId === user.id || !quotaOptions?.length
+                      }
+                      onValueChange={value => {
+                        setUpdatingQuotaUserId(user.id);
+                        if (value === QUOTA_NONE) {
+                          removeQuotaMutation.mutate({ userId: user.id });
+                        } else {
+                          setQuotaMutation.mutate({
+                            userId: user.id,
+                            quotaId: value
+                          });
+                        }
+                      }}
+                    >
+                      <SelectTrigger className="h-8 w-36">
+                        {updatingQuotaUserId === user.id ? (
+                          <Loader2 className="size-3 animate-spin" />
+                        ) : (
+                          <SelectValue placeholder="None" />
+                        )}
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value={QUOTA_NONE}>
+                          <span className="text-muted-foreground">None</span>
+                        </SelectItem>
+                        {quotaOptions?.map(q => (
+                          <SelectItem key={q.id} value={q.id}>
+                            {q.name}
+                            {q.isUnlimited ? ' (∞)' : ''}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </td>
               </tr>
             ))}
             {(!users || users.length === 0) && (
               <tr>
                 <td
-                  colSpan={6}
+                  colSpan={8}
                   className="p-6 text-center text-muted-foreground"
                 >
                   {search

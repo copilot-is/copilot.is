@@ -272,182 +272,186 @@ export default function PromptsPage() {
               Add Prompt
             </Button>
           </DialogTrigger>
-          <DialogContent className="max-w-2xl">
+          <DialogContent className="sm:max-w-2xl">
             <DialogHeader>
               <DialogTitle>
                 {editingPrompt ? 'Edit Prompt' : 'Add Prompt'}
               </DialogTitle>
             </DialogHeader>
             <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
+              <div className="-mx-6 max-h-[60vh] space-y-4 overflow-y-auto px-6">
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="name">Name</Label>
+                    <Input
+                      id="name"
+                      value={formData.name}
+                      onChange={e =>
+                        setFormData({ ...formData, name: e.target.value })
+                      }
+                      placeholder="Default System Prompt"
+                      required
+                      disabled={isPending}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="type">Type</Label>
+                    <Select
+                      value={formData.type}
+                      onValueChange={value =>
+                        setFormData({
+                          ...formData,
+                          type: value as PromptType
+                        })
+                      }
+                      disabled={isPending || !!editingPrompt}
+                    >
+                      <SelectTrigger id="type">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {PROMPT_TYPES.map(type => (
+                          <SelectItem key={type.value} value={type.value}>
+                            {type.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="capability">Capability</Label>
+                    <Select
+                      value={formData.capability}
+                      onValueChange={value =>
+                        setFormData({
+                          ...formData,
+                          capability: value as PromptFormData['capability']
+                        })
+                      }
+                      disabled={isPending}
+                    >
+                      <SelectTrigger id="capability">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {CAPABILITIES.map(capability => (
+                          <SelectItem
+                            key={capability.value}
+                            value={capability.value}
+                          >
+                            {capability.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
                 <div className="space-y-2">
-                  <Label htmlFor="name">Name</Label>
-                  <Input
-                    id="name"
-                    value={formData.name}
+                  <Label>Providers</Label>
+                  <div className="flex flex-wrap gap-2">
+                    {PROVIDERS.map(provider => (
+                      <label
+                        key={provider.value}
+                        className="flex cursor-pointer items-center gap-1.5"
+                      >
+                        <Checkbox
+                          checked={formData.providers.includes(provider.value)}
+                          onCheckedChange={() => toggleProvider(provider.value)}
+                          disabled={isPending}
+                        />
+                        <span className="text-sm">{provider.label}</span>
+                      </label>
+                    ))}
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    Leave empty for all providers
+                  </p>
+                </div>
+                <div className="space-y-2">
+                  <Label>Image</Label>
+                  <div className="flex items-start gap-4">
+                    {formData.image ? (
+                      <div className="relative">
+                        <img
+                          src={formData.image}
+                          alt="Preview"
+                          className="size-24 rounded border object-cover"
+                        />
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setFormData({ ...formData, image: '' })
+                          }
+                          className="absolute -top-2 -right-2 rounded-full bg-destructive p-1 text-destructive-foreground hover:bg-destructive/90 disabled:opacity-50"
+                          disabled={isPending}
+                        >
+                          <Trash2 className="size-3" />
+                        </button>
+                      </div>
+                    ) : (
+                      <label className="flex size-24 cursor-pointer flex-col items-center justify-center rounded border-2 border-dashed border-muted-foreground/25 hover:border-muted-foreground/50">
+                        <input
+                          type="file"
+                          accept="image/jpeg,image/png,image/gif,image/webp"
+                          className="hidden"
+                          disabled={isPending}
+                          onChange={async e => {
+                            const file = e.target.files?.[0];
+                            if (!file) return;
+
+                            const formDataUpload = new FormData();
+                            formDataUpload.append('file', file);
+
+                            try {
+                              const res = await fetch(
+                                '/api/files/upload?type=prompts',
+                                {
+                                  method: 'POST',
+                                  body: formDataUpload
+                                }
+                              );
+                              const data = await res.json();
+
+                              if (res.ok && data.url) {
+                                setFormData({ ...formData, image: data.url });
+                              } else {
+                                toast.error(data.error || 'Upload failed');
+                              }
+                            } catch {
+                              toast.error('Upload failed');
+                            }
+                          }}
+                        />
+                        <Plus className="size-6 text-muted-foreground" />
+                        <span className="mt-1 text-xs text-muted-foreground">
+                          Upload
+                        </span>
+                      </label>
+                    )}
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    Max 5MB. Supports JPEG, PNG, GIF, WebP.
+                  </p>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="content">Content</Label>
+                  <Textarea
+                    id="content"
+                    value={formData.content}
                     onChange={e =>
-                      setFormData({ ...formData, name: e.target.value })
+                      setFormData({ ...formData, content: e.target.value })
                     }
-                    placeholder="Default System Prompt"
+                    placeholder="You are a helpful assistant..."
+                    rows={8}
                     required
                     disabled={isPending}
                   />
+                  <p className="text-xs text-muted-foreground">
+                    Variables: {'{provider}'}, {'{modelId}'}, {'{date}'}
+                  </p>
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="type">Type</Label>
-                  <Select
-                    value={formData.type}
-                    onValueChange={value =>
-                      setFormData({
-                        ...formData,
-                        type: value as PromptType
-                      })
-                    }
-                    disabled={isPending || !!editingPrompt}
-                  >
-                    <SelectTrigger id="type">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {PROMPT_TYPES.map(type => (
-                        <SelectItem key={type.value} value={type.value}>
-                          {type.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="capability">Capability</Label>
-                  <Select
-                    value={formData.capability}
-                    onValueChange={value =>
-                      setFormData({
-                        ...formData,
-                        capability: value as PromptFormData['capability']
-                      })
-                    }
-                    disabled={isPending}
-                  >
-                    <SelectTrigger id="capability">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {CAPABILITIES.map(capability => (
-                        <SelectItem
-                          key={capability.value}
-                          value={capability.value}
-                        >
-                          {capability.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-              <div className="space-y-2">
-                <Label>Providers</Label>
-                <div className="flex flex-wrap gap-2">
-                  {PROVIDERS.map(provider => (
-                    <label
-                      key={provider.value}
-                      className="flex cursor-pointer items-center gap-1.5"
-                    >
-                      <Checkbox
-                        checked={formData.providers.includes(provider.value)}
-                        onCheckedChange={() => toggleProvider(provider.value)}
-                        disabled={isPending}
-                      />
-                      <span className="text-sm">{provider.label}</span>
-                    </label>
-                  ))}
-                </div>
-                <p className="text-xs text-muted-foreground">
-                  Leave empty for all providers
-                </p>
-              </div>
-              <div className="space-y-2">
-                <Label>Image</Label>
-                <div className="flex items-start gap-4">
-                  {formData.image ? (
-                    <div className="relative">
-                      <img
-                        src={formData.image}
-                        alt="Preview"
-                        className="size-24 rounded border object-cover"
-                      />
-                      <button
-                        type="button"
-                        onClick={() => setFormData({ ...formData, image: '' })}
-                        className="absolute -top-2 -right-2 rounded-full bg-destructive p-1 text-destructive-foreground hover:bg-destructive/90 disabled:opacity-50"
-                        disabled={isPending}
-                      >
-                        <Trash2 className="size-3" />
-                      </button>
-                    </div>
-                  ) : (
-                    <label className="flex size-24 cursor-pointer flex-col items-center justify-center rounded border-2 border-dashed border-muted-foreground/25 hover:border-muted-foreground/50">
-                      <input
-                        type="file"
-                        accept="image/jpeg,image/png,image/gif,image/webp"
-                        className="hidden"
-                        disabled={isPending}
-                        onChange={async e => {
-                          const file = e.target.files?.[0];
-                          if (!file) return;
-
-                          const formDataUpload = new FormData();
-                          formDataUpload.append('file', file);
-
-                          try {
-                            const res = await fetch(
-                              '/api/files/upload?type=prompts',
-                              {
-                                method: 'POST',
-                                body: formDataUpload
-                              }
-                            );
-                            const data = await res.json();
-
-                            if (res.ok && data.url) {
-                              setFormData({ ...formData, image: data.url });
-                            } else {
-                              toast.error(data.error || 'Upload failed');
-                            }
-                          } catch {
-                            toast.error('Upload failed');
-                          }
-                        }}
-                      />
-                      <Plus className="size-6 text-muted-foreground" />
-                      <span className="mt-1 text-xs text-muted-foreground">
-                        Upload
-                      </span>
-                    </label>
-                  )}
-                </div>
-                <p className="text-xs text-muted-foreground">
-                  Max 5MB. Supports JPEG, PNG, GIF, WebP.
-                </p>
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="content">Content</Label>
-                <Textarea
-                  id="content"
-                  value={formData.content}
-                  onChange={e =>
-                    setFormData({ ...formData, content: e.target.value })
-                  }
-                  placeholder="You are a helpful assistant..."
-                  rows={8}
-                  required
-                  disabled={isPending}
-                />
-                <p className="text-xs text-muted-foreground">
-                  Variables: {'{provider}'}, {'{modelId}'}, {'{date}'}
-                </p>
               </div>
               <div className="flex justify-end gap-2">
                 <Button

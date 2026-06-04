@@ -5,10 +5,13 @@ import { generateText, experimental_generateVideo as generateVideo } from 'ai';
 
 import { ChatMessage } from '@/types';
 import { env } from '@/lib/env';
+import { preflightGate } from '@/lib/preflight';
 import { getLanguageModel, getVideoModel } from '@/lib/provider';
 import { findModelByModelId, getTitleSettings } from '@/lib/queries';
+import { recordVideoUsage } from '@/lib/usage';
 import { generateUUID } from '@/lib/utils';
 import { generateWithSora } from '@/lib/video-generation';
+import { resolveVideoSeconds } from '@/lib/video-usage';
 import { auth } from '@/server/auth';
 import { api } from '@/trpc/server';
 
@@ -43,20 +46,29 @@ export async function POST(req: Request) {
   } = json;
 
   if (!modelId || !userMessage) {
-    return NextResponse.json(
-      { error: 'Invalid modelId and userMessage parameters' },
-      { status: 400 }
-    );
+    return NextResponse.json({ error: 'Invalid request.' }, { status: 400 });
   }
 
   // Fetch model from database to validate
   const dbModel = await findModelByModelId(modelId, 'video');
   if (!dbModel?.provider) {
+    console.error(`[video] model unavailable: ${modelId}`);
     return NextResponse.json(
-      { error: `Model ${modelId} is not available` },
+      {
+        error:
+          'This model is currently unavailable. Please choose a different model.'
+      },
       { status: 403 }
     );
   }
+
+  const gate = await preflightGate({
+    userId: session.user.id,
+    modelKey: dbModel.modelId,
+    modelLabel: dbModel.name,
+    capability: 'video'
+  });
+  if (gate) return gate;
 
   let title = 'Untitled';
   const chat = await api.chat.detail({
@@ -118,6 +130,9 @@ export async function POST(req: Request) {
 
     let videoBuffer: Buffer;
     let videoMediaType: string;
+    // Billable duration in seconds — actual generated length when the provider
+    // reports it, else the requested duration (see resolveVideoSeconds).
+    let videoSeconds: number | undefined;
 
     // Fallback for Sora models since they are not supported by AI SDK yet
     if (modelId.includes('sora')) {
@@ -131,12 +146,14 @@ export async function POST(req: Request) {
       );
       videoBuffer = result.buffer;
       videoMediaType = result.mediaType;
+      // Sora returns no duration metadata — bill the requested duration.
+      videoSeconds = typeof duration === 'number' ? duration : undefined;
     } else {
       const providerOpts = {
         ...dbModel.provider.apiOptions,
         ...(resolution && { resolution })
       };
-      const { video } = await generateVideo({
+      const { video, providerMetadata } = await generateVideo({
         model: getVideoModel(dbModel.provider, modelId),
         prompt: textParts,
         aspectRatio,
@@ -149,6 +166,7 @@ export async function POST(req: Request) {
       });
       videoBuffer = Buffer.from(video.uint8Array);
       videoMediaType = 'video/mp4';
+      videoSeconds = resolveVideoSeconds(providerMetadata, duration);
     }
 
     const filename = `${generateUUID()}.mp4`;
@@ -186,6 +204,16 @@ export async function POST(req: Request) {
     await api.message.create({
       chatId: id,
       messages: [assistantMessage]
+    });
+
+    await recordVideoUsage({
+      userId: session.user.id,
+      chatId: id,
+      messageId: assistantMessage.id,
+      modelId,
+      providerId: dbModel.provider.id,
+      videoCount: 1,
+      videoSeconds
     });
 
     return NextResponse.json({

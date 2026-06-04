@@ -2,10 +2,14 @@ import { artifactRouter } from '@/server/api/routers/artifact';
 import { chatRouter } from '@/server/api/routers/chat';
 import { messageRouter } from '@/server/api/routers/message';
 import { modelRouter } from '@/server/api/routers/model';
+import { planRouter } from '@/server/api/routers/plan';
+import { pricingRouter } from '@/server/api/routers/pricing';
 import { promptRouter } from '@/server/api/routers/prompt';
 import { providerRouter } from '@/server/api/routers/provider';
+import { quotaRouter } from '@/server/api/routers/quota';
 import { settingsRouter } from '@/server/api/routers/settings';
 import { shareRouter } from '@/server/api/routers/share';
+import { usageRouter } from '@/server/api/routers/usage';
 import { userRouter } from '@/server/api/routers/user';
 import { createCallerFactory, createTRPCRouter } from '@/server/api/trpc';
 
@@ -24,7 +28,11 @@ export const appRouter = createTRPCRouter({
   model: modelRouter,
   prompt: promptRouter,
   settings: settingsRouter,
-  user: userRouter
+  user: userRouter,
+  pricing: pricingRouter,
+  quota: quotaRouter,
+  usage: usageRouter,
+  plan: planRouter
 });
 
 // export type definition of API

@@ -462,225 +462,227 @@ export default function ProvidersPage() {
               </DialogTitle>
             </DialogHeader>
             <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="name">Name</Label>
-                <Input
-                  id="name"
-                  value={formData.name}
-                  onChange={e =>
-                    setFormData({ ...formData, name: e.target.value })
-                  }
-                  placeholder="OpenAI"
-                  disabled={isPending}
-                  required
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="type">Type</Label>
-                <Select
-                  value={formData.type}
-                  onValueChange={handleTypeChange}
-                  disabled={isPending}
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {ProviderTypes.map(id => (
-                      <SelectItem key={id.value} value={id.value}>
-                        {id.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-2">
-                {isVertex ? (
-                  <>
-                    <Label htmlFor="vertexAuthMode">Authentication</Label>
-                    <Select
-                      value={formData.vertexAuthMode}
-                      onValueChange={value =>
-                        setFormData(current => ({
-                          ...current,
-                          vertexAuthMode: value as VertexAuthMode,
-                          apiKey: ''
-                        }))
-                      }
-                      disabled={isPending}
-                    >
-                      <SelectTrigger id="vertexAuthMode">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="service_account">JSON</SelectItem>
-                        <SelectItem value="api_key">
-                          API Key (Gemini only)
+              <div className="-mx-6 max-h-[60vh] space-y-4 overflow-y-auto px-6">
+                <div className="space-y-2">
+                  <Label htmlFor="name">Name</Label>
+                  <Input
+                    id="name"
+                    value={formData.name}
+                    onChange={e =>
+                      setFormData({ ...formData, name: e.target.value })
+                    }
+                    placeholder="OpenAI"
+                    disabled={isPending}
+                    required
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="type">Type</Label>
+                  <Select
+                    value={formData.type}
+                    onValueChange={handleTypeChange}
+                    disabled={isPending}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {ProviderTypes.map(id => (
+                        <SelectItem key={id.value} value={id.value}>
+                          {id.label}
                         </SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </>
-                ) : null}
-              </div>
-              <div className="space-y-2">
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  {isVertex ? (
+                    <>
+                      <Label htmlFor="vertexAuthMode">Authentication</Label>
+                      <Select
+                        value={formData.vertexAuthMode}
+                        onValueChange={value =>
+                          setFormData(current => ({
+                            ...current,
+                            vertexAuthMode: value as VertexAuthMode,
+                            apiKey: ''
+                          }))
+                        }
+                        disabled={isPending}
+                      >
+                        <SelectTrigger id="vertexAuthMode">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="service_account">JSON</SelectItem>
+                          <SelectItem value="api_key">
+                            API Key (Gemini only)
+                          </SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </>
+                  ) : null}
+                </div>
+                <div className="space-y-2">
+                  {isVertexServiceAccount ? (
+                    <>
+                      <Label htmlFor="vertexCredentials">Credential File</Label>
+                      <Input
+                        key="vertex-service-account-file"
+                        id="vertexCredentials"
+                        type="file"
+                        accept=".json,application/json"
+                        onChange={handleVertexCredentialChange}
+                        disabled={isPending}
+                      />
+                      <p className="text-xs text-muted-foreground">
+                        Upload a Google Vertex AI credential JSON file.
+                      </p>
+                      <Textarea
+                        id="apiKey"
+                        value={vertexCredentialValue}
+                        onChange={e =>
+                          setFormData({ ...formData, apiKey: e.target.value })
+                        }
+                        placeholder="{}"
+                        required={!editingId}
+                        disabled={isPending}
+                        readOnly={isMaskedVertexCredential}
+                        className="font-mono"
+                        rows={6}
+                      />
+                    </>
+                  ) : isVertexApiKey ? (
+                    <>
+                      <Label htmlFor="apiKey">API Key</Label>
+                      <Input
+                        key="vertex-api-key-input"
+                        id="apiKey"
+                        value={formData.apiKey}
+                        onChange={e =>
+                          setFormData({ ...formData, apiKey: e.target.value })
+                        }
+                        placeholder={apiKeyPlaceholder}
+                        required={!editingId}
+                        disabled={isPending}
+                      />
+                      {apiKeyHelpText ? (
+                        <p className="text-xs text-muted-foreground">
+                          {apiKeyHelpText}
+                        </p>
+                      ) : null}
+                    </>
+                  ) : (
+                    <>
+                      <Label htmlFor="apiKey">API Key</Label>
+                      <Textarea
+                        id="apiKey"
+                        value={formData.apiKey}
+                        onChange={e =>
+                          setFormData({ ...formData, apiKey: e.target.value })
+                        }
+                        placeholder={apiKeyPlaceholder}
+                        required={!editingId}
+                        disabled={isPending}
+                        className="font-mono"
+                        rows={requiresJsonApiKey ? 6 : 2}
+                      />
+                      {apiKeyHelpText ? (
+                        <p className="text-xs text-muted-foreground">
+                          {apiKeyHelpText}
+                        </p>
+                      ) : null}
+                    </>
+                  )}
+                </div>
                 {isVertexServiceAccount ? (
-                  <>
-                    <Label htmlFor="vertexCredentials">Credential File</Label>
+                  <div className="space-y-2">
+                    <Label htmlFor="vertexLocation">Location</Label>
                     <Input
-                      key="vertex-service-account-file"
-                      id="vertexCredentials"
-                      type="file"
-                      accept=".json,application/json"
-                      onChange={handleVertexCredentialChange}
+                      id="vertexLocation"
+                      value={formData.vertexLocation}
+                      onChange={e =>
+                        setFormData({
+                          ...formData,
+                          vertexLocation: e.target.value
+                        })
+                      }
+                      placeholder="us-central1"
                       disabled={isPending}
                     />
                     <p className="text-xs text-muted-foreground">
-                      Upload a Google Vertex AI credential JSON file.
+                      Enter the Google Vertex AI region, e.g. us-central1.
                     </p>
-                    <Textarea
-                      id="apiKey"
-                      value={vertexCredentialValue}
-                      onChange={e =>
-                        setFormData({ ...formData, apiKey: e.target.value })
-                      }
-                      placeholder="{}"
-                      required={!editingId}
-                      disabled={isPending}
-                      readOnly={isMaskedVertexCredential}
-                      className="font-mono"
-                      rows={6}
-                    />
-                  </>
-                ) : isVertexApiKey ? (
-                  <>
-                    <Label htmlFor="apiKey">API Key</Label>
-                    <Input
-                      key="vertex-api-key-input"
-                      id="apiKey"
-                      value={formData.apiKey}
-                      onChange={e =>
-                        setFormData({ ...formData, apiKey: e.target.value })
-                      }
-                      placeholder={apiKeyPlaceholder}
-                      required={!editingId}
-                      disabled={isPending}
-                    />
-                    {apiKeyHelpText ? (
-                      <p className="text-xs text-muted-foreground">
-                        {apiKeyHelpText}
-                      </p>
-                    ) : null}
-                  </>
-                ) : (
-                  <>
-                    <Label htmlFor="apiKey">API Key</Label>
-                    <Textarea
-                      id="apiKey"
-                      value={formData.apiKey}
-                      onChange={e =>
-                        setFormData({ ...formData, apiKey: e.target.value })
-                      }
-                      placeholder={apiKeyPlaceholder}
-                      required={!editingId}
-                      disabled={isPending}
-                      className="font-mono"
-                      rows={requiresJsonApiKey ? 6 : 2}
-                    />
-                    {apiKeyHelpText ? (
-                      <p className="text-xs text-muted-foreground">
-                        {apiKeyHelpText}
-                      </p>
-                    ) : null}
-                  </>
-                )}
-              </div>
-              {isVertexServiceAccount ? (
+                  </div>
+                ) : null}
                 <div className="space-y-2">
-                  <Label htmlFor="vertexLocation">Location</Label>
+                  <Label htmlFor="baseUrl">Base URL (optional)</Label>
                   <Input
-                    id="vertexLocation"
-                    value={formData.vertexLocation}
+                    id="baseUrl"
+                    value={formData.baseUrl}
                     onChange={e =>
+                      setFormData({ ...formData, baseUrl: e.target.value })
+                    }
+                    placeholder="https://"
+                    disabled={isPending}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="image">Icon (optional)</Label>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="flex size-9 shrink-0 items-center justify-center rounded-md border bg-muted/40 shadow-sm">
+                      {formData.image ? (
+                        <ModelIcon image={formData.image} className="size-4" />
+                      ) : null}
+                    </div>
+                    <Input
+                      id="image"
+                      value={formData.image}
+                      onChange={e =>
+                        setFormData({ ...formData, image: e.target.value })
+                      }
+                      placeholder="https:// or Base64 or IconName (e.g. Gemini.Color)"
+                      disabled={isPending}
+                    />
+                  </div>
+                  <IconPicker
+                    value={formData.image}
+                    onChange={value =>
                       setFormData({
                         ...formData,
-                        vertexLocation: e.target.value
+                        image: value
                       })
                     }
-                    placeholder="us-central1"
                     disabled={isPending}
                   />
-                  <p className="text-xs text-muted-foreground">
-                    Enter the Google Vertex AI region, e.g. us-central1.
-                  </p>
                 </div>
-              ) : null}
-              <div className="space-y-2">
-                <Label htmlFor="baseUrl">Base URL (optional)</Label>
-                <Input
-                  id="baseUrl"
-                  value={formData.baseUrl}
-                  onChange={e =>
-                    setFormData({ ...formData, baseUrl: e.target.value })
-                  }
-                  placeholder="https://"
-                  disabled={isPending}
-                />
-              </div>
-              <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <Label htmlFor="image">Icon (optional)</Label>
-                </div>
-                <div className="flex items-center gap-2">
-                  <div className="flex size-9 shrink-0 items-center justify-center rounded-md border bg-muted/40 shadow-sm">
-                    {formData.image ? (
-                      <ModelIcon image={formData.image} className="size-4" />
-                    ) : null}
-                  </div>
-                  <Input
-                    id="image"
-                    value={formData.image}
+                <div className="space-y-2">
+                  <Label htmlFor="apiOptions">API Options (JSON)</Label>
+                  <Textarea
+                    id="apiOptions"
+                    value={formData.apiOptions}
                     onChange={e =>
-                      setFormData({ ...formData, image: e.target.value })
+                      setFormData({ ...formData, apiOptions: e.target.value })
                     }
-                    placeholder="https:// or Base64 or IconName (e.g. Gemini.Color)"
+                    placeholder="{}"
                     disabled={isPending}
+                    className="font-mono"
+                    rows={3}
                   />
                 </div>
-                <IconPicker
-                  value={formData.image}
-                  onChange={value =>
-                    setFormData({
-                      ...formData,
-                      image: value
-                    })
-                  }
-                  disabled={isPending}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="apiOptions">API Options (JSON)</Label>
-                <Textarea
-                  id="apiOptions"
-                  value={formData.apiOptions}
-                  onChange={e =>
-                    setFormData({ ...formData, apiOptions: e.target.value })
-                  }
-                  placeholder="{}"
-                  disabled={isPending}
-                  className="font-mono"
-                  rows={3}
-                />
-              </div>
-              <div className="flex items-center space-x-2">
-                <Switch
-                  id="isEnabled"
-                  checked={formData.isEnabled}
-                  onCheckedChange={checked =>
-                    setFormData({ ...formData, isEnabled: checked })
-                  }
-                  disabled={isPending}
-                />
-                <Label htmlFor="isEnabled">Enabled</Label>
+                <div className="flex items-center space-x-2">
+                  <Switch
+                    id="isEnabled"
+                    checked={formData.isEnabled}
+                    onCheckedChange={checked =>
+                      setFormData({ ...formData, isEnabled: checked })
+                    }
+                    disabled={isPending}
+                  />
+                  <Label htmlFor="isEnabled">Enabled</Label>
+                </div>
               </div>
               <div className="flex justify-end gap-2">
                 <Button

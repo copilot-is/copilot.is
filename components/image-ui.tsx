@@ -22,6 +22,7 @@ import { EmptyScreen } from '@/components/empty-screen';
 import { ImagePromptForm } from '@/components/image-prompt-form';
 import { Messages } from '@/components/messages';
 import { ModelOptions } from '@/components/model-menu';
+import { UsageLimitAlert } from '@/components/usage-limit-alert';
 
 const ScrollToBottom = dynamic(() => import('@/components/scroll-to-bottom'), {
   ssr: false
@@ -403,6 +404,7 @@ export function ImageUI({
             text="Describe the image you want to generate"
           />
         )}
+        <UsageLimitAlert />
         <ImagePromptForm
           modelId={currentModelId}
           size={size}

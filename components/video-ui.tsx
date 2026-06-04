@@ -21,6 +21,7 @@ import { ChatHeader } from '@/components/chat-header';
 import { EmptyScreen } from '@/components/empty-screen';
 import { Messages } from '@/components/messages';
 import { ModelOptions } from '@/components/model-menu';
+import { UsageLimitAlert } from '@/components/usage-limit-alert';
 import { VideoPromptForm } from '@/components/video-prompt-form';
 
 const ScrollToBottom = dynamic(() => import('@/components/scroll-to-bottom'), {
@@ -441,6 +442,7 @@ export function VideoUI({
             text="Describe the video you want to generate"
           />
         )}
+        <UsageLimitAlert />
         <VideoPromptForm
           modelId={currentModelId}
           aspectRatio={aspectRatio}

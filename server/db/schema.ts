@@ -5,12 +5,12 @@ import {
   index,
   integer,
   jsonb,
+  numeric,
   PgColumn,
   pgTableCreator,
   primaryKey,
   text,
   timestamp,
-  uniqueIndex,
   varchar
 } from 'drizzle-orm/pg-core';
 import { type AdapterAccount } from 'next-auth/adapters';
@@ -38,8 +38,12 @@ export const chats = createTable(
     userId: varchar('user_id', { length: 255 })
       .notNull()
       .references(() => users.id, { onDelete: 'cascade' }),
-    createdAt: timestamp('created_at').notNull().defaultNow(),
-    updatedAt: timestamp('updated_at').notNull().defaultNow()
+    createdAt: timestamp('created_at', { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    updatedAt: timestamp('updated_at', { withTimezone: true })
+      .notNull()
+      .defaultNow()
   },
   chat => [
     index('chat_userId_idx').on(chat.userId),
@@ -73,8 +77,12 @@ export const messages = createTable(
       .notNull()
       .references(() => chats.id, { onDelete: 'cascade' }),
     reasonDuration: integer('reason_duration'),
-    createdAt: timestamp('created_at').notNull().defaultNow(),
-    updatedAt: timestamp('updated_at').notNull().defaultNow()
+    createdAt: timestamp('created_at', { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    updatedAt: timestamp('updated_at', { withTimezone: true })
+      .notNull()
+      .defaultNow()
   },
   message => [
     index('message_parentId_idx').on(message.parentId),
@@ -118,8 +126,12 @@ export const artifacts = createTable(
     fileName: varchar('file_name', { length: 255 }),
     mimeType: varchar('mime_type', { length: 255 }),
     size: integer('size'),
-    createdAt: timestamp('created_at').notNull().defaultNow(),
-    updatedAt: timestamp('updated_at').notNull().defaultNow()
+    createdAt: timestamp('created_at', { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    updatedAt: timestamp('updated_at', { withTimezone: true })
+      .notNull()
+      .defaultNow()
   },
   artifact => [
     index('artifact_chatId_idx').on(artifact.chatId),
@@ -160,7 +172,9 @@ export const shares = createTable(
     userId: varchar('user_id', { length: 255 })
       .notNull()
       .references(() => users.id, { onDelete: 'cascade' }),
-    createdAt: timestamp('created_at').notNull().defaultNow()
+    createdAt: timestamp('created_at', { withTimezone: true })
+      .notNull()
+      .defaultNow()
   },
   share => [
     index('share_chatId_idx').on(share.chatId),
@@ -173,22 +187,45 @@ export const sharesRelations = relations(shares, ({ one }) => ({
   chat: one(chats, { fields: [shares.chatId], references: [chats.id] })
 }));
 
-export const users = createTable('user', {
-  id: varchar('id', { length: 255 }).notNull().primaryKey(),
-  name: varchar('name', { length: 255 }),
-  email: varchar('email', { length: 255 }).notNull(),
-  emailVerified: timestamp('email_verified', {
-    mode: 'date',
-    withTimezone: true
-  }).default(sql`CURRENT_TIMESTAMP`),
-  image: varchar('image', { length: 255 }),
-  role: varchar('role', { length: 50 }).notNull().default('user'),
-  createdAt: timestamp('created_at').notNull().defaultNow(),
-  updatedAt: timestamp('updated_at').notNull().defaultNow()
-});
+export const users = createTable(
+  'user',
+  {
+    id: varchar('id', { length: 255 }).notNull().primaryKey(),
+    name: varchar('name', { length: 255 }),
+    email: varchar('email', { length: 255 }).notNull(),
+    emailVerified: timestamp('email_verified', {
+      mode: 'date',
+      withTimezone: true
+    }).default(sql`CURRENT_TIMESTAMP`),
+    image: varchar('image', { length: 255 }),
+    role: varchar('role', { length: 50 }).notNull().default('user'),
+    planId: varchar('plan_id', { length: 255 }).references(
+      (): PgColumn => plans.id,
+      {
+        onDelete: 'set null'
+      }
+    ),
+    quotaId: varchar('quota_id', { length: 255 }).references(
+      (): PgColumn => quotas.id,
+      { onDelete: 'set null' }
+    ),
+    createdAt: timestamp('created_at', { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    updatedAt: timestamp('updated_at', { withTimezone: true })
+      .notNull()
+      .defaultNow()
+  },
+  user => [
+    index('user_plan_id_idx').on(user.planId),
+    index('user_quota_id_idx').on(user.quotaId)
+  ]
+);
 
-export const usersRelations = relations(users, ({ many }) => ({
-  accounts: many(accounts)
+export const usersRelations = relations(users, ({ one, many }) => ({
+  accounts: many(accounts),
+  plan: one(plans, { fields: [users.planId], references: [plans.id] }),
+  quota: one(quotas, { fields: [users.quotaId], references: [quotas.id] })
 }));
 
 export const accounts = createTable(
@@ -269,7 +306,9 @@ export const emailVerificationCodes = createTable(
       withTimezone: true
     }).notNull(),
     attempts: integer('attempts').notNull().default(0),
-    createdAt: timestamp('created_at').notNull().defaultNow()
+    createdAt: timestamp('created_at', { withTimezone: true })
+      .notNull()
+      .defaultNow()
   },
   evc => [
     index('evc_email_idx').on(evc.email),
@@ -297,8 +336,12 @@ export const providers = createTable(
     apiOptions: jsonb('api_options').$type<Record<string, unknown>>(),
     image: text('image'),
     displayOrder: integer('display_order').notNull().default(0),
-    createdAt: timestamp('created_at').notNull().defaultNow(),
-    updatedAt: timestamp('updated_at').notNull().defaultNow()
+    createdAt: timestamp('created_at', { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    updatedAt: timestamp('updated_at', { withTimezone: true })
+      .notNull()
+      .defaultNow()
   },
   provider => [
     index('provider_type_idx').on(provider.type),
@@ -336,8 +379,12 @@ export const prompts = createTable(
     image: text('image'),
     content: text('content').notNull(),
     displayOrder: integer('display_order').notNull().default(0),
-    createdAt: timestamp('created_at').notNull().defaultNow(),
-    updatedAt: timestamp('updated_at').notNull().defaultNow()
+    createdAt: timestamp('created_at', { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    updatedAt: timestamp('updated_at', { withTimezone: true })
+      .notNull()
+      .defaultNow()
   },
   prompt => [
     index('prompt_type_idx').on(prompt.type),
@@ -374,7 +421,7 @@ export const models = createTable(
   {
     id: varchar('id', { length: 255 }).notNull().primaryKey(),
     name: varchar('name', { length: 255 }).notNull(),
-    modelId: varchar('model_id', { length: 255 }).notNull(),
+    modelId: varchar('model_id', { length: 255 }).notNull().unique(),
     providerId: varchar('provider_id', { length: 255 })
       .notNull()
       .references(() => providers.id, { onDelete: 'restrict' }),
@@ -412,21 +459,21 @@ export const models = createTable(
       { onDelete: 'set null' }
     ),
     displayOrder: integer('display_order').notNull().default(0),
-    createdAt: timestamp('created_at').notNull().defaultNow(),
-    updatedAt: timestamp('updated_at').notNull().defaultNow()
+    createdAt: timestamp('created_at', { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    updatedAt: timestamp('updated_at', { withTimezone: true })
+      .notNull()
+      .defaultNow()
   },
   model => [
     index('model_provider_id_idx').on(model.providerId),
     index('model_capability_idx').on(model.capability),
-    index('model_is_enabled_idx').on(model.isEnabled),
-    uniqueIndex('model_provider_model_unique').on(
-      model.providerId,
-      model.modelId
-    )
+    index('model_is_enabled_idx').on(model.isEnabled)
   ]
 );
 
-export const modelsRelations = relations(models, ({ one }) => ({
+export const modelsRelations = relations(models, ({ one, many }) => ({
   provider: one(providers, {
     fields: [models.providerId],
     references: [providers.id]
@@ -434,7 +481,8 @@ export const modelsRelations = relations(models, ({ one }) => ({
   systemPrompt: one(prompts, {
     fields: [models.systemPromptId],
     references: [prompts.id]
-  })
+  }),
+  pricings: many(modelPricings)
 }));
 
 /**
@@ -445,5 +493,229 @@ export const settings = createTable('setting', {
   key: varchar('key', { length: 100 }).notNull().unique(),
   value: text('value'),
   description: varchar('description', { length: 500 }),
-  updatedAt: timestamp('updated_at').notNull().defaultNow()
+  updatedAt: timestamp('updated_at', { withTimezone: true })
+    .notNull()
+    .defaultNow()
 });
+
+// ============================================================================
+// Billing / Usage / Quota Tables
+// ============================================================================
+
+/**
+ * Quota - A reusable, named bundle of usage limits.
+ *
+ * Quotas are independent entities. They are consumed by:
+ *   - Plans (each plan references one quota via plan.quotaId)
+ *   - The system default (configured in `setting` under key `default.quotaId`,
+ *     used for users with plan_id IS NULL — i.e. free users)
+ *
+ * allowedModelIds is a whitelist of `model.modelId` values (e.g. "gpt-4o"),
+ * not `model.id` (UUID). An empty array means "no restriction" (all enabled
+ * models allowed).
+ */
+export const quotas = createTable('quota', {
+  id: varchar('id', { length: 255 }).notNull().primaryKey(),
+  name: varchar('name', { length: 100 }).notNull().unique(),
+  description: varchar('description', { length: 500 }),
+  fiveHour: numeric('five_hour', { precision: 20, scale: 10 }),
+  sevenDay: numeric('seven_day', { precision: 20, scale: 10 }),
+  isUnlimited: boolean('is_unlimited').notNull().default(false),
+  allowedModelIds: jsonb('allowed_model_ids')
+    .$type<string[]>()
+    .notNull()
+    .default(sql`'[]'::jsonb`),
+  createdAt: timestamp('created_at', { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+  updatedAt: timestamp('updated_at', { withTimezone: true })
+    .notNull()
+    .defaultNow()
+});
+
+export const quotasRelations = relations(quotas, ({ many }) => ({
+  plans: many(plans),
+  users: many(users)
+}));
+
+/**
+ * Plan - Subscription tier (Pro, Team, ...). Each plan references a quota
+ * via quotaId. Users without a planId are "Free" and use the system default
+ * quota (configured under setting key `default.quotaId`).
+ */
+export const plans = createTable('plan', {
+  id: varchar('id', { length: 255 }).notNull().primaryKey(),
+  name: varchar('name', { length: 100 }).notNull().unique(),
+  description: varchar('description', { length: 500 }),
+  quotaId: varchar('quota_id', { length: 255 })
+    .notNull()
+    .references(() => quotas.id, { onDelete: 'restrict' }),
+  displayOrder: integer('display_order').notNull().default(0),
+  createdAt: timestamp('created_at', { withTimezone: true })
+    .notNull()
+    .defaultNow(),
+  updatedAt: timestamp('updated_at', { withTimezone: true })
+    .notNull()
+    .defaultNow()
+});
+
+export const plansRelations = relations(plans, ({ one, many }) => ({
+  quota: one(quotas, {
+    fields: [plans.quotaId],
+    references: [quotas.id]
+  }),
+  users: many(users)
+}));
+
+/**
+ * Model Pricing - Per-model price entries.
+ *
+ * Pricing columns are USD by convention. Units:
+ *   - input / output / cacheRead / cacheWrite / audioInput / audioOutput
+ *     / audioCharacters → per 1M (tokens, or characters for audioCharacters)
+ *   - image / video → per item
+ *   - videoSeconds → per second
+ *
+ * One row per model (model_id is UNIQUE, referencing models.modelId).
+ * Historical price changes don't need to be preserved here because
+ * `usage.cost` is denormalized at write-time.
+ */
+export const modelPricings = createTable(
+  'model_pricing',
+  {
+    id: varchar('id', { length: 255 }).notNull().primaryKey(),
+    modelId: varchar('model_id', { length: 255 })
+      .notNull()
+      .unique()
+      .references(() => models.modelId, { onDelete: 'cascade' }),
+    input: numeric('input', { precision: 20, scale: 10 }),
+    output: numeric('output', { precision: 20, scale: 10 }),
+    cacheRead: numeric('cache_read', { precision: 20, scale: 10 }),
+    cacheWrite: numeric('cache_write', { precision: 20, scale: 10 }),
+    // Reasoning rate. Most providers (OpenAI o1, Anthropic, Google, DeepSeek)
+    // bill reasoning at the output rate — leave null and the cost engine
+    // falls back to `output`. Some models (Qwen thinking variants) have a
+    // distinct reasoning rate — set this column to override.
+    reasoning: numeric('reasoning', { precision: 20, scale: 10 }),
+    image: numeric('image', { precision: 20, scale: 10 }),
+    video: numeric('video', { precision: 20, scale: 10 }),
+    videoSeconds: numeric('video_seconds', { precision: 20, scale: 10 }),
+    // Audio bills EITHER per character (classic TTS: tts-1, Google, Azure,
+    // Polly, ElevenLabs) OR per token (token-based: gpt-4o-mini-tts, gpt-audio,
+    // omni). Mutually exclusive — see calculateAudioCost / pricing router.
+    audioInput: numeric('audio_input', { precision: 20, scale: 10 }),
+    audioOutput: numeric('audio_output', { precision: 20, scale: 10 }),
+    audioCharacters: numeric('audio_characters', { precision: 20, scale: 10 }),
+    source: varchar('source', { length: 50 })
+      .notNull()
+      .default('manual')
+      .$type<'manual' | 'models.dev' | 'llm-metadata'>(),
+    createdAt: timestamp('created_at', { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    updatedAt: timestamp('updated_at', { withTimezone: true })
+      .notNull()
+      .defaultNow()
+  }
+  // No explicit index on model_id — the .unique() constraint above already
+  // creates one.
+);
+
+export const modelPricingsRelations = relations(modelPricings, ({ one }) => ({
+  model: one(models, {
+    fields: [modelPricings.modelId],
+    references: [models.modelId]
+  })
+}));
+
+/**
+ * Usage Record - One row per generation call.
+ *
+ * Each row stores both the usage quantities AND a snapshot of the prices that
+ * were used to compute `cost`. This makes historical billing self-contained:
+ * model_pricing can change later without rewriting history, and no FK to a
+ * pricing row is needed.
+ *
+ * Quantity columns mirror the dimensions in `model_pricing`:
+ *   - input_tokens / output_tokens / cache_read_tokens / cache_write_tokens
+ *     / reasoning_tokens → chat (per 1M tokens). `reasoning_tokens` is billed
+ *     at the `output_price` rate (no separate price).
+ *   - image_count → image generations (per item).
+ *   - video_count / video_seconds → video generations (per item or per second).
+ *   - audio_input_tokens / audio_output_tokens → token-based audio models
+ *     (per 1M tokens); audio_characters → classic TTS (per character).
+ *     Mutually exclusive per model.
+ *
+ * Price columns are USD per unit, matching `model_pricing` semantics.
+ */
+export const usage = createTable(
+  'usage',
+  {
+    id: varchar('id', { length: 255 }).notNull().primaryKey(),
+    userId: varchar('user_id', { length: 255 })
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
+    chatId: varchar('chat_id', { length: 255 }).references(() => chats.id, {
+      onDelete: 'set null'
+    }),
+    messageId: varchar('message_id', { length: 255 }),
+    modelId: varchar('model_id', { length: 255 }),
+    providerId: varchar('provider_id', { length: 255 }),
+    capability: varchar('capability', { length: 32 })
+      .notNull()
+      .$type<'chat' | 'image' | 'video' | 'audio'>(),
+
+    // Quantities — one per pricing dimension
+    inputTokens: integer('input_tokens').notNull().default(0),
+    outputTokens: integer('output_tokens').notNull().default(0),
+    cacheReadTokens: integer('cache_read_tokens').notNull().default(0),
+    cacheWriteTokens: integer('cache_write_tokens').notNull().default(0),
+    reasoningTokens: integer('reasoning_tokens').notNull().default(0),
+    imageCount: integer('image_count').notNull().default(0),
+    videoCount: integer('video_count').notNull().default(0),
+    videoSeconds: numeric('video_seconds', { precision: 12, scale: 3 })
+      .notNull()
+      .default('0'),
+    audioInputTokens: integer('audio_input_tokens').notNull().default(0),
+    audioOutputTokens: integer('audio_output_tokens').notNull().default(0),
+    audioCharacters: integer('audio_characters').notNull().default(0),
+
+    // Price snapshot at compute time (USD per unit; semantics match model_pricing)
+    inputPrice: numeric('input_price', { precision: 20, scale: 10 }),
+    outputPrice: numeric('output_price', { precision: 20, scale: 10 }),
+    cacheReadPrice: numeric('cache_read_price', { precision: 20, scale: 10 }),
+    cacheWritePrice: numeric('cache_write_price', { precision: 20, scale: 10 }),
+    reasoningPrice: numeric('reasoning_price', { precision: 20, scale: 10 }),
+    imagePrice: numeric('image_price', { precision: 20, scale: 10 }),
+    videoPrice: numeric('video_price', { precision: 20, scale: 10 }),
+    videoSecondsPrice: numeric('video_seconds_price', {
+      precision: 20,
+      scale: 10
+    }),
+    audioInputPrice: numeric('audio_input_price', { precision: 20, scale: 10 }),
+    audioOutputPrice: numeric('audio_output_price', {
+      precision: 20,
+      scale: 10
+    }),
+    audioCharactersPrice: numeric('audio_characters_price', {
+      precision: 20,
+      scale: 10
+    }),
+
+    cost: numeric('cost', { precision: 20, scale: 10 }).notNull().default('0'),
+    createdAt: timestamp('created_at', { withTimezone: true })
+      .notNull()
+      .defaultNow()
+  },
+  record => [
+    index('usage_chat_id_idx').on(record.chatId),
+    index('usage_model_id_idx').on(record.modelId),
+    index('usage_created_at_idx').on(record.createdAt),
+    index('usage_user_created_idx').on(record.userId, record.createdAt)
+  ]
+);
+
+export const usageRelations = relations(usage, ({ one }) => ({
+  user: one(users, { fields: [usage.userId], references: [users.id] }),
+  chat: one(chats, { fields: [usage.chatId], references: [chats.id] })
+}));

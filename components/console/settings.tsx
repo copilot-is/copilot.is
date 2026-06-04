@@ -76,14 +76,19 @@ const DEFAULT_SETTINGS = [
     description: 'Default system prompt for chat'
   },
   {
-    key: 'title.model',
+    key: 'title.modelId',
     label: 'Title Generation Model',
     description: 'Model used for generating chat titles'
   },
   {
-    key: 'title.prompt',
+    key: 'title.systemPrompt',
     label: 'Title Generation Prompt',
     description: 'Prompt used for generating titles'
+  },
+  {
+    key: 'default.quotaId',
+    label: 'Default Quota',
+    description: 'Quota id used for users without an assigned plan'
   }
 ];
 
@@ -92,6 +97,7 @@ export default function SettingsPage() {
   const { data: settings, isLoading } = api.settings.list.useQuery();
   const { data: models } = api.model.list.useQuery();
   const { data: prompts } = api.prompt.adminList.useQuery({ type: 'system' });
+  const { data: quotaOptions } = api.quota.listForSelect.useQuery();
 
   const [formData, setFormData] = useState<Record<string, string>>({});
   const [hasChanges, setHasChanges] = useState(false);
@@ -171,6 +177,7 @@ export default function SettingsPage() {
           <TabsTrigger value="general">General</TabsTrigger>
           <TabsTrigger value="models">Models</TabsTrigger>
           <TabsTrigger value="prompts">Prompts</TabsTrigger>
+          <TabsTrigger value="quota">Quota</TabsTrigger>
         </TabsList>
 
         <TabsContent value="general" className="space-y-4">
@@ -459,9 +466,9 @@ export default function SettingsPage() {
                   value={
                     !chatModels?.length
                       ? undefined
-                      : formData['title.model'] || ''
+                      : formData['title.modelId'] || ''
                   }
-                  onValueChange={value => handleChange('title.model', value)}
+                  onValueChange={value => handleChange('title.modelId', value)}
                 >
                   <SelectTrigger>
                     <SelectValue
@@ -490,9 +497,11 @@ export default function SettingsPage() {
                   value={
                     !systemPrompts?.length
                       ? undefined
-                      : formData['title.prompt'] || ''
+                      : formData['title.systemPrompt'] || ''
                   }
-                  onValueChange={value => handleChange('title.prompt', value)}
+                  onValueChange={value =>
+                    handleChange('title.systemPrompt', value)
+                  }
                 >
                   <SelectTrigger>
                     <SelectValue
@@ -507,6 +516,51 @@ export default function SettingsPage() {
                     {systemPrompts?.map(p => (
                       <SelectItem key={p.id} value={p.id}>
                         {p.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          </div>
+        </TabsContent>
+
+        <TabsContent value="quota" className="space-y-4">
+          <div className="rounded-lg border p-4">
+            <h2 className="mb-2 text-lg font-semibold">Default Quota</h2>
+            <p className="mb-4 text-sm text-muted-foreground">
+              Fallback quota for users without a plan.
+            </p>
+            <div className="grid gap-4 md:grid-cols-2">
+              <div className="space-y-2">
+                <Label>Default Quota</Label>
+                <Select
+                  disabled={
+                    !quotaOptions?.length || bulkUpdateMutation.isPending
+                  }
+                  value={
+                    !quotaOptions?.length
+                      ? undefined
+                      : formData['default.quotaId'] || ''
+                  }
+                  onValueChange={value =>
+                    handleChange('default.quotaId', value)
+                  }
+                >
+                  <SelectTrigger>
+                    <SelectValue
+                      placeholder={
+                        !quotaOptions?.length
+                          ? 'No quotas available'
+                          : 'Select a quota'
+                      }
+                    />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {quotaOptions?.map(q => (
+                      <SelectItem key={q.id} value={q.id}>
+                        {q.name}
+                        {q.isUnlimited ? ' (Unlimited)' : ''}
                       </SelectItem>
                     ))}
                   </SelectContent>

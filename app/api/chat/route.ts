@@ -18,13 +18,16 @@ import {
   MessageMetadata,
   type Artifact
 } from '@/types';
+import { normalizeChatUsage } from '@/lib/chat-usage';
 import { ArtifactSystemPrompt } from '@/lib/constant';
+import { preflightGate } from '@/lib/preflight';
 import { getLanguageModel } from '@/lib/provider';
 import {
   findModelByModelId,
   getSystemPrompt,
   getTitleSettings
 } from '@/lib/queries';
+import { recordChatUsage } from '@/lib/usage';
 import { convertToChatMessages, formatString, generateUUID } from '@/lib/utils';
 import { auth } from '@/server/auth';
 import { db } from '@/server/db';
@@ -56,20 +59,29 @@ export async function POST(req: Request) {
   const { modelId, userMessage, parentMessageId, isReasoning } = json;
 
   if (!modelId || !userMessage) {
-    return NextResponse.json(
-      { error: 'Invalid modelId and userMessage parameters' },
-      { status: 400 }
-    );
+    return NextResponse.json({ error: 'Invalid request.' }, { status: 400 });
   }
 
   // Fetch model from database to validate
   const dbModel = await findModelByModelId(modelId, 'chat');
   if (!dbModel?.provider) {
+    console.error(`[chat] model unavailable: ${modelId}`);
     return NextResponse.json(
-      { error: `Model ${modelId} is not available` },
+      {
+        error:
+          'This model is currently unavailable. Please choose a different model.'
+      },
       { status: 403 }
     );
   }
+
+  const gate = await preflightGate({
+    userId: session.user.id,
+    modelKey: dbModel.modelId,
+    modelLabel: dbModel.name,
+    capability: 'chat'
+  });
+  if (gate) return gate;
 
   let title = 'Untitled';
   const chat = await api.chat.detail({
@@ -621,9 +633,22 @@ export async function POST(req: Request) {
             }
           },
           onFinish: async ({ usage }) => {
-            if (usage) {
-              console.log('Usage: ', usage);
+            if (!usage) {
+              // Provider didn't report usage — request runs free. Should not
+              // happen with major providers; surface so it's visible in logs.
+              console.warn(
+                `[chat] no usage reported for model=${modelId}; skipping recordChatUsage`
+              );
+              return;
             }
+            await recordChatUsage({
+              userId: session.user.id,
+              chatId: id,
+              messageId: assistantMessageId,
+              modelId,
+              providerId: dbModel.provider?.id,
+              usage: normalizeChatUsage(usage)
+            });
           }
         });
 
@@ -782,6 +807,10 @@ export async function POST(req: Request) {
 
     return createUIMessageStreamResponse({ stream });
   } catch (err: any) {
-    return NextResponse.json({ error: err.message }, { status: 500 });
+    console.error('Chat error:', err);
+    return NextResponse.json(
+      { error: 'Oops, an error occurred!' },
+      { status: 500 }
+    );
   }
 }

@@ -43,11 +43,13 @@ export function ChatRenameDialog({
           <DialogTitle>Rename title</DialogTitle>
           <DialogDescription>Give chat rename a new title.</DialogDescription>
         </DialogHeader>
-        <Input
-          defaultValue={title}
-          onChange={e => setTitle(e.target.value)}
-          required
-        />
+        <div className="-mx-6 max-h-[60vh] overflow-y-auto px-6">
+          <Input
+            defaultValue={title}
+            onChange={e => setTitle(e.target.value)}
+            required
+          />
+        </div>
         <DialogFooter>
           <Button
             disabled={isPending || !title || title === chat.title}

@@ -34,7 +34,7 @@ export function Sidebar({
             <SidebarMenuButton
               asChild
               size="lg"
-              className="gap-1 p-0 transition-opacity duration-150 ease-out hover:bg-transparent hover:text-sidebar-foreground active:bg-transparent active:text-sidebar-foreground motion-reduce:transition-none group-data-[collapsible=icon]:group-hover/menu-item:opacity-0"
+              className="gap-1 p-0 transition-opacity duration-150 ease-out group-data-[collapsible=icon]:group-hover/menu-item:opacity-0 hover:bg-transparent hover:text-sidebar-foreground active:bg-transparent active:text-sidebar-foreground motion-reduce:transition-none"
             >
               <Link href="/console">
                 <div className="flex aspect-square size-8 items-center justify-center">
@@ -45,7 +45,7 @@ export function Sidebar({
                 </div>
               </Link>
             </SidebarMenuButton>
-            <SidebarTrigger className="pointer-events-auto absolute top-1/2 right-0 z-10 hidden size-8 -translate-y-1/2 opacity-100 transition-opacity duration-150 ease-out motion-reduce:transition-none md:flex group-data-[collapsible=icon]:pointer-events-none group-data-[collapsible=icon]:opacity-0 group-data-[collapsible=icon]:group-hover/menu-item:pointer-events-auto group-data-[collapsible=icon]:group-hover/menu-item:opacity-100" />
+            <SidebarTrigger className="pointer-events-auto absolute top-1/2 right-0 z-10 hidden size-8 -translate-y-1/2 opacity-100 transition-opacity duration-150 ease-out group-data-[collapsible=icon]:pointer-events-none group-data-[collapsible=icon]:opacity-0 group-data-[collapsible=icon]:group-hover/menu-item:pointer-events-auto group-data-[collapsible=icon]:group-hover/menu-item:opacity-100 motion-reduce:transition-none md:flex" />
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarHeader>

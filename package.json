@@ -11,6 +11,9 @@
     "lint:fix": "eslint . --fix",
     "preview": "next build && next start",
     "type-check": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
     "format:check": "prettier --check \"**/*.{ts,tsx,js,jsx,mdx,css,mjs,json}\" --cache",
     "format:write": "prettier --write \"**/*.{ts,tsx,js,jsx,mdx,css,mjs,json}\" --cache",
     "db:generate": "drizzle-kit generate",
@@ -19,15 +22,15 @@
     "db:studio": "drizzle-kit studio"
   },
   "dependencies": {
-    "@ai-sdk/amazon-bedrock": "^4.0.93",
-    "@ai-sdk/anthropic": "^3.0.69",
-    "@ai-sdk/azure": "^3.0.53",
-    "@ai-sdk/deepseek": "^2.0.29",
-    "@ai-sdk/google": "^3.0.62",
-    "@ai-sdk/google-vertex": "^4.0.108",
-    "@ai-sdk/openai": "^3.0.52",
-    "@ai-sdk/react": "^3.0.160",
-    "@ai-sdk/xai": "^3.0.82",
+    "@ai-sdk/amazon-bedrock": "^4.0.111",
+    "@ai-sdk/anthropic": "^3.0.81",
+    "@ai-sdk/azure": "^3.0.68",
+    "@ai-sdk/deepseek": "^2.0.35",
+    "@ai-sdk/google": "^3.0.80",
+    "@ai-sdk/google-vertex": "^4.0.140",
+    "@ai-sdk/openai": "^3.0.67",
+    "@ai-sdk/react": "^3.0.195",
+    "@ai-sdk/xai": "^3.0.93",
     "@auth/drizzle-adapter": "^1.9.1",
     "@aws-sdk/client-bedrock": "^3.1047.0",
     "@codemirror/lang-cpp": "^6.0.3",
@@ -62,7 +65,7 @@
     "@uiw/codemirror-theme-github": "^4.25.9",
     "@vercel/analytics": "^1.4.1",
     "@vercel/blob": "^0.27.3",
-    "ai": "^6.0.158",
+    "ai": "^6.0.193",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "date-fns": "^4.1.0",
@@ -95,6 +98,7 @@
     "zod": "^4.1.12"
   },
   "devDependencies": {
+    "@electric-sql/pglite": "^0.4.6",
     "@eslint/eslintrc": "^3.3.3",
     "@eslint/js": "^9.39.2",
     "@ianvs/prettier-plugin-sort-imports": "^4.4.0",
@@ -117,7 +121,8 @@
     "tailwind-merge": "^2.6.1",
     "tailwindcss": "^4.2.2",
     "typescript": "^5.9.3",
-    "typescript-eslint": "^8.53.1"
+    "typescript-eslint": "^8.53.1",
+    "vitest": "^4.1.7"
   },
   "pnpm": {
     "overrides": {

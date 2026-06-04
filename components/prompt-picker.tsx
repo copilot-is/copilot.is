@@ -71,14 +71,14 @@ export function PromptPicker({
             <Loader2 className="size-4 animate-spin" />
           </div>
         ) : prompts?.length ? (
-          <div className="max-h-52 overflow-y-auto overflow-x-hidden">
+          <div className="max-h-52 overflow-x-hidden overflow-y-auto">
             <div className="mx-auto grid w-fit grid-cols-[repeat(2,5rem)] gap-2">
               {prompts.map(prompt => (
                 <button
                   key={prompt.id}
                   type="button"
                   onClick={() => handleUsePrompt(prompt.content)}
-                  className="group h-20 w-20 overflow-hidden rounded-md border bg-background text-left shadow-xs transition-[border-color,background-color,box-shadow] hover:border-accent-foreground/15 hover:bg-accent/30 hover:shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/50"
+                  className="group h-20 w-20 overflow-hidden rounded-md border bg-background text-left shadow-xs transition-[border-color,background-color,box-shadow] hover:border-accent-foreground/15 hover:bg-accent/30 hover:shadow-sm focus-visible:ring-2 focus-visible:ring-ring/50 focus-visible:outline-none"
                 >
                   {prompt.image ? (
                     <img

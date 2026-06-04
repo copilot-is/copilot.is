@@ -1,5 +1,9 @@
 import {
+  BarChart3,
+  CircleDollarSign,
   Cpu,
+  CreditCard,
+  Gauge,
   LayoutGrid,
   Settings,
   Type,
@@ -28,6 +32,26 @@ export const ConsoleNavigation = {
       title: 'Prompts',
       url: '/console/prompts',
       icon: Type
+    },
+    {
+      title: 'Pricing',
+      url: '/console/pricing',
+      icon: CircleDollarSign
+    },
+    {
+      title: 'Quotas',
+      url: '/console/quotas',
+      icon: Gauge
+    },
+    {
+      title: 'Plans',
+      url: '/console/plans',
+      icon: CreditCard
+    },
+    {
+      title: 'Usage',
+      url: '/console/usage',
+      icon: BarChart3
     },
     {
       title: 'Settings',

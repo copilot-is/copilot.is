@@ -157,7 +157,7 @@ export function ProviderModelSyncDialog({
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent className="max-w-3xl">
+      <DialogContent className="sm:max-w-3xl">
         <DialogHeader>
           <DialogTitle>Sync API Models</DialogTitle>
           <DialogDescription>

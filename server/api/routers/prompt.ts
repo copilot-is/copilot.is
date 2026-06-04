@@ -106,7 +106,7 @@ async function assertSystemPromptCanBeDeleted(
         and(
           inArray(settings.key, [
             'default.chat.systemPrompt',
-            'title.prompt'
+            'title.systemPrompt'
           ]),
           eq(settings.value, id)
         )
@@ -125,7 +125,10 @@ async function assertSystemPromptCanBeDeleted(
   }
 }
 
-function assertAdminPromptVisibility(type: 'system' | 'user', isPublic: boolean) {
+function assertAdminPromptVisibility(
+  type: 'system' | 'user',
+  isPublic: boolean
+) {
   if (type === 'system' && isPublic) {
     throw new TRPCError({
       code: 'BAD_REQUEST',
@@ -144,9 +147,7 @@ function assertAdminPromptVisibility(type: 'system' | 'user', isPublic: boolean)
 export const promptRouter = createTRPCRouter({
   adminStats: adminProcedure.query(async ({ ctx }) => {
     const [totalRows, groupedRows] = await Promise.all([
-      ctx.db
-        .select({ count: sql<number>`count(*)` })
-        .from(prompts),
+      ctx.db.select({ count: sql<number>`count(*)` }).from(prompts),
       ctx.db
         .select({
           type: prompts.type,

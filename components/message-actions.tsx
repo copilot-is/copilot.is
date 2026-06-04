@@ -294,12 +294,14 @@ export function MessageActions({
                       Edit chat message content.
                     </DialogDescription>
                   </DialogHeader>
-                  <Textarea
-                    className="min-h-32"
-                    defaultValue={draftContent}
-                    onChange={e => setDraftContent(e.target.value)}
-                    required
-                  />
+                  <div className="-mx-6 max-h-[60vh] overflow-y-auto px-6">
+                    <Textarea
+                      className="min-h-32"
+                      defaultValue={draftContent}
+                      onChange={e => setDraftContent(e.target.value)}
+                      required
+                    />
+                  </div>
                   <DialogFooter>
                     <Button
                       disabled={

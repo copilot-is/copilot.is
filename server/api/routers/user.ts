@@ -72,9 +72,39 @@ export const userRouter = createTRPCRouter({
             columns: {
               provider: true
             }
+          },
+          plan: {
+            columns: {
+              id: true,
+              name: true
+            }
+          },
+          quota: {
+            columns: {
+              id: true,
+              name: true,
+              isUnlimited: true
+            }
           }
         }
       });
+    }),
+
+  /**
+   * Admin: change a user's plan. Pass planId=null to clear (fall back to default).
+   */
+  updatePlan: adminProcedure
+    .input(
+      z.object({
+        id: z.string().min(1),
+        planId: z.string().nullable()
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      await ctx.db
+        .update(users)
+        .set({ planId: input.planId, updatedAt: new Date() })
+        .where(eq(users.id, input.id));
     }),
 
   get: adminProcedure

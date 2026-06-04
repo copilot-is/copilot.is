@@ -58,7 +58,7 @@ export function SharedLinks() {
     <div className="space-y-4">
       {sharedLinks?.length ? (
         <div className="overflow-x-auto rounded-md border">
-          <table className="min-w-[640px] w-full table-auto">
+          <table className="w-full min-w-[640px] table-auto">
             <thead>
               <tr className="border-b bg-muted/50">
                 <th className="p-3 text-left text-sm font-medium">Name</th>
@@ -79,9 +79,7 @@ export function SharedLinks() {
                       className="flex items-center text-blue-500 hover:underline"
                     >
                       <Link className="mr-1 size-4" />
-                      <span className="truncate">
-                        {sharedLink.chat?.title}
-                      </span>
+                      <span className="truncate">{sharedLink.chat?.title}</span>
                     </a>
                   </td>
                   <td className="p-3">
@@ -126,8 +124,7 @@ export function SharedLinks() {
           variant="outline"
           onClick={handleNext}
           disabled={
-            (sharedLinks && sharedLinks.length < LIMIT) ||
-            isDeleting.size > 0
+            (sharedLinks && sharedLinks.length < LIMIT) || isDeleting.size > 0
           }
         >
           Next

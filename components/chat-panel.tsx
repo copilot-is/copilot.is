@@ -14,6 +14,7 @@ import {
 } from '@/components/chat-prompt-form';
 import { EmptyScreen } from '@/components/empty-screen';
 import { Messages } from '@/components/messages';
+import { UsageLimitAlert } from '@/components/usage-limit-alert';
 
 const ScrollToBottom = dynamic(() => import('@/components/scroll-to-bottom'), {
   ssr: false
@@ -94,6 +95,7 @@ export function ChatPanel({
             text="How can I help you today?"
           />
         )}
+        <UsageLimitAlert />
         <ChatPromptForm
           modelId={currentModelId}
           stop={stop}

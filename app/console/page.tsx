@@ -12,12 +12,12 @@ export const metadata: Metadata = {
 export default async function ConsolePage() {
   const [providers, models, promptStats, settings, userStats] =
     await Promise.all([
-    api.provider.list(),
-    api.model.list(),
-    api.prompt.adminStats(),
-    api.settings.list(),
-    api.user.getStats()
-  ]);
+      api.provider.list(),
+      api.model.list(),
+      api.prompt.adminStats(),
+      api.settings.list(),
+      api.user.getStats()
+    ]);
 
   return (
     <div className="space-y-6">

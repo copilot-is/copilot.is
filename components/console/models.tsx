@@ -309,249 +309,251 @@ export default function ModelsPage() {
               </DialogTitle>
             </DialogHeader>
             <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="name">Display Name</Label>
-                  <Input
-                    id="name"
-                    value={formData.name}
-                    onChange={e =>
-                      setFormData({ ...formData, name: e.target.value })
-                    }
-                    placeholder="GPT-4o"
-                    required
-                    disabled={isPending}
-                  />
+              <div className="-mx-6 max-h-[60vh] space-y-4 overflow-y-auto px-6">
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="name">Display Name</Label>
+                    <Input
+                      id="name"
+                      value={formData.name}
+                      onChange={e =>
+                        setFormData({ ...formData, name: e.target.value })
+                      }
+                      placeholder="GPT-4o"
+                      required
+                      disabled={isPending}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="modelId">Model ID</Label>
+                    <Input
+                      id="modelId"
+                      value={formData.modelId}
+                      onChange={e =>
+                        setFormData({ ...formData, modelId: e.target.value })
+                      }
+                      placeholder="gpt-4o"
+                      required
+                      disabled={isPending}
+                    />
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="providerId">Provider</Label>
+                    <Select
+                      value={formData.providerId}
+                      onValueChange={value =>
+                        setFormData({ ...formData, providerId: value })
+                      }
+                      disabled={isPending}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select provider" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {providers?.map(p => (
+                          <SelectItem key={p.id} value={p.id}>
+                            {p.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="aliases">Model ID Aliases (optional)</Label>
+                    <Input
+                      id="aliases"
+                      value={formData.aliases}
+                      onChange={e =>
+                        setFormData({ ...formData, aliases: e.target.value })
+                      }
+                      placeholder="gpt-4, gpt-4-turbo"
+                      disabled={isPending}
+                    />
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="capability">Capability</Label>
+                    <Select
+                      value={formData.capability}
+                      onValueChange={value =>
+                        setFormData({ ...formData, capability: value as any })
+                      }
+                      disabled={isPending}
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {CAPABILITIES.map(cap => (
+                          <SelectItem key={cap.value} value={cap.value}>
+                            {cap.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="systemPromptId">
+                      System Prompt (optional)
+                    </Label>
+                    <Select
+                      value={formData.systemPromptId || 'none'}
+                      onValueChange={value =>
+                        setFormData({
+                          ...formData,
+                          systemPromptId: value === 'none' ? '' : value
+                        })
+                      }
+                      disabled={isPending}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select prompt" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="none">None</SelectItem>
+                        {prompts?.map(p => (
+                          <SelectItem key={p.id} value={p.id}>
+                            {p.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="modelId">Model ID</Label>
-                  <Input
-                    id="modelId"
-                    value={formData.modelId}
-                    onChange={e =>
-                      setFormData({ ...formData, modelId: e.target.value })
-                    }
-                    placeholder="gpt-4o"
-                    required
-                    disabled={isPending}
-                  />
-                </div>
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="providerId">Provider</Label>
-                  <Select
-                    value={formData.providerId}
-                    onValueChange={value =>
-                      setFormData({ ...formData, providerId: value })
-                    }
-                    disabled={isPending}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select provider" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {providers?.map(p => (
-                        <SelectItem key={p.id} value={p.id}>
-                          {p.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="aliases">Model ID Aliases (optional)</Label>
-                  <Input
-                    id="aliases"
-                    value={formData.aliases}
-                    onChange={e =>
-                      setFormData({ ...formData, aliases: e.target.value })
-                    }
-                    placeholder="gpt-4, gpt-4-turbo"
-                    disabled={isPending}
-                  />
-                </div>
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="capability">Capability</Label>
-                  <Select
-                    value={formData.capability}
-                    onValueChange={value =>
-                      setFormData({ ...formData, capability: value as any })
-                    }
-                    disabled={isPending}
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {CAPABILITIES.map(cap => (
-                        <SelectItem key={cap.value} value={cap.value}>
-                          {cap.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="systemPromptId">
-                    System Prompt (optional)
-                  </Label>
-                  <Select
-                    value={formData.systemPromptId || 'none'}
-                    onValueChange={value =>
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="image">Icon (optional)</Label>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="flex size-9 shrink-0 items-center justify-center rounded-md border bg-muted/40 shadow-sm">
+                      {formData.image ? (
+                        <ModelIcon image={formData.image} className="size-4" />
+                      ) : null}
+                    </div>
+                    <Input
+                      id="image"
+                      value={formData.image}
+                      onChange={e =>
+                        setFormData({ ...formData, image: e.target.value })
+                      }
+                      placeholder="https:// or Base64 or IconName (e.g. Gemini.Color)"
+                      disabled={isPending}
+                    />
+                  </div>
+                  <IconPicker
+                    value={formData.image}
+                    onChange={value =>
                       setFormData({
                         ...formData,
-                        systemPromptId: value === 'none' ? '' : value
+                        image: value
                       })
                     }
                     disabled={isPending}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select prompt" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="none">None</SelectItem>
-                      {prompts?.map(p => (
-                        <SelectItem key={p.id} value={p.id}>
-                          {p.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  />
                 </div>
-              </div>
-              <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <Label htmlFor="image">Icon (optional)</Label>
-                </div>
-                <div className="flex items-center gap-2">
-                  <div className="flex size-9 shrink-0 items-center justify-center rounded-md border bg-muted/40 shadow-sm">
-                    {formData.image ? (
-                      <ModelIcon image={formData.image} className="size-4" />
-                    ) : null}
+                <div className="grid grid-cols-1 gap-4">
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-2">
+                      <Label htmlFor="uiOptions">UI Options (JSON)</Label>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <button
+                            type="button"
+                            className="text-muted-foreground/60 hover:text-muted-foreground"
+                            aria-label="UI Options demo"
+                          >
+                            <AlertCircle className="size-3.5" />
+                          </button>
+                        </TooltipTrigger>
+                        <TooltipContent className="max-w-sm">
+                          <pre className="font-mono text-xs whitespace-pre-wrap">
+                            {uiOptionsPlaceholder}
+                          </pre>
+                        </TooltipContent>
+                      </Tooltip>
+                    </div>
+                    <Textarea
+                      id="uiOptions"
+                      value={formData.uiOptions}
+                      onChange={e =>
+                        setFormData({ ...formData, uiOptions: e.target.value })
+                      }
+                      placeholder={uiOptionsPlaceholder}
+                      className="font-mono"
+                      rows={3}
+                      disabled={isPending}
+                    />
                   </div>
-                  <Input
-                    id="image"
-                    value={formData.image}
-                    onChange={e =>
-                      setFormData({ ...formData, image: e.target.value })
-                    }
-                    placeholder="https:// or Base64 or IconName (e.g. Gemini.Color)"
-                    disabled={isPending}
-                  />
-                </div>
-                <IconPicker
-                  value={formData.image}
-                  onChange={value =>
-                    setFormData({
-                      ...formData,
-                      image: value
-                    })
-                  }
-                  disabled={isPending}
-                />
-              </div>
-              <div className="grid grid-cols-1 gap-4">
-                <div className="space-y-2">
-                  <div className="flex items-center gap-2">
-                    <Label htmlFor="uiOptions">UI Options (JSON)</Label>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <button
-                          type="button"
-                          className="text-muted-foreground/60 hover:text-muted-foreground"
-                          aria-label="UI Options demo"
-                        >
-                          <AlertCircle className="size-3.5" />
-                        </button>
-                      </TooltipTrigger>
-                      <TooltipContent className="max-w-sm">
-                        <pre className="font-mono text-xs whitespace-pre-wrap">
-                          {uiOptionsPlaceholder}
-                        </pre>
-                      </TooltipContent>
-                    </Tooltip>
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-2">
+                      <Label htmlFor="apiParams">API Params (JSON)</Label>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <button
+                            type="button"
+                            className="text-muted-foreground/60 hover:text-muted-foreground"
+                            aria-label="API Params demo"
+                          >
+                            <AlertCircle className="size-3.5" />
+                          </button>
+                        </TooltipTrigger>
+                        <TooltipContent className="max-w-sm">
+                          <pre className="font-mono text-xs whitespace-pre-wrap">
+                            {apiParamsPlaceholder}
+                          </pre>
+                        </TooltipContent>
+                      </Tooltip>
+                    </div>
+                    <Textarea
+                      id="apiParams"
+                      value={formData.apiParams}
+                      onChange={e =>
+                        setFormData({ ...formData, apiParams: e.target.value })
+                      }
+                      placeholder={apiParamsPlaceholder}
+                      className="font-mono"
+                      rows={3}
+                      disabled={isPending}
+                    />
                   </div>
-                  <Textarea
-                    id="uiOptions"
-                    value={formData.uiOptions}
-                    onChange={e =>
-                      setFormData({ ...formData, uiOptions: e.target.value })
-                    }
-                    placeholder={uiOptionsPlaceholder}
-                    className="font-mono"
-                    rows={3}
-                    disabled={isPending}
-                  />
                 </div>
-                <div className="space-y-2">
-                  <div className="flex items-center gap-2">
-                    <Label htmlFor="apiParams">API Params (JSON)</Label>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <button
-                          type="button"
-                          className="text-muted-foreground/60 hover:text-muted-foreground"
-                          aria-label="API Params demo"
-                        >
-                          <AlertCircle className="size-3.5" />
-                        </button>
-                      </TooltipTrigger>
-                      <TooltipContent className="max-w-sm">
-                        <pre className="font-mono text-xs whitespace-pre-wrap">
-                          {apiParamsPlaceholder}
-                        </pre>
-                      </TooltipContent>
-                    </Tooltip>
+                <div className="flex flex-wrap gap-4">
+                  <div className="flex items-center space-x-2">
+                    <Switch
+                      id="supportsVision"
+                      checked={formData.supportsVision}
+                      onCheckedChange={checked =>
+                        setFormData({ ...formData, supportsVision: checked })
+                      }
+                      disabled={isPending}
+                    />
+                    <Label htmlFor="supportsVision">Vision</Label>
                   </div>
-                  <Textarea
-                    id="apiParams"
-                    value={formData.apiParams}
-                    onChange={e =>
-                      setFormData({ ...formData, apiParams: e.target.value })
-                    }
-                    placeholder={apiParamsPlaceholder}
-                    className="font-mono"
-                    rows={3}
-                    disabled={isPending}
-                  />
-                </div>
-              </div>
-              <div className="flex flex-wrap gap-4">
-                <div className="flex items-center space-x-2">
-                  <Switch
-                    id="supportsVision"
-                    checked={formData.supportsVision}
-                    onCheckedChange={checked =>
-                      setFormData({ ...formData, supportsVision: checked })
-                    }
-                    disabled={isPending}
-                  />
-                  <Label htmlFor="supportsVision">Vision</Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <Switch
-                    id="supportsReasoning"
-                    checked={formData.supportsReasoning}
-                    onCheckedChange={checked =>
-                      setFormData({ ...formData, supportsReasoning: checked })
-                    }
-                    disabled={isPending}
-                  />
-                  <Label htmlFor="supportsReasoning">Reasoning</Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <Switch
-                    id="isEnabled"
-                    checked={formData.isEnabled}
-                    onCheckedChange={checked =>
-                      setFormData({ ...formData, isEnabled: checked })
-                    }
-                    disabled={isPending}
-                  />
-                  <Label htmlFor="isEnabled">Enabled</Label>
+                  <div className="flex items-center space-x-2">
+                    <Switch
+                      id="supportsReasoning"
+                      checked={formData.supportsReasoning}
+                      onCheckedChange={checked =>
+                        setFormData({ ...formData, supportsReasoning: checked })
+                      }
+                      disabled={isPending}
+                    />
+                    <Label htmlFor="supportsReasoning">Reasoning</Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <Switch
+                      id="isEnabled"
+                      checked={formData.isEnabled}
+                      onCheckedChange={checked =>
+                        setFormData({ ...formData, isEnabled: checked })
+                      }
+                      disabled={isPending}
+                    />
+                    <Label htmlFor="isEnabled">Enabled</Label>
+                  </div>
                 </div>
               </div>
               <div className="flex justify-end gap-2">
@@ -582,8 +584,7 @@ export default function ModelsPage() {
           <thead>
             <tr className="border-b bg-muted/50">
               <th className="w-20 p-3 text-left text-sm font-medium">Icon</th>
-              <th className="p-3 text-left text-sm font-medium">Name</th>
-              <th className="p-3 text-left text-sm font-medium">Model ID</th>
+              <th className="p-3 text-left text-sm font-medium">Model</th>
               <th className="p-3 text-left text-sm font-medium">Aliases</th>
               <th className="p-3 text-left text-sm font-medium">Provider</th>
               <th className="p-3 text-left text-sm font-medium">Capability</th>
@@ -608,8 +609,12 @@ export default function ModelsPage() {
                     <div className="size-8 rounded border bg-muted" />
                   )}
                 </td>
-                <td className="p-3">{model.name}</td>
-                <td className="p-3 font-mono text-sm">{model.modelId}</td>
+                <td className="p-3">
+                  <div className="font-medium">{model.name}</div>
+                  <div className="font-mono text-xs text-muted-foreground">
+                    {model.modelId}
+                  </div>
+                </td>
                 <td className="p-3 text-sm text-muted-foreground">
                   {model.aliases?.join(', ') || '-'}
                 </td>
@@ -663,7 +668,7 @@ export default function ModelsPage() {
             {(!filteredModels || filteredModels.length === 0) && (
               <tr>
                 <td
-                  colSpan={8}
+                  colSpan={7}
                   className="p-6 text-center text-muted-foreground"
                 >
                   No models configured. Add your first model to get started.

@@ -4,8 +4,10 @@ import {
   NoSpeechGeneratedError
 } from 'ai';
 
+import { preflightGate } from '@/lib/preflight';
 import { getSpeechModel } from '@/lib/provider';
 import { findModelByModelId, getSpeechSettings } from '@/lib/queries';
+import { recordAudioUsage } from '@/lib/usage';
 import { auth } from '@/server/auth';
 
 export const maxDuration = 60;
@@ -28,7 +30,7 @@ export async function POST(req: Request) {
 
   if (!text) {
     return NextResponse.json(
-      { error: 'Invalid text parameter' },
+      { error: 'Please enter some text.' },
       { status: 400 }
     );
   }
@@ -48,8 +50,9 @@ export async function POST(req: Request) {
   const voice = requestVoice || defaultVoice;
 
   if (!modelId) {
+    console.error('[speech] no model configured (no request model / default)');
     return NextResponse.json(
-      { error: 'Model is not configured' },
+      { error: 'Text-to-speech is currently unavailable.' },
       { status: 400 }
     );
   }
@@ -57,8 +60,9 @@ export async function POST(req: Request) {
   // Fetch model from database to validate
   const dbModel = await findModelByModelId(modelId, 'audio');
   if (!dbModel?.provider) {
+    console.error(`[speech] model unavailable: ${modelId}`);
     return NextResponse.json(
-      { error: `Model ${modelId} is not available` },
+      { error: 'Text-to-speech is currently unavailable.' },
       { status: 403 }
     );
   }
@@ -67,10 +71,18 @@ export async function POST(req: Request) {
   const availableVoices = (dbModel.uiOptions?.voices as string[]) || [];
   if (voice && availableVoices.length > 0 && !availableVoices.includes(voice)) {
     return NextResponse.json(
-      { error: 'Invalid voice parameters' },
+      { error: 'The selected voice is not available.' },
       { status: 400 }
     );
   }
+
+  const gate = await preflightGate({
+    userId: session.user.id,
+    modelKey: dbModel.modelId,
+    modelLabel: dbModel.name,
+    capability: 'audio'
+  });
+  if (gate) return gate;
 
   try {
     const { audio } = await generateSpeech({
@@ -85,14 +97,26 @@ export async function POST(req: Request) {
       })
     });
 
+    await recordAudioUsage({
+      userId: session.user.id,
+      modelId,
+      providerId: dbModel.provider.id,
+      // TTS bills per input character (generateSpeech reports no token usage).
+      audioCharacters: text.length
+    });
+
     return NextResponse.json({
       type: 'audio',
       audio: `data:${audio.mediaType};base64,${audio.base64}`,
       mimeType: audio.mediaType
     });
   } catch (err) {
+    console.error('Speech generation error:', err);
     if (NoSpeechGeneratedError.isInstance(err)) {
-      return NextResponse.json({ error: err.message }, { status: 500 });
+      return NextResponse.json(
+        { error: 'No audio could be generated. Please try again.' },
+        { status: 500 }
+      );
     } else {
       return NextResponse.json(
         { error: 'Oops, an error occurred!' },
