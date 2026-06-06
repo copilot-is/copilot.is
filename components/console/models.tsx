@@ -1,8 +1,10 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   AlertCircle,
+  ArrowDown,
+  ArrowUp,
   Loader2,
   Pencil,
   Plus,
@@ -49,6 +51,105 @@ import {
 } from '@/components/ui/tooltip';
 import { IconPicker } from '@/components/console/icon-picker';
 import { ModelIcon } from '@/components/model-icon';
+
+type ProviderBindingForm = {
+  providerId: string;
+  isEnabled: boolean;
+};
+
+function ProviderBindingRow({
+  binding,
+  index,
+  bindings,
+  providers,
+  allProviders,
+  isPending,
+  onChange,
+  onMoveUp,
+  onMoveDown,
+  onRemove
+}: {
+  binding: ProviderBindingForm;
+  index: number;
+  bindings: ProviderBindingForm[];
+  /** Providers compatible with the model id (same-kind) — the only selectable ones. */
+  providers: { id: string; name: string }[] | undefined;
+  /** All providers, used to label an already-selected but now-incompatible one. */
+  allProviders: { id: string; name: string }[] | undefined;
+  isPending: boolean;
+  onChange: (patch: Partial<ProviderBindingForm>) => void;
+  onMoveUp: () => void;
+  onMoveDown: () => void;
+  onRemove: () => void;
+}) {
+  const options = providers ?? [];
+  const selectedMissing =
+    !!binding.providerId && !options.some(p => p.id === binding.providerId);
+  const selectedName =
+    allProviders?.find(p => p.id === binding.providerId)?.name ??
+    binding.providerId;
+
+  return (
+    <div className="flex items-center gap-2 rounded-md border p-2">
+      <Select
+        value={binding.providerId || undefined}
+        onValueChange={value => onChange({ providerId: value })}
+        disabled={isPending}
+      >
+        <SelectTrigger className="flex-1">
+          <SelectValue placeholder="Select provider" />
+        </SelectTrigger>
+        <SelectContent>
+          {selectedMissing && (
+            <SelectItem value={binding.providerId}>{selectedName}</SelectItem>
+          )}
+          {options.map(p => {
+            const takenByOther = bindings.some(
+              (b, i) => i !== index && b.providerId === p.id
+            );
+            return (
+              <SelectItem key={p.id} value={p.id} disabled={takenByOther}>
+                {p.name}
+              </SelectItem>
+            );
+          })}
+        </SelectContent>
+      </Select>
+      <Switch
+        checked={binding.isEnabled}
+        onCheckedChange={checked => onChange({ isEnabled: checked })}
+        disabled={isPending}
+      />
+      <Button
+        type="button"
+        variant="ghost"
+        size="sm"
+        disabled={isPending || index === 0}
+        onClick={onMoveUp}
+      >
+        <ArrowUp className="size-4" />
+      </Button>
+      <Button
+        type="button"
+        variant="ghost"
+        size="sm"
+        disabled={isPending || index === bindings.length - 1}
+        onClick={onMoveDown}
+      >
+        <ArrowDown className="size-4" />
+      </Button>
+      <Button
+        type="button"
+        variant="ghost"
+        size="sm"
+        disabled={isPending || bindings.length === 1}
+        onClick={onRemove}
+      >
+        <Trash2 className="size-4" />
+      </Button>
+    </div>
+  );
+}
 
 export default function ModelsPage() {
   const [isOpen, setIsOpen] = useState(false);
@@ -99,7 +200,6 @@ export default function ModelsPage() {
   const [formData, setFormData] = useState({
     name: '',
     modelId: '',
-    providerId: '',
     capability: 'chat' as const,
     image: '',
     aliases: '',
@@ -110,6 +210,31 @@ export default function ModelsPage() {
     uiOptions: '',
     apiParams: ''
   });
+
+  const [providerBindings, setProviderBindings] = useState<
+    ProviderBindingForm[]
+  >([]);
+
+  // Debounce the modelId before querying compatible providers, so typing in the
+  // Model ID field doesn't fan out a /models call to every provider per keystroke.
+  const [debouncedModelId, setDebouncedModelId] = useState('');
+  useEffect(() => {
+    const trimmed = formData.modelId.trim();
+    const timer = setTimeout(() => setDebouncedModelId(trimmed), 400);
+    return () => clearTimeout(timer);
+  }, [formData.modelId]);
+
+  // Providers that actually support the entered modelId — the only ones a
+  // binding may select (same-kind failover).
+  const { data: compatibleProviders } =
+    api.provider.compatibleProviders.useQuery(
+      { modelId: debouncedModelId },
+      {
+        enabled: isOpen && !!debouncedModelId,
+        refetchOnWindowFocus: false,
+        retry: false
+      }
+    );
 
   const uiOptionsPlaceholderByCapability: Record<string, string> = {
     chat: `{
@@ -159,7 +284,6 @@ export default function ModelsPage() {
     setFormData({
       name: '',
       modelId: '',
-      providerId: providers?.[0]?.id || '',
       capability: 'chat',
       image: '',
       aliases: '',
@@ -170,6 +294,7 @@ export default function ModelsPage() {
       uiOptions: '',
       apiParams: ''
     });
+    setProviderBindings([{ providerId: '', isEnabled: true }]);
   };
 
   const handleEdit = (model: any) => {
@@ -177,7 +302,6 @@ export default function ModelsPage() {
     setFormData({
       name: model.name,
       modelId: model.modelId,
-      providerId: model.providerId,
       capability: model.capability,
       image: model.image || '',
       aliases: model.aliases?.join(', ') || '',
@@ -190,6 +314,18 @@ export default function ModelsPage() {
         : '',
       apiParams: model.apiParams ? JSON.stringify(model.apiParams, null, 2) : ''
     });
+    const bindings: ProviderBindingForm[] = (model.modelProviders ?? [])
+      .slice()
+      .sort((a: any, b: any) => a.priority - b.priority)
+      .map((b: any) => ({
+        providerId: b.providerId,
+        isEnabled: b.isEnabled
+      }));
+    setProviderBindings(
+      bindings.length > 0
+        ? bindings
+        : [{ providerId: model.providerId || '', isEnabled: true }]
+    );
     setIsOpen(true);
   };
 
@@ -223,12 +359,30 @@ export default function ModelsPage() {
       : editingId
         ? []
         : undefined;
+    const providersPayload = providerBindings
+      .filter(b => b.providerId)
+      .map((b, index) => ({
+        providerId: b.providerId,
+        priority: index,
+        isEnabled: b.isEnabled
+      }));
+    if (providersPayload.length === 0) {
+      toast.error('At least one provider is required');
+      return;
+    }
+    const selectedProviderIds = providersPayload.map(b => b.providerId);
+    if (new Set(selectedProviderIds).size !== selectedProviderIds.length) {
+      toast.error('Each provider can only be added once');
+      return;
+    }
+
     const data = {
       ...formData,
       aliases,
       systemPromptId,
       uiOptions,
-      apiParams
+      apiParams,
+      providers: providersPayload
     };
 
     if (editingId) {
@@ -302,7 +456,7 @@ export default function ModelsPage() {
               Add Model
             </Button>
           </DialogTrigger>
-          <DialogContent>
+          <DialogContent className="sm:max-w-2xl">
             <DialogHeader>
               <DialogTitle>
                 {editingId ? 'Edit Model' : 'Add Model'}
@@ -334,31 +488,76 @@ export default function ModelsPage() {
                       }
                       placeholder="gpt-4o"
                       required
-                      disabled={isPending}
+                      disabled={isPending || !!editingId}
                     />
                   </div>
                 </div>
                 <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="providerId">Provider</Label>
-                    <Select
-                      value={formData.providerId}
-                      onValueChange={value =>
-                        setFormData({ ...formData, providerId: value })
-                      }
-                      disabled={isPending}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select provider" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {providers?.map(p => (
-                          <SelectItem key={p.id} value={p.id}>
-                            {p.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                  <div className="col-span-2 space-y-2">
+                    <Label>Providers (priority order, auto failover)</Label>
+                    <div className="space-y-2">
+                      {providerBindings.map((binding, index) => (
+                        <ProviderBindingRow
+                          key={index}
+                          binding={binding}
+                          index={index}
+                          bindings={providerBindings}
+                          providers={compatibleProviders}
+                          allProviders={providers}
+                          isPending={isPending}
+                          onChange={patch =>
+                            setProviderBindings(prev =>
+                              prev.map((b, i) =>
+                                i === index ? { ...b, ...patch } : b
+                              )
+                            )
+                          }
+                          onMoveUp={() =>
+                            setProviderBindings(prev => {
+                              if (index === 0) return prev;
+                              const next = [...prev];
+                              [next[index - 1], next[index]] = [
+                                next[index],
+                                next[index - 1]
+                              ];
+                              return next;
+                            })
+                          }
+                          onMoveDown={() =>
+                            setProviderBindings(prev => {
+                              if (index === prev.length - 1) return prev;
+                              const next = [...prev];
+                              [next[index], next[index + 1]] = [
+                                next[index + 1],
+                                next[index]
+                              ];
+                              return next;
+                            })
+                          }
+                          onRemove={() =>
+                            setProviderBindings(prev =>
+                              prev.filter((_, i) => i !== index)
+                            )
+                          }
+                        />
+                      ))}
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        className="gap-2"
+                        disabled={isPending}
+                        onClick={() =>
+                          setProviderBindings(prev => [
+                            ...prev,
+                            { providerId: '', isEnabled: true }
+                          ])
+                        }
+                      >
+                        <Plus className="size-4" />
+                        Add provider
+                      </Button>
+                    </div>
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="aliases">Model ID Aliases (optional)</Label>
@@ -618,7 +817,14 @@ export default function ModelsPage() {
                 <td className="p-3 text-sm text-muted-foreground">
                   {model.aliases?.join(', ') || '-'}
                 </td>
-                <td className="p-3">{model.provider?.name}</td>
+                <td className="p-3 text-sm">
+                  {(model.modelProviders ?? []).length > 0
+                    ? (model.modelProviders ?? [])
+                        .map((mp: any) => mp.provider?.name)
+                        .filter(Boolean)
+                        .join(', ')
+                    : model.provider?.name}
+                </td>
                 <td className="p-3">
                   <span className="rounded bg-blue-100 px-2 py-1 text-xs text-blue-700 dark:bg-blue-900/30 dark:text-blue-300">
                     {model.capability}

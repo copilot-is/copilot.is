@@ -21,7 +21,12 @@ import {
 import { normalizeChatUsage } from '@/lib/chat-usage';
 import { ArtifactSystemPrompt } from '@/lib/constant';
 import { preflightGate } from '@/lib/preflight';
-import { getLanguageModel } from '@/lib/provider';
+import {
+  AllProvidersFailedError,
+  bindingsToFailoverProviders,
+  getLanguageModel,
+  type FailoverProvider
+} from '@/lib/provider';
 import {
   findModelByModelId,
   getSystemPrompt,
@@ -64,7 +69,8 @@ export async function POST(req: Request) {
 
   // Fetch model from database to validate
   const dbModel = await findModelByModelId(modelId, 'chat');
-  if (!dbModel?.provider) {
+  const candidates = bindingsToFailoverProviders(dbModel?.providers ?? []);
+  if (!dbModel || candidates.length === 0) {
     console.error(`[chat] model unavailable: ${modelId}`);
     return NextResponse.json(
       {
@@ -133,13 +139,11 @@ export async function POST(req: Request) {
     const historyMessages = await api.message.list({ chatId: id });
     const chatMessages = convertToChatMessages(historyMessages);
 
-    const provider = dbModel.provider;
-
     // Build system prompt (only if configured)
     const systemPromptContent = await getSystemPrompt(dbModel.systemPromptId);
     const systemMessage = systemPromptContent
       ? formatString(systemPromptContent, {
-          provider: provider.name || '',
+          provider: dbModel.provider?.name || '',
           modelId,
           date: new Date().toISOString()
         })
@@ -597,60 +601,96 @@ export async function POST(req: Request) {
         writer.write({ type: 'data-chat', data: { title } });
         writer.write({ type: 'data-messageId', data: assistantMessageId });
 
-        const res = streamText({
-          model: getLanguageModel(provider, modelId),
-          system: systemMessage
-            ? `${systemMessage}\n\n${ArtifactSystemPrompt}`
-            : ArtifactSystemPrompt,
-          messages: await convertToModelMessages(chatMessages),
-          tools: artifactTools,
-          ...(provider.apiOptions && {
-            providerOptions: {
-              [provider.type]: provider.apiOptions
-            } as any
-          }),
-          temperature: dbModel.apiParams?.temperature,
-          topP: dbModel.apiParams?.topP,
-          topK: dbModel.apiParams?.topK,
-          maxOutputTokens: dbModel.apiParams?.maxOutputTokens,
-          frequencyPenalty: dbModel.apiParams?.frequencyPenalty,
-          presencePenalty: dbModel.apiParams?.presencePenalty,
-          stopWhen: stepCountIs(5),
-          experimental_transform: smoothStream({ chunking: 'word' }),
-          onChunk: ({ chunk }) => {
-            if (chunk.type === 'tool-call') {
-              console.log('Called Tool: ', chunk.toolName);
+        const modelMessages = await convertToModelMessages(chatMessages);
+
+        const buildStream = (failoverProvider: FailoverProvider) =>
+          streamText({
+            model: getLanguageModel(failoverProvider, modelId),
+            system: systemMessage
+              ? `${systemMessage}\n\n${ArtifactSystemPrompt}`
+              : ArtifactSystemPrompt,
+            messages: modelMessages,
+            tools: artifactTools,
+            ...(failoverProvider.apiOptions && {
+              providerOptions: {
+                [failoverProvider.type]: failoverProvider.apiOptions
+              } as any
+            }),
+            temperature: dbModel.apiParams?.temperature,
+            topP: dbModel.apiParams?.topP,
+            topK: dbModel.apiParams?.topK,
+            maxOutputTokens: dbModel.apiParams?.maxOutputTokens,
+            frequencyPenalty: dbModel.apiParams?.frequencyPenalty,
+            presencePenalty: dbModel.apiParams?.presencePenalty,
+            stopWhen: stepCountIs(5),
+            experimental_transform: smoothStream({ chunking: 'word' }),
+            onChunk: ({ chunk }) => {
+              if (chunk.type === 'tool-call') {
+                console.log('Called Tool: ', chunk.toolName);
+              }
+              if (chunk.type === 'reasoning-delta') {
+                const now = new Date();
+                reasonStartedAt ??= now;
+                console.log('Reasoning: ', chunk.text);
+              }
+            },
+            onStepFinish: ({ warnings }) => {
+              if (warnings) {
+                console.log('Warnings: ', warnings);
+              }
+            },
+            onFinish: async ({ usage }) => {
+              if (!usage) {
+                // Provider didn't report usage — request runs free. Should not
+                // happen with major providers; surface so it's visible in logs.
+                console.warn(
+                  `[chat] no usage reported for model=${modelId}; skipping recordChatUsage`
+                );
+                return;
+              }
+              await recordChatUsage({
+                userId: session.user.id,
+                chatId: id,
+                messageId: assistantMessageId,
+                modelId,
+                providerId: failoverProvider.id,
+                usage: normalizeChatUsage(usage)
+              });
             }
-            if (chunk.type === 'reasoning-delta') {
-              const now = new Date();
-              reasonStartedAt ??= now;
-              console.log('Reasoning: ', chunk.text);
+          });
+
+        // Streaming failover is limited by design: once tokens reach the client
+        // a provider can't be swapped without duplicating output, and AI SDK v6
+        // exposes no "connection established" signal before the stream is
+        // consumed (awaiting `res.response` would consume the whole stream and
+        // block until generation finishes, breaking streaming). So here we only
+        // fail over on errors thrown while *building* the stream (e.g. an invalid
+        // provider credential). Runtime/mid-stream errors surface to the client
+        // via the UI message stream. Non-streaming routes do full failover.
+        let res: ReturnType<typeof buildStream> | undefined;
+        const failoverAttempts: { provider: string; error: unknown }[] = [];
+        for (let i = 0; i < candidates.length; i++) {
+          const candidate = candidates[i];
+          const isLast = i === candidates.length - 1;
+          try {
+            res = buildStream(candidate);
+            break;
+          } catch (error) {
+            // Any build-time error (bad/undecryptable credential, invalid
+            // provider config) means this provider can't start — try the next
+            // one regardless; rethrow only after the last candidate.
+            failoverAttempts.push({ provider: candidate.name, error });
+            if (isLast) {
+              throw error;
             }
-          },
-          onStepFinish: ({ warnings }) => {
-            if (warnings) {
-              console.log('Warnings: ', warnings);
-            }
-          },
-          onFinish: async ({ usage }) => {
-            if (!usage) {
-              // Provider didn't report usage — request runs free. Should not
-              // happen with major providers; surface so it's visible in logs.
-              console.warn(
-                `[chat] no usage reported for model=${modelId}; skipping recordChatUsage`
-              );
-              return;
-            }
-            await recordChatUsage({
-              userId: session.user.id,
-              chatId: id,
-              messageId: assistantMessageId,
-              modelId,
-              providerId: dbModel.provider?.id,
-              usage: normalizeChatUsage(usage)
-            });
           }
-        });
+        }
+        if (!res) {
+          throw new AllProvidersFailedError(
+            'All providers failed',
+            failoverAttempts
+          );
+        }
 
         res.consumeStream();
 

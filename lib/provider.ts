@@ -11,9 +11,13 @@ import {
   ListFoundationModelsCommand
 } from '@aws-sdk/client-bedrock';
 import { GoogleGenAI } from '@google/genai';
-import { ImageModel, LanguageModel, SpeechModel } from 'ai';
+import { APICallError, ImageModel, LanguageModel, SpeechModel } from 'ai';
 
-import type { ProviderConfig, VertexServiceAccountKey } from '@/types';
+import type {
+  ProviderConfig,
+  ProviderType,
+  VertexServiceAccountKey
+} from '@/types';
 
 import { BedrockModels, VertexAIModels } from './constant';
 import { decrypt } from './crypto';
@@ -188,6 +192,144 @@ export function getSpeechModel(
 export function getVideoModel(provider: ProviderConfig, modelId: string) {
   const sdk = createProviderSDK(provider);
   return sdk.video(modelId);
+}
+
+// ============================================================================
+// Multi-provider failover
+// ============================================================================
+
+/**
+ * A provider candidate for a model, carrying both the SDK config and the
+ * identity needed for usage attribution. All candidates serve the same
+ * modelId — failover switches the provider, never the model.
+ */
+export type FailoverProvider = ProviderConfig & {
+  id: string;
+  name: string;
+};
+
+/**
+ * The upstream model id a provider type actually receives for a logical modelId.
+ * Vertex/Bedrock rename Anthropic models; everyone else uses modelId as-is.
+ * Used to match a model against a provider's listed models (compatibility check).
+ */
+export function toProviderModelId(type: ProviderType, modelId: string): string {
+  if (type === 'vertex') return toVertexModelId(modelId);
+  if (type === 'bedrock') return toBedrockModelId(modelId);
+  return modelId;
+}
+
+export class AllProvidersFailedError extends Error {
+  constructor(
+    message: string,
+    public readonly attempts: { provider: string; error: unknown }[]
+  ) {
+    super(message);
+    this.name = 'AllProvidersFailedError';
+  }
+}
+
+/**
+ * Map priority-ordered model→provider bindings (as returned by `findModelByModelId`)
+ * into failover candidates. Bindings without a loaded provider row are skipped.
+ */
+export function bindingsToFailoverProviders(
+  bindings: Array<{
+    provider: {
+      id: string;
+      name: string;
+      type: ProviderType;
+      apiKey?: string | null;
+      baseUrl?: string | null;
+      apiOptions?: Record<string, unknown> | null;
+    } | null;
+  }>
+): FailoverProvider[] {
+  return bindings
+    .filter(
+      (b): b is typeof b & { provider: NonNullable<typeof b.provider> } =>
+        b.provider != null
+    )
+    .map(b => ({
+      id: b.provider.id,
+      name: b.provider.name,
+      type: b.provider.type,
+      apiKey: b.provider.apiKey,
+      baseUrl: b.provider.baseUrl,
+      apiOptions: b.provider.apiOptions
+    }));
+}
+
+/**
+ * Whether a provider error is worth failing over to the next provider.
+ * Retryable: network/timeout, 404 (this provider doesn't serve the model),
+ * 408/409/429, 5xx, and auth failures (401/403) — a misconfigured or
+ * model-less provider shouldn't sink the whole request when another can serve.
+ * Not retryable: other 4xx (bad request, content policy, context length),
+ * where every provider would fail the same way.
+ */
+export function isRetryableProviderError(error: unknown): boolean {
+  // HTTP status from either the AI SDK (APICallError.statusCode) or a raw SDK
+  // error such as the openai client used by the Sora video path (error.status).
+  const status =
+    (APICallError.isInstance(error) ? error.statusCode : undefined) ??
+    (typeof (error as { status?: unknown } | null)?.status === 'number'
+      ? (error as { status: number }).status
+      : undefined) ??
+    (typeof (error as { statusCode?: unknown } | null)?.statusCode === 'number'
+      ? (error as { statusCode: number }).statusCode
+      : undefined);
+
+  if (typeof status === 'number') {
+    if (status === 404 || status === 408 || status === 409 || status === 429)
+      return true;
+    if (status === 401 || status === 403) return true;
+    return status >= 500;
+  }
+
+  // No status code: an AI SDK call error with no status is a network/connection
+  // failure (worth trying another provider); otherwise fall back to the message.
+  if (APICallError.isInstance(error)) return true;
+
+  const message = error instanceof Error ? error.message.toLowerCase() : '';
+  return /timeout|timed out|fetch failed|network|econn|socket|aborted/.test(
+    message
+  );
+}
+
+/**
+ * Run `run` against each provider in priority order, failing over to the next
+ * one on a retryable error. Resolves with the result and the provider that
+ * actually succeeded (for usage attribution). Rethrows immediately on a
+ * non-retryable error, and throws the last error once all providers fail.
+ *
+ * NOTE: for streaming responses the caller must only invoke this *before* any
+ * bytes are written to the client — once streaming starts a provider cannot be
+ * swapped without duplicating output.
+ */
+export async function runWithProviderFailover<T>(
+  providers: FailoverProvider[],
+  run: (provider: FailoverProvider) => Promise<T>,
+  options?: { shouldRetry?: (error: unknown) => boolean }
+): Promise<{ result: T; provider: FailoverProvider }> {
+  const shouldRetry = options?.shouldRetry ?? isRetryableProviderError;
+  const attempts: { provider: string; error: unknown }[] = [];
+
+  for (let i = 0; i < providers.length; i++) {
+    const provider = providers[i];
+    const isLast = i === providers.length - 1;
+    try {
+      const result = await run(provider);
+      return { result, provider };
+    } catch (error) {
+      attempts.push({ provider: provider.name, error });
+      if (isLast || !shouldRetry(error)) {
+        throw error;
+      }
+    }
+  }
+
+  throw new AllProvidersFailedError('All providers failed', attempts);
 }
 
 export async function getProviderModels(

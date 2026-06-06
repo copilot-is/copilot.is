@@ -38,6 +38,20 @@ export type ModelProvider = {
 };
 
 /**
+ * A single model↔provider binding (row in `model_providers`). A model can have
+ * several of these; the app tries them ordered by `priority` (ascending) and
+ * fails over to the next enabled one on a retryable error.
+ */
+export type ModelProviderBinding = {
+  id: string;
+  modelId: string;
+  providerId: string;
+  priority: number;
+  isEnabled: boolean;
+  provider?: ModelProvider | null;
+};
+
+/**
  * Model type aligned with database schema
  * This is the unified model type used across the application
  */
@@ -56,5 +70,8 @@ export type Model = {
   uiOptions?: ModelUIOptions | null;
   apiParams?: ModelAPIParams | null;
   displayOrder: number;
+  /** @deprecated single-provider link; prefer `providers` (priority-ordered). */
   provider?: ModelProvider | null;
+  /** Provider bindings ordered by priority (ascending). */
+  providers?: ModelProviderBinding[] | null;
 };

@@ -3,7 +3,7 @@ import { z } from 'zod';
 
 import type { VertexServiceAccountKey } from '@/types';
 import { decrypt, encrypt, maskedKey } from '@/lib/crypto';
-import { getProviderModels } from '@/lib/provider';
+import { getProviderModels, toProviderModelId } from '@/lib/provider';
 import { generateUUID } from '@/lib/utils';
 import {
   adminProcedure,
@@ -205,6 +205,41 @@ export const providerRouter = createTRPCRouter({
         name: modelId,
         exists: existingIds.has(modelId)
       }));
+    }),
+
+  // Enabled providers whose API actually offers the given modelId — i.e. the
+  // "same-kind" providers a model can fail over between. Providers whose model
+  // listing errors are omitted.
+  compatibleProviders: adminProcedure
+    .input(z.object({ modelId: z.string().min(1) }))
+    .query(async ({ ctx, input }) => {
+      const enabledProviders = await ctx.db.query.providers.findMany({
+        where: eq(providers.isEnabled, true),
+        orderBy: (providers, { asc, desc }) => [
+          asc(providers.displayOrder),
+          desc(providers.createdAt)
+        ]
+      });
+
+      const checks = await Promise.all(
+        enabledProviders.map(async provider => {
+          try {
+            const ids = await getProviderModels(provider);
+            // Vertex/Bedrock list models under their renamed ids — compare
+            // against the upstream id the provider would actually receive.
+            const target = toProviderModelId(provider.type, input.modelId);
+            return ids.includes(target) || ids.includes(input.modelId)
+              ? { id: provider.id, name: provider.name }
+              : null;
+          } catch {
+            return null;
+          }
+        })
+      );
+
+      return checks.filter(
+        (p): p is { id: string; name: string } => p !== null
+      );
     }),
 
   syncModels: adminProcedure

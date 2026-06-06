@@ -7,6 +7,7 @@ import type { ResolvedSource } from '@/types';
 import { parseNumber } from '@/lib/utils';
 import { db } from '@/server/db';
 import {
+  modelProviders,
   models,
   prompts,
   providers,
@@ -21,8 +22,14 @@ import {
 // ============================================================================
 
 type Provider = typeof providers.$inferSelect;
-type Model = typeof models.$inferSelect & {
+type ProviderBinding = typeof modelProviders.$inferSelect & {
   provider: Provider | null;
+};
+type Model = typeof models.$inferSelect & {
+  /** @deprecated highest-priority provider, kept for legacy callers. */
+  provider: Provider | null;
+  /** Priority-ordered, enabled provider bindings for failover. */
+  providers: ProviderBinding[];
 };
 type QuotaRow = typeof quotas.$inferSelect;
 
@@ -37,17 +44,49 @@ const getAllModels = cache(async (): Promise<Model[]> => {
   const result = await db.query.models.findMany({
     where: eq(models.isEnabled, true),
     with: {
-      provider: true
+      provider: true,
+      modelProviders: {
+        with: { provider: true }
+      }
     },
     orderBy: (models, { asc }) => [asc(models.displayOrder)]
   });
 
   return result
-    .filter(m => m.provider?.isEnabled)
-    .map(m => ({
-      ...m,
-      provider: m.provider || null
-    }));
+    .map(m => {
+      const hasBindings = (m.modelProviders ?? []).length > 0;
+      // New path: enabled bindings ordered by priority (provider also enabled).
+      const bindings = (m.modelProviders ?? [])
+        .filter(b => b.isEnabled && b.provider?.isEnabled)
+        .sort((a, b) => a.priority - b.priority);
+
+      // Backward-compat fallback ONLY when the model has no binding rows yet
+      // (pre-migration). A model that HAS bindings but all are disabled stays
+      // unavailable — we must not resurrect a provider the admin disabled.
+      const providersList: ProviderBinding[] = hasBindings
+        ? bindings
+        : m.provider?.isEnabled
+          ? [
+              {
+                id: `legacy:${m.id}`,
+                modelId: m.modelId,
+                providerId: m.providerId,
+                priority: 0,
+                isEnabled: true,
+                createdAt: m.createdAt,
+                updatedAt: m.updatedAt,
+                provider: m.provider
+              }
+            ]
+          : [];
+
+      return {
+        ...m,
+        provider: providersList[0]?.provider ?? m.provider ?? null,
+        providers: providersList
+      };
+    })
+    .filter(m => m.providers.length > 0);
 });
 
 // ============================================================================

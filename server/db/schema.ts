@@ -11,6 +11,7 @@ import {
   primaryKey,
   text,
   timestamp,
+  uniqueIndex,
   varchar
 } from 'drizzle-orm/pg-core';
 import { type AdapterAccount } from 'next-auth/adapters';
@@ -350,7 +351,8 @@ export const providers = createTable(
 );
 
 export const providersRelations = relations(providers, ({ many }) => ({
-  models: many(models)
+  models: many(models),
+  modelProviders: many(modelProviders)
 }));
 
 /**
@@ -474,6 +476,9 @@ export const models = createTable(
 );
 
 export const modelsRelations = relations(models, ({ one, many }) => ({
+  // Deprecated single-provider link, kept for backward compatibility while the
+  // app migrates to the many-to-many `modelProviders` table. New code should
+  // resolve providers through `modelProviders` (ordered by priority).
   provider: one(providers, {
     fields: [models.providerId],
     references: [providers.id]
@@ -482,7 +487,59 @@ export const modelsRelations = relations(models, ({ one, many }) => ({
     fields: [models.systemPromptId],
     references: [prompts.id]
   }),
-  pricings: many(modelPricings)
+  pricings: many(modelPricings),
+  modelProviders: many(modelProviders)
+}));
+
+/**
+ * Model ↔ Provider binding (many-to-many).
+ *
+ * A logical model (`models`, keyed by the still-unique `modelId`) can be served
+ * by multiple providers that all support the same `modelId` (e.g. OpenAI +
+ * Azure + an OpenAI-compatible gateway). At call time the app walks these
+ * bindings ordered by `priority` (ascending) and fails over to the next enabled
+ * binding on a retryable error — always calling the same `modelId`.
+ */
+export const modelProviders = createTable(
+  'model_provider',
+  {
+    id: varchar('id', { length: 255 }).notNull().primaryKey(),
+    modelId: varchar('model_id', { length: 255 })
+      .notNull()
+      .references(() => models.modelId, { onDelete: 'cascade' }),
+    providerId: varchar('provider_id', { length: 255 })
+      .notNull()
+      .references(() => providers.id, { onDelete: 'cascade' }),
+    priority: integer('priority').notNull().default(0),
+    isEnabled: boolean('is_enabled').notNull().default(true),
+    createdAt: timestamp('created_at', { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    updatedAt: timestamp('updated_at', { withTimezone: true })
+      .notNull()
+      .defaultNow()
+  },
+  modelProvider => [
+    uniqueIndex('model_provider_model_provider_idx').on(
+      modelProvider.modelId,
+      modelProvider.providerId
+    ),
+    index('model_provider_priority_idx').on(
+      modelProvider.modelId,
+      modelProvider.priority
+    )
+  ]
+);
+
+export const modelProvidersRelations = relations(modelProviders, ({ one }) => ({
+  model: one(models, {
+    fields: [modelProviders.modelId],
+    references: [models.modelId]
+  }),
+  provider: one(providers, {
+    fields: [modelProviders.providerId],
+    references: [providers.id]
+  })
 }));
 
 /**

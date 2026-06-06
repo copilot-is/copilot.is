@@ -41,7 +41,6 @@ export function MediaLightbox({
       >
         <DialogTitle className="sr-only">{title}</DialogTitle>
         {type === 'image' ? (
-          // eslint-disable-next-line @next/next/no-img-element
           <img
             src={src}
             alt={title}

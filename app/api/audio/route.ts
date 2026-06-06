@@ -10,7 +10,12 @@ import {
 import { ChatMessage } from '@/types';
 import { env } from '@/lib/env';
 import { preflightGate } from '@/lib/preflight';
-import { getLanguageModel, getSpeechModel } from '@/lib/provider';
+import {
+  bindingsToFailoverProviders,
+  getLanguageModel,
+  getSpeechModel,
+  runWithProviderFailover
+} from '@/lib/provider';
 import { findModelByModelId, getTitleSettings } from '@/lib/queries';
 import { recordAudioUsage } from '@/lib/usage';
 import { generateUUID } from '@/lib/utils';
@@ -44,7 +49,8 @@ export async function POST(req: Request) {
 
   // Fetch model from database to validate
   const dbModel = await findModelByModelId(modelId, 'audio');
-  if (!dbModel?.provider) {
+  const candidates = bindingsToFailoverProviders(dbModel?.providers ?? []);
+  if (!dbModel || candidates.length === 0) {
     console.error(`[audio] model unavailable: ${modelId}`);
     return NextResponse.json(
       {
@@ -130,17 +136,21 @@ export async function POST(req: Request) {
       .map(part => part.text)
       .join('\n')
       .trim();
-    const { audio } = await generateSpeech({
-      model: getSpeechModel(dbModel.provider, modelId),
-      text: textParts,
-      voice,
-      outputFormat: 'mp3',
-      ...(dbModel.provider.apiOptions && {
-        providerOptions: {
-          [dbModel.provider.type]: dbModel.provider.apiOptions
-        } as any
-      })
-    });
+    const { result: audio, provider: usedProvider } =
+      await runWithProviderFailover(candidates, async provider => {
+        const { audio } = await generateSpeech({
+          model: getSpeechModel(provider, modelId),
+          text: textParts,
+          voice,
+          outputFormat: 'mp3',
+          ...(provider.apiOptions && {
+            providerOptions: {
+              [provider.type]: provider.apiOptions
+            } as any
+          })
+        });
+        return audio;
+      });
 
     const buffer = Buffer.from(audio.base64, 'base64');
     const filename = `${generateUUID()}.mp3`;
@@ -185,7 +195,7 @@ export async function POST(req: Request) {
       chatId: id,
       messageId: assistantMessage.id,
       modelId,
-      providerId: dbModel.provider.id,
+      providerId: usedProvider.id,
       // TTS bills per input character (generateSpeech reports no token usage).
       audioCharacters: textParts?.length ?? 0
     });

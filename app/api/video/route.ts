@@ -6,7 +6,12 @@ import { generateText, experimental_generateVideo as generateVideo } from 'ai';
 import { ChatMessage } from '@/types';
 import { env } from '@/lib/env';
 import { preflightGate } from '@/lib/preflight';
-import { getLanguageModel, getVideoModel } from '@/lib/provider';
+import {
+  bindingsToFailoverProviders,
+  getLanguageModel,
+  getVideoModel,
+  runWithProviderFailover
+} from '@/lib/provider';
 import { findModelByModelId, getTitleSettings } from '@/lib/queries';
 import { recordVideoUsage } from '@/lib/usage';
 import { generateUUID } from '@/lib/utils';
@@ -51,7 +56,8 @@ export async function POST(req: Request) {
 
   // Fetch model from database to validate
   const dbModel = await findModelByModelId(modelId, 'video');
-  if (!dbModel?.provider) {
+  const candidates = bindingsToFailoverProviders(dbModel?.providers ?? []);
+  if (!dbModel || candidates.length === 0) {
     console.error(`[video] model unavailable: ${modelId}`);
     return NextResponse.json(
       {
@@ -128,46 +134,55 @@ export async function POST(req: Request) {
       .join('\n')
       .trim();
 
-    let videoBuffer: Buffer;
-    let videoMediaType: string;
-    // Billable duration in seconds — actual generated length when the provider
-    // reports it, else the requested duration (see resolveVideoSeconds).
-    let videoSeconds: number | undefined;
+    const { result, provider: usedProvider } = await runWithProviderFailover(
+      candidates,
+      async provider => {
+        let videoBuffer: Buffer;
+        let videoMediaType: string;
+        // Billable duration in seconds — actual generated length when the
+        // provider reports it, else the requested duration.
+        let videoSeconds: number | undefined;
 
-    // Fallback for Sora models since they are not supported by AI SDK yet
-    if (modelId.includes('sora')) {
-      const result = await generateWithSora(
-        modelId,
-        textParts,
-        dbModel.provider,
-        aspectRatio,
-        resolution,
-        duration
-      );
-      videoBuffer = result.buffer;
-      videoMediaType = result.mediaType;
-      // Sora returns no duration metadata — bill the requested duration.
-      videoSeconds = typeof duration === 'number' ? duration : undefined;
-    } else {
-      const providerOpts = {
-        ...dbModel.provider.apiOptions,
-        ...(resolution && { resolution })
-      };
-      const { video, providerMetadata } = await generateVideo({
-        model: getVideoModel(dbModel.provider, modelId),
-        prompt: textParts,
-        aspectRatio,
-        duration,
-        ...(Object.keys(providerOpts).length > 0 && {
-          providerOptions: {
-            [dbModel.provider.type]: providerOpts
-          } as any
-        })
-      });
-      videoBuffer = Buffer.from(video.uint8Array);
-      videoMediaType = 'video/mp4';
-      videoSeconds = resolveVideoSeconds(providerMetadata, duration);
-    }
+        // Sora has no AI SDK support yet — use the custom path.
+        if (modelId.includes('sora')) {
+          const soraResult = await generateWithSora(
+            modelId,
+            textParts,
+            provider,
+            aspectRatio,
+            resolution,
+            duration
+          );
+          videoBuffer = soraResult.buffer;
+          videoMediaType = soraResult.mediaType;
+          // Sora returns no duration metadata — bill the requested duration.
+          videoSeconds = typeof duration === 'number' ? duration : undefined;
+        } else {
+          const providerOpts = {
+            ...provider.apiOptions,
+            ...(resolution && { resolution })
+          };
+          const { video, providerMetadata } = await generateVideo({
+            model: getVideoModel(provider, modelId),
+            prompt: textParts,
+            aspectRatio,
+            duration,
+            ...(Object.keys(providerOpts).length > 0 && {
+              providerOptions: {
+                [provider.type]: providerOpts
+              } as any
+            })
+          });
+          videoBuffer = Buffer.from(video.uint8Array);
+          videoMediaType = 'video/mp4';
+          videoSeconds = resolveVideoSeconds(providerMetadata, duration);
+        }
+
+        return { videoBuffer, videoMediaType, videoSeconds };
+      }
+    );
+
+    const { videoBuffer, videoMediaType, videoSeconds } = result;
 
     const filename = `${generateUUID()}.mp4`;
     const pathname = path.join(
@@ -211,7 +226,7 @@ export async function POST(req: Request) {
       chatId: id,
       messageId: assistantMessage.id,
       modelId,
-      providerId: dbModel.provider.id,
+      providerId: usedProvider.id,
       videoCount: 1,
       videoSeconds
     });

@@ -5,7 +5,11 @@ import {
 } from 'ai';
 
 import { preflightGate } from '@/lib/preflight';
-import { getSpeechModel } from '@/lib/provider';
+import {
+  bindingsToFailoverProviders,
+  getSpeechModel,
+  runWithProviderFailover
+} from '@/lib/provider';
 import { findModelByModelId, getSpeechSettings } from '@/lib/queries';
 import { recordAudioUsage } from '@/lib/usage';
 import { auth } from '@/server/auth';
@@ -59,7 +63,8 @@ export async function POST(req: Request) {
 
   // Fetch model from database to validate
   const dbModel = await findModelByModelId(modelId, 'audio');
-  if (!dbModel?.provider) {
+  const candidates = bindingsToFailoverProviders(dbModel?.providers ?? []);
+  if (!dbModel || candidates.length === 0) {
     console.error(`[speech] model unavailable: ${modelId}`);
     return NextResponse.json(
       { error: 'Text-to-speech is currently unavailable.' },
@@ -85,22 +90,26 @@ export async function POST(req: Request) {
   if (gate) return gate;
 
   try {
-    const { audio } = await generateSpeech({
-      model: getSpeechModel(dbModel.provider, modelId),
-      text,
-      voice,
-      outputFormat: 'mp3',
-      ...(dbModel.provider.apiOptions && {
-        providerOptions: {
-          [dbModel.provider.type]: dbModel.provider.apiOptions
-        } as any
-      })
-    });
+    const { result: audio, provider: usedProvider } =
+      await runWithProviderFailover(candidates, async provider => {
+        const { audio } = await generateSpeech({
+          model: getSpeechModel(provider, modelId),
+          text,
+          voice,
+          outputFormat: 'mp3',
+          ...(provider.apiOptions && {
+            providerOptions: {
+              [provider.type]: provider.apiOptions
+            } as any
+          })
+        });
+        return audio;
+      });
 
     await recordAudioUsage({
       userId: session.user.id,
       modelId,
-      providerId: dbModel.provider.id,
+      providerId: usedProvider.id,
       // TTS bills per input character (generateSpeech reports no token usage).
       audioCharacters: text.length
     });

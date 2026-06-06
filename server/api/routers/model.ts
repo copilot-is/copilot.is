@@ -1,9 +1,9 @@
-import { and, eq, ne } from 'drizzle-orm';
+import { and, eq } from 'drizzle-orm';
 import { z } from 'zod';
 
 import { generateUUID } from '@/lib/utils';
 import { adminProcedure, createTRPCRouter } from '@/server/api/trpc';
-import { models, prompts } from '@/server/db/schema';
+import { modelProviders, models, prompts } from '@/server/db/schema';
 
 const capabilitySchema = z.enum(['chat', 'image', 'video', 'audio']);
 
@@ -33,7 +33,11 @@ export const modelRouter = createTRPCRouter({
         ],
         with: {
           provider: true,
-          systemPrompt: true
+          systemPrompt: true,
+          modelProviders: {
+            with: { provider: true },
+            orderBy: (mp, { asc }) => [asc(mp.priority)]
+          }
         }
       });
     }),
@@ -43,7 +47,17 @@ export const modelRouter = createTRPCRouter({
       z.object({
         name: z.string().min(1).max(100),
         modelId: z.string().min(1).max(255),
-        providerId: z.string().min(1),
+        // Legacy single provider (still accepted); prefer `providers`.
+        providerId: z.string().min(1).optional(),
+        providers: z
+          .array(
+            z.object({
+              providerId: z.string().min(1),
+              priority: z.number().int().optional(),
+              isEnabled: z.boolean().optional()
+            })
+          )
+          .optional(),
         capability: capabilitySchema,
         image: z.string().optional(),
         aliases: z.array(z.string()).optional(),
@@ -83,13 +97,30 @@ export const modelRouter = createTRPCRouter({
     )
     .mutation(async ({ ctx, input }) => {
       const normalizedModelId = input.modelId.trim();
-      const normalizedProviderId = input.providerId;
 
+      const bindings =
+        input.providers && input.providers.length > 0
+          ? input.providers
+          : input.providerId
+            ? [{ providerId: input.providerId }]
+            : [];
+      if (bindings.length === 0) {
+        throw new Error('At least one provider is required');
+      }
+      const bindingProviderIds = bindings.map(b => b.providerId);
+      if (new Set(bindingProviderIds).size !== bindingProviderIds.length) {
+        throw new Error('A provider can only be added once per model');
+      }
+      // Mirror the first ENABLED binding (fall back to the first) so the legacy
+      // providerId never points at a disabled binding.
+      const primaryProviderId = (
+        bindings.find(b => b.isEnabled !== false) ?? bindings[0]
+      ).providerId;
+
+      // modelId is globally unique (one logical model per row); the multiple
+      // providers are attached via the model_providers table.
       const existingModel = await ctx.db.query.models.findFirst({
-        where: and(
-          eq(models.modelId, normalizedModelId),
-          eq(models.providerId, normalizedProviderId)
-        )
+        where: eq(models.modelId, normalizedModelId)
       });
       if (existingModel) {
         throw new Error(
@@ -111,21 +142,33 @@ export const modelRouter = createTRPCRouter({
       }
 
       const id = generateUUID();
-      await ctx.db.insert(models).values({
-        id,
-        name: input.name,
-        modelId: normalizedModelId,
-        providerId: input.providerId,
-        capability: input.capability,
-        image: input.image,
-        aliases: input.aliases,
-        supportsVision: input.supportsVision,
-        supportsReasoning: input.supportsReasoning,
-        isEnabled: input.isEnabled,
-        uiOptions: input.uiOptions,
-        apiParams: input.apiParams,
-        systemPromptId: input.systemPromptId,
-        displayOrder: input.displayOrder
+      await ctx.db.transaction(async tx => {
+        await tx.insert(models).values({
+          id,
+          name: input.name,
+          modelId: normalizedModelId,
+          // Legacy mirror of the primary provider, kept in sync for compat.
+          providerId: primaryProviderId,
+          capability: input.capability,
+          image: input.image,
+          aliases: input.aliases,
+          supportsVision: input.supportsVision,
+          supportsReasoning: input.supportsReasoning,
+          isEnabled: input.isEnabled,
+          uiOptions: input.uiOptions,
+          apiParams: input.apiParams,
+          systemPromptId: input.systemPromptId,
+          displayOrder: input.displayOrder
+        });
+        await tx.insert(modelProviders).values(
+          bindings.map((b, index) => ({
+            id: generateUUID(),
+            modelId: normalizedModelId,
+            providerId: b.providerId,
+            priority: b.priority ?? index,
+            isEnabled: b.isEnabled ?? true
+          }))
+        );
       });
       return { id };
     }),
@@ -137,6 +180,15 @@ export const modelRouter = createTRPCRouter({
         name: z.string().min(1).max(100).optional(),
         modelId: z.string().min(1).max(255).optional(),
         providerId: z.string().min(1).optional(),
+        providers: z
+          .array(
+            z.object({
+              providerId: z.string().min(1),
+              priority: z.number().int().optional(),
+              isEnabled: z.boolean().optional()
+            })
+          )
+          .optional(),
         capability: capabilitySchema.optional(),
         image: z.string().optional(),
         aliases: z.array(z.string()).optional(),
@@ -177,11 +229,12 @@ export const modelRouter = createTRPCRouter({
       })
     )
     .mutation(async ({ ctx, input }) => {
-      const { id, ...updates } = input;
+      const { id, providers: inputProviders, ...updates } = input;
       const sanitizedUpdates = { ...updates };
-      if (sanitizedUpdates.modelId) {
-        sanitizedUpdates.modelId = sanitizedUpdates.modelId.trim();
-      }
+      // modelId is the immutable business key — it's referenced by pricing /
+      // usage / quota / settings and the model_providers FK, none of which
+      // cascade on rename. Ignore any attempt to change it on update.
+      delete sanitizedUpdates.modelId;
 
       // Validate system prompt is of type 'system'
       if (updates.systemPromptId) {
@@ -203,30 +256,53 @@ export const modelRouter = createTRPCRouter({
         throw new Error('Model not found');
       }
 
-      const targetModelId = sanitizedUpdates.modelId
-        ? sanitizedUpdates.modelId
-        : existingModel.modelId;
-      const targetProviderId = sanitizedUpdates.providerId
-        ? sanitizedUpdates.providerId
-        : existingModel.providerId;
+      const targetModelId = existingModel.modelId;
 
-      const duplicateModel = await ctx.db.query.models.findFirst({
-        where: and(
-          eq(models.modelId, targetModelId),
-          eq(models.providerId, targetProviderId),
-          ne(models.id, id)
-        )
-      });
-      if (duplicateModel) {
-        throw new Error(
-          'Model ID already exists; please choose a different Model ID'
-        );
+      if (inputProviders && inputProviders.length > 0) {
+        const ids = inputProviders.map(b => b.providerId);
+        if (new Set(ids).size !== ids.length) {
+          throw new Error('A provider can only be added once per model');
+        }
       }
 
-      await ctx.db
-        .update(models)
-        .set({ ...sanitizedUpdates, updatedAt: new Date() })
-        .where(eq(models.id, id));
+      // Keep the legacy providerId mirror aligned with the first ENABLED
+      // binding (never a disabled one).
+      const primaryProviderId =
+        inputProviders && inputProviders.length > 0
+          ? (
+              inputProviders.find(b => b.isEnabled !== false) ??
+              inputProviders[0]
+            ).providerId
+          : sanitizedUpdates.providerId;
+
+      await ctx.db.transaction(async tx => {
+        await tx
+          .update(models)
+          .set({
+            ...sanitizedUpdates,
+            ...(primaryProviderId ? { providerId: primaryProviderId } : {}),
+            updatedAt: new Date()
+          })
+          .where(eq(models.id, id));
+
+        // Replace provider bindings when an explicit list is supplied.
+        if (inputProviders) {
+          await tx
+            .delete(modelProviders)
+            .where(eq(modelProviders.modelId, targetModelId));
+          if (inputProviders.length > 0) {
+            await tx.insert(modelProviders).values(
+              inputProviders.map((b, index) => ({
+                id: generateUUID(),
+                modelId: targetModelId,
+                providerId: b.providerId,
+                priority: b.priority ?? index,
+                isEnabled: b.isEnabled ?? true
+              }))
+            );
+          }
+        }
+      });
     }),
 
   delete: adminProcedure
