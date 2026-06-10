@@ -88,6 +88,7 @@ interface CodeEditorProps {
   showLineNumbers?: boolean;
 }
 
+// Read-only code surface (syntax highlighting + streaming-friendly updates).
 export function CodeEditor({
   language,
   value,
@@ -137,13 +138,35 @@ export function CodeEditor({
   useEffect(() => {
     const view = editorRef.current;
     if (!view) return;
-    if (view.state.doc.toString() === value) return;
+
+    const current = view.state.doc.toString();
+    if (current === value) return;
+
+    // Replace only the changed region instead of the whole document. Streaming
+    // appends to the end, so this dispatches a tiny insert and CodeMirror
+    // re-parses/highlights incrementally — replacing the full doc each delta
+    // re-highlights everything and janks badly as the content grows.
+    let start = 0;
+    const minLength = Math.min(current.length, value.length);
+    while (start < minLength && current[start] === value[start]) {
+      start += 1;
+    }
+    let endCurrent = current.length;
+    let endValue = value.length;
+    while (
+      endCurrent > start &&
+      endValue > start &&
+      current[endCurrent - 1] === value[endValue - 1]
+    ) {
+      endCurrent -= 1;
+      endValue -= 1;
+    }
 
     view.dispatch({
       changes: {
-        from: 0,
-        to: view.state.doc.length,
-        insert: value
+        from: start,
+        to: endCurrent,
+        insert: value.slice(start, endValue)
       }
     });
   }, [value]);

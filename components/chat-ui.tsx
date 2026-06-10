@@ -133,9 +133,15 @@ export function ChatUI({
         size: artifact.size ?? null,
         createdAt: artifact.createdAt,
         updatedAt: artifact.updatedAt
-      }))
+      })),
+      // We invalidate these explicitly when a turn finishes; don't also refetch
+      // on window focus (it churns artifacts/versions and the preview).
+      refetchOnWindowFocus: false
     }
   );
+
+  const utils = api.useUtils();
+  const prevStatusRef = useRef<string | null>(null);
 
   const { status, messages, stop, regenerate, setMessages, sendMessage } =
     useChat<ChatMessage>({
@@ -189,6 +195,16 @@ export function ChatUI({
   useEffect(() => {
     streamStatusRef.current = status;
   }, [status]);
+
+  // When a turn finishes, the server has persisted new artifacts; refresh so the
+  // chat's artifact list reflects the latest state.
+  useEffect(() => {
+    const prev = prevStatusRef.current;
+    prevStatusRef.current = status;
+    if ((prev === 'streaming' || prev === 'submitted') && status === 'ready') {
+      void utils.artifact.list.invalidate({ chatId: id });
+    }
+  }, [status, id, utils]);
 
   useEffect(() => {
     if (artifactsQuery.data) {

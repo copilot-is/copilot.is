@@ -11,8 +11,9 @@ import React, {
 } from 'react';
 
 import type { Artifact, ArtifactType } from '@/types';
+import { artifactKindFromType, type ArtifactKind } from '@/lib/artifact';
 
-export type ArtifactKind = 'text' | 'code' | 'image' | 'sheet' | 'file';
+export type { ArtifactKind };
 
 export type ArtifactState = {
   id: string;
@@ -55,14 +56,6 @@ type ArtifactContextValue = {
 
 const ArtifactContext = createContext<ArtifactContextValue | null>(null);
 
-const kindFromArtifact = (artifact: Artifact): ArtifactKind => {
-  if (artifact.type === 'image') return 'image';
-  if (artifact.type === 'file') return 'file';
-  if (artifact.type === 'json') return 'sheet';
-  if (artifact.type === 'code' || artifact.type === 'html') return 'code';
-  return 'text';
-};
-
 const getDataArtifactId = (data: unknown): string | null => {
   if (typeof data === 'object' && data && 'id' in data) {
     const id = (data as { id?: unknown }).id;
@@ -77,7 +70,7 @@ const toStateFromArtifact = (artifact: Artifact): ArtifactState => ({
   chatId: artifact.chatId,
   title: artifact.title,
   type: artifact.type,
-  kind: kindFromArtifact(artifact),
+  kind: artifactKindFromType(artifact.type),
   content: artifact.content ?? '',
   language: artifact.language ?? null,
   url: artifact.fileUrl ?? null,
@@ -362,7 +355,7 @@ export function ArtifactProvider({ children }: { children: React.ReactNode }) {
               messageId: currentMessageIdRef.current,
               title: data.title,
               type: data.artifactType,
-              kind: 'text',
+              kind: artifactKindFromType(data.artifactType),
               content: nextContent,
               status: data.status ?? 'streaming'
             })
@@ -388,7 +381,7 @@ export function ArtifactProvider({ children }: { children: React.ReactNode }) {
               messageId: currentMessageIdRef.current,
               title: data.title,
               type: data.artifactType,
-              kind: 'code',
+              kind: artifactKindFromType(data.artifactType),
               content: nextContent,
               language: data.language ?? previous?.language ?? null,
               status: data.status ?? 'streaming'

@@ -109,11 +109,27 @@ export const BedrockModels: Record<string, string> = {
   'claude-opus-4-20250514': 'anthropic.claude-opus-4-20250514-v1:0'
 };
 
-export const ArtifactSystemPrompt =
-  'When you produce structured outputs such as code, long documents, or files, create an artifact using create_artifact. ' +
-  'For non-file artifacts, include full content. For files/images, include fileUrl and mimeType. ' +
-  'For React/TSX/JSX/TypeScript/JavaScript artifacts that should support Preview, follow this contract strictly: ' +
-  'prefer a single self-contained file; if multiple files are needed, every code artifact must include an exact fileName path; ' +
-  'use index.tsx as the entry file; use only relative imports that exactly match sibling fileName values; ' +
-  'only import react, react-dom, or react-dom/client from packages; do not use path aliases, Next.js APIs, server code, env vars, assets, or package imports beyond the whitelist; ' +
-  'if a file contains JSX, its fileName must end with .tsx or .jsx; CSS imports are allowed only for local sibling files.';
+export const ArtifactSystemPrompt = [
+  'Use the create_artifact tool for substantial, self-contained, reusable content: code files, runnable React UIs, full documents, data tables, or generated media. Do NOT use it for short snippets, brief explanations, or conversational replies — keep those inline in the chat.',
+  '',
+  'Always set a concise, descriptive `title` (2–6 words) — it labels the artifact in the canvas and the artifact switcher.',
+  '',
+  'Choose `type`:',
+  '- code: source code. Set `language` (e.g. tsx, ts, python, sql).',
+  '- markdown / html / text: rendered or plain documents.',
+  '- json: structured data; an array of row objects (or arrays) renders as a table.',
+  '- image / file: generated media — provide `fileUrl` and `mimeType` (plus `fileName`/`size` when known).',
+  '',
+  'For non-file types, always put the COMPLETE content in `content`. Never truncate or use placeholders like "// rest unchanged". Each create_artifact call produces a separate artifact; to revise something, create a new artifact with the full updated content.',
+  '',
+  'Live Preview is available for html, markdown, SVG (type code, language svg), and React/TS code. To make React/TS code previewable, follow this contract exactly:',
+  '- Use type "code" with `language` one of react/tsx/jsx/typescript/javascript.',
+  '- The entry/root file MUST `export default` the root React component — that default export is what Preview renders.',
+  '- Every code artifact must set an exact relative `fileName`; name the entry file index.tsx.',
+  '- Any file containing JSX must use a .tsx or .jsx fileName.',
+  '- Keep it to ONE self-contained file: put every component/helper in this single artifact and do not import sibling files (other artifacts are not in scope).',
+  '- Allowed package imports: react, react-dom, react-dom/client, lucide-react, framer-motion, recharts, clsx, class-variance-authority. No Next.js APIs, server code, env vars, remote assets, or any other npm package.',
+  '- Styling: Tailwind utility classes work (a Tailwind v4 runtime is bundled into the preview), and inline styles or a <style> tag also work. CSS-file imports do NOT apply at runtime.',
+  '',
+  'HTML artifacts (type "html") must be a single self-contained document; inline <style>/<script> are fine. Preview runs sandboxed with no access to the host page.'
+].join('\n');

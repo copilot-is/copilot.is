@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import { X } from 'lucide-react';
+import { PanelBottomClose, PanelBottomOpen, X } from 'lucide-react';
 
 import { Artifact } from '@/types';
 import { cn } from '@/lib/utils';
@@ -14,7 +14,7 @@ import {
   TooltipTrigger
 } from '@/components/ui/tooltip';
 import { ArtifactViewer } from '@/components/artifact-viewer';
-import { getArtifactPreviewModeDefault } from '@/components/artifacts/runtime-preview';
+import { isReactCodePreview } from '@/components/artifacts/runtime-preview';
 
 interface ArtifactsPanelProps {
   open: boolean;
@@ -33,7 +33,15 @@ export function ArtifactsPanel({
   onSelect,
   desktopContainerClassName
 }: ArtifactsPanelProps) {
-  const [viewMode, setViewMode] = useState<'source' | 'preview'>('source');
+  // The source/preview choice is a persistent preference: switching artifacts
+  // keeps the current view (a JSON/code artifact viewed as source stays source
+  // after switching) instead of snapping back to a per-artifact default.
+  const [viewMode, setViewMode] = useState<'source' | 'preview'>('preview');
+  const [consoleOpen, setConsoleOpen] = useState(false);
+  const isDesktop = useMediaQuery('(min-width: 768px)');
+
+  // Newest first, so the artifact switcher and default selection favour the most
+  // recent artifact.
   const sortedArtifacts = useMemo(
     () =>
       [...artifacts].sort(
@@ -41,22 +49,50 @@ export function ArtifactsPanel({
       ),
     [artifacts]
   );
-
   const selected =
     sortedArtifacts.find(artifact => artifact.id === selectedId) ??
     sortedArtifacts[0];
-  const isDesktop = useMediaQuery('(min-width: 768px)');
+  const isStreaming = selected?.status === 'streaming';
 
+  // Streaming always shows source (watch the code stream); otherwise the user's
+  // persistent choice. Non-previewable artifacts fall back to source in the
+  // viewer itself.
+  const effectiveViewMode: 'source' | 'preview' = isStreaming
+    ? 'source'
+    : viewMode;
+
+  // Console is per-artifact; reset it when the artifact changes.
   useEffect(() => {
-    if (!selected) return;
-    setViewMode(getArtifactPreviewModeDefault(selected));
+    setConsoleOpen(false);
   }, [selected?.id]);
 
-  useEffect(() => {
-    if (selected?.status !== 'streaming') return;
-    if (viewMode !== 'preview') return;
-    setViewMode('source');
-  }, [selected?.id, selected?.status, viewMode]);
+  const showConsole =
+    effectiveViewMode === 'preview' &&
+    !!selected &&
+    isReactCodePreview(selected);
+  const consoleButton = showConsole ? (
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <Button
+          variant="ghost"
+          size="icon"
+          className={cn(
+            'size-7 text-muted-foreground',
+            consoleOpen && 'text-foreground'
+          )}
+          onClick={() => setConsoleOpen(o => !o)}
+        >
+          {consoleOpen ? (
+            <PanelBottomClose className="size-4" />
+          ) : (
+            <PanelBottomOpen className="size-4" />
+          )}
+          <span className="sr-only">Toggle console</span>
+        </Button>
+      </TooltipTrigger>
+      <TooltipContent>Console</TooltipContent>
+    </Tooltip>
+  ) : null;
 
   if (!open) {
     return null;
@@ -94,8 +130,9 @@ export function ArtifactsPanel({
             onSelectArtifact={onSelect}
             onClose={() => onOpenChange(false)}
             hideContent={true}
-            viewMode={viewMode}
+            viewMode={effectiveViewMode}
             onViewModeChange={setViewMode}
+            extraActions={consoleButton}
           />
         </div>
         <div className="min-h-0 flex-1 overflow-auto">
@@ -103,8 +140,10 @@ export function ArtifactsPanel({
             artifact={selected}
             artifacts={sortedArtifacts}
             hideHeader={true}
-            viewMode={viewMode}
+            viewMode={effectiveViewMode}
             onViewModeChange={setViewMode}
+            consoleOpen={consoleOpen}
+            onConsoleOpenChange={setConsoleOpen}
           />
         </div>
       </div>

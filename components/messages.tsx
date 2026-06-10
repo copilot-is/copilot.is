@@ -5,7 +5,6 @@ import { UseChatHelpers } from '@ai-sdk/react';
 
 import { Artifact, ChatMessage } from '@/types';
 import { cn } from '@/lib/utils';
-import { ArtifactInlineList } from '@/components/artifact-inline';
 import { PendingMedia } from '@/components/media-placeholder';
 import { Message } from '@/components/message';
 import { MessageActions } from '@/components/message-actions';
@@ -82,6 +81,9 @@ export function Messages({
     return (artifact.content ?? '').length > 0;
   };
 
+  // One card per artifact, under the message that created it, showing the
+  // artifact's CURRENT (latest) content. Older versions are reached via the
+  // canvas version dropdown — so the inline card always matches what opens.
   const artifactsByMessage = artifacts?.reduce<Record<string, Artifact[]>>(
     (acc, artifact) => {
       if (!artifact.messageId) return acc;
@@ -98,7 +100,6 @@ export function Messages({
     index: number;
     artifacts: Artifact[];
     hasVisibleArtifacts: boolean;
-    hideMessageBody?: boolean;
     showActions?: boolean;
   }> = [];
 
@@ -116,10 +117,6 @@ export function Messages({
       !hasRenderableArtifacts &&
       index === messages.length - 1 &&
       (status === 'submitted' || status === 'streaming');
-    const hideMessageBody =
-      message.role === 'assistant' &&
-      !hasMessageContent &&
-      hasRenderableArtifacts;
 
     const shouldRenderMessage =
       message.role !== 'assistant' ||
@@ -137,7 +134,6 @@ export function Messages({
       index,
       artifacts: messageArtifacts,
       hasVisibleArtifacts: hasRenderableArtifacts,
-      hideMessageBody,
       showActions: true
     });
   });
@@ -150,7 +146,6 @@ export function Messages({
           index,
           artifacts: messageArtifacts,
           hasVisibleArtifacts,
-          hideMessageBody,
           showActions
         } = item;
         const isLastMessage = visibleIndex === displayItems.length - 1;
@@ -165,14 +160,9 @@ export function Messages({
               isLastMessage={isLastMessage}
               supportsReasoning={supportsReasoning}
               hasVisibleArtifacts={hasVisibleArtifacts}
-              hideMessageBody={hideMessageBody}
+              artifacts={messageArtifacts}
+              onSelectArtifact={onSelectArtifact}
             >
-              {messageArtifacts.length > 0 && (
-                <ArtifactInlineList
-                  artifacts={messageArtifacts}
-                  onSelect={onSelectArtifact}
-                />
-              )}
               {showActions !== false && (
                 <MessageActions
                   modelId={currentModelId || modelId}

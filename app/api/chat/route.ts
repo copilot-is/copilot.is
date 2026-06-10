@@ -18,6 +18,11 @@ import {
   MessageMetadata,
   type Artifact
 } from '@/types';
+import {
+  artifactKindFromType,
+  assertArtifactPayload,
+  type ArtifactKind
+} from '@/lib/artifact';
 import { normalizeChatUsage } from '@/lib/chat-usage';
 import { ArtifactSystemPrompt } from '@/lib/constant';
 import { preflightGate } from '@/lib/preflight';
@@ -156,23 +161,28 @@ export async function POST(req: Request) {
 
     const stream = createUIMessageStream<ChatMessage>({
       execute: async ({ writer }) => {
-        const emitArtifactDelta = (artifact: Artifact) => {
-          writer.write({ type: 'data-id', data: artifact.id });
-          const kind =
-            artifact.type === 'image'
-              ? 'image'
-              : artifact.type === 'file'
-                ? 'file'
-                : artifact.type === 'json'
-                  ? 'sheet'
-                  : artifact.type === 'code' || artifact.type === 'html'
-                    ? 'code'
-                    : 'text';
+        // Artifact stream parts are forwarded to the client for the live
+        // canvas/preview animation (via onData → handleStreamPart) but marked
+        // transient so they are NOT accumulated into message.parts — thousands
+        // of delta parts per artifact would bloat the saved message and jank
+        // streaming as content grows. The artifact itself is persisted to the
+        // artifacts table, so nothing is lost.
+        const emitArtifactStreamPart = (
+          part: Parameters<typeof writer.write>[0]
+        ) =>
           writer.write({
+            ...part,
+            transient: true
+          } as Parameters<typeof writer.write>[0]);
+
+        const emitArtifactDelta = (artifact: Artifact) => {
+          emitArtifactStreamPart({ type: 'data-id', data: artifact.id });
+          const kind = artifactKindFromType(artifact.type);
+          emitArtifactStreamPart({
             type: 'data-title',
             data: { id: artifact.id, title: artifact.title }
           });
-          writer.write({
+          emitArtifactStreamPart({
             type: 'data-kind',
             data: {
               id: artifact.id,
@@ -180,9 +190,12 @@ export async function POST(req: Request) {
               artifactType: artifact.type
             }
           });
-          writer.write({ type: 'data-clear', data: { id: artifact.id } });
+          emitArtifactStreamPart({
+            type: 'data-clear',
+            data: { id: artifact.id }
+          });
           if (['code', 'json', 'html'].includes(artifact.type)) {
-            writer.write({
+            emitArtifactStreamPart({
               type: 'data-codeDelta',
               data: {
                 id: artifact.id,
@@ -194,11 +207,14 @@ export async function POST(req: Request) {
                 artifactType: artifact.type
               }
             });
-            writer.write({ type: 'data-finish', data: { id: artifact.id } });
+            emitArtifactStreamPart({
+              type: 'data-finish',
+              data: { id: artifact.id }
+            });
             return;
           }
           if (artifact.type === 'image' && artifact.fileUrl) {
-            writer.write({
+            emitArtifactStreamPart({
               type: 'data-imageDelta',
               data: {
                 id: artifact.id,
@@ -208,11 +224,14 @@ export async function POST(req: Request) {
                 artifactType: artifact.type
               }
             });
-            writer.write({ type: 'data-finish', data: { id: artifact.id } });
+            emitArtifactStreamPart({
+              type: 'data-finish',
+              data: { id: artifact.id }
+            });
             return;
           }
           if (artifact.type === 'file' && artifact.fileUrl) {
-            writer.write({
+            emitArtifactStreamPart({
               type: 'data-fileDelta',
               data: {
                 id: artifact.id,
@@ -225,10 +244,13 @@ export async function POST(req: Request) {
                 artifactType: artifact.type
               }
             });
-            writer.write({ type: 'data-finish', data: { id: artifact.id } });
+            emitArtifactStreamPart({
+              type: 'data-finish',
+              data: { id: artifact.id }
+            });
             return;
           }
-          writer.write({
+          emitArtifactStreamPart({
             type: 'data-textDelta',
             data: {
               id: artifact.id,
@@ -239,7 +261,10 @@ export async function POST(req: Request) {
               artifactType: artifact.type
             }
           });
-          writer.write({ type: 'data-finish', data: { id: artifact.id } });
+          emitArtifactStreamPart({
+            type: 'data-finish',
+            data: { id: artifact.id }
+          });
         };
 
         const createArtifactSchema = z.object({
@@ -254,97 +279,6 @@ export async function POST(req: Request) {
           size: z.number().int().nonnegative().optional()
         });
         type CreateArtifactInput = z.infer<typeof createArtifactSchema>;
-
-        const PREVIEWABLE_CODE_LANGUAGES = new Set([
-          'react',
-          'tsx',
-          'jsx',
-          'typescript',
-          'javascript'
-        ]);
-        const PREVIEW_IMPORT_RE =
-          /\bimport\s+[\s\S]*?\s+from\s+['"]([^'"]+)['"]|\bimport\s*['"]([^'"]+)['"]|\brequire\(\s*['"]([^'"]+)['"]\s*\)/g;
-        const PREVIEW_ALLOWED_IMPORTS = new Set([
-          'react',
-          'react-dom',
-          'react-dom/client'
-        ]);
-        const looksLikeJsx = (code: string) =>
-          /<\s*[A-Za-z][\w:-]*(\s|\/?>)/.test(code) || /<>\s*/.test(code);
-        const isRelativeImport = (specifier: string) =>
-          specifier.startsWith('./') || specifier.startsWith('../');
-        const isStyleImport = (specifier: string) =>
-          /\.css($|\?)/.test(specifier) ||
-          /\.scss($|\?)/.test(specifier) ||
-          /\.sass($|\?)/.test(specifier);
-        const validatePreviewImports = (code: string) => {
-          const unsupported: string[] = [];
-
-          for (const match of code.matchAll(PREVIEW_IMPORT_RE)) {
-            const specifier = match[1] || match[2] || match[3];
-            if (
-              specifier &&
-              !PREVIEW_ALLOWED_IMPORTS.has(specifier) &&
-              !isRelativeImport(specifier) &&
-              !isStyleImport(specifier)
-            ) {
-              unsupported.push(specifier);
-            }
-          }
-
-          return Array.from(new Set(unsupported));
-        };
-        const isPreviewableCodeArtifact = (input: CreateArtifactInput) => {
-          if (input.type !== 'code') return false;
-          const language = input.language?.toLowerCase().trim();
-          return !!language && PREVIEWABLE_CODE_LANGUAGES.has(language);
-        };
-
-        const assertArtifactPayload = (input: CreateArtifactInput) => {
-          const isFileArtifact =
-            input.type === 'image' || input.type === 'file';
-
-          if (isFileArtifact) {
-            if (!input.fileUrl) {
-              throw new Error('fileUrl is required for file/image artifacts');
-            }
-            return;
-          }
-
-          if (input.content == null) {
-            throw new Error('content is required for non-file artifacts');
-          }
-
-          if (!isPreviewableCodeArtifact(input)) {
-            return;
-          }
-
-          const fileName = input.fileName?.trim();
-          if (!fileName) {
-            throw new Error(
-              'Previewable React/code artifacts must include fileName.'
-            );
-          }
-
-          if (!/^[A-Za-z0-9._/-]+\.[A-Za-z0-9]+$/.test(fileName)) {
-            throw new Error(
-              'Previewable React/code artifact fileName must be a valid relative file path.'
-            );
-          }
-
-          const unsupportedImports = validatePreviewImports(input.content);
-          if (unsupportedImports.length > 0) {
-            throw new Error(
-              `Previewable React/code artifacts only support react imports and relative imports. Unsupported imports: ${unsupportedImports.join(', ')}`
-            );
-          }
-
-          if (looksLikeJsx(input.content) && !/\.(tsx|jsx)$/i.test(fileName)) {
-            throw new Error(
-              'Files containing JSX must use a .tsx or .jsx fileName.'
-            );
-          }
-        };
 
         const createArtifactRecord = (
           input: CreateArtifactInput,
@@ -375,7 +309,7 @@ export async function POST(req: Request) {
           rawInput: string;
           started: boolean;
           lastTitle: string;
-          lastKind: 'text' | 'code' | 'image' | 'sheet' | 'file';
+          lastKind: ArtifactKind;
           lastType?: CreateArtifactInput['type'];
           lastContent: string;
           lastUrl: string | null;
@@ -386,16 +320,6 @@ export async function POST(req: Request) {
 
         const toolArtifactStates = new Map<string, ToolArtifactStreamState>();
 
-        const getArtifactKind = (
-          type?: CreateArtifactInput['type']
-        ): 'text' | 'code' | 'image' | 'sheet' | 'file' => {
-          if (type === 'image') return 'image';
-          if (type === 'file') return 'file';
-          if (type === 'json') return 'sheet';
-          if (type === 'code' || type === 'html') return 'code';
-          return 'text';
-        };
-
         const emitToolArtifactUpdate = async (toolCallId: string) => {
           const state = toolArtifactStates.get(toolCallId);
           if (!state) return;
@@ -405,15 +329,15 @@ export async function POST(req: Request) {
           const artifactType = input.type;
           if (!artifactType) return;
           const title = input.title?.trim() || 'Untitled';
-          const kind = getArtifactKind(artifactType);
+          const kind = artifactKindFromType(artifactType);
 
           if (!state.started) {
-            writer.write({ type: 'data-id', data: state.artifactId });
-            writer.write({
+            emitArtifactStreamPart({ type: 'data-id', data: state.artifactId });
+            emitArtifactStreamPart({
               type: 'data-title',
               data: { id: state.artifactId, title }
             });
-            writer.write({
+            emitArtifactStreamPart({
               type: 'data-kind',
               data: {
                 id: state.artifactId,
@@ -421,7 +345,7 @@ export async function POST(req: Request) {
                 artifactType
               }
             });
-            writer.write({
+            emitArtifactStreamPart({
               type: 'data-clear',
               data: { id: state.artifactId }
             });
@@ -431,14 +355,14 @@ export async function POST(req: Request) {
             state.lastType = artifactType;
           } else {
             if (title !== state.lastTitle) {
-              writer.write({
+              emitArtifactStreamPart({
                 type: 'data-title',
                 data: { id: state.artifactId, title }
               });
               state.lastTitle = title;
             }
             if (kind !== state.lastKind || artifactType !== state.lastType) {
-              writer.write({
+              emitArtifactStreamPart({
                 type: 'data-kind',
                 data: {
                   id: state.artifactId,
@@ -459,7 +383,7 @@ export async function POST(req: Request) {
                 ? nextContent.slice(state.lastContent.length)
                 : nextContent;
 
-              writer.write({
+              emitArtifactStreamPart({
                 type:
                   kind === 'code' || kind === 'sheet'
                     ? 'data-codeDelta'
@@ -491,7 +415,7 @@ export async function POST(req: Request) {
             input.fileUrl &&
             input.fileUrl !== state.lastUrl
           ) {
-            writer.write({
+            emitArtifactStreamPart({
               type: 'data-imageDelta',
               data: {
                 id: state.artifactId,
@@ -518,7 +442,7 @@ export async function POST(req: Request) {
                 nextMimeType !== state.lastMimeType ||
                 nextSize !== state.lastSize)
             ) {
-              writer.write({
+              emitArtifactStreamPart({
                 type: 'data-fileDelta',
                 data: {
                   id: state.artifactId,
@@ -580,12 +504,12 @@ export async function POST(req: Request) {
               if (!streamState?.started) {
                 emitArtifactDelta(artifact);
               } else {
-                writer.write({
+                emitArtifactStreamPart({
                   type: 'data-finish',
                   data: { id: artifact.id }
                 });
               }
-              writer.write({
+              emitArtifactStreamPart({
                 type: 'data-artifact',
                 data: { artifact }
               });
@@ -792,28 +716,28 @@ export async function POST(req: Request) {
             updatedAt: responseMessage.metadata?.updatedAt ?? finishedAt
           });
 
-          if (persistedArtifacts.length === 0) {
-            return;
+          // Each artifact created this turn is its own independent row, pinned
+          // to this turn's message.
+          if (persistedArtifacts.length > 0) {
+            await tx.insert(artifactsTable).values(
+              persistedArtifacts.map(artifact => ({
+                id: artifact.id,
+                chatId: id,
+                messageId: responseMessage.id,
+                userId: session.user.id,
+                title: artifact.title,
+                type: artifact.type,
+                language: artifact.language ?? null,
+                content: artifact.content ?? null,
+                fileUrl: artifact.fileUrl ?? null,
+                fileName: artifact.fileName ?? null,
+                mimeType: artifact.mimeType ?? null,
+                size: artifact.size ?? null,
+                createdAt: artifact.createdAt,
+                updatedAt: artifact.updatedAt
+              }))
+            );
           }
-
-          await tx.insert(artifactsTable).values(
-            persistedArtifacts.map(artifact => ({
-              id: artifact.id,
-              chatId: id,
-              messageId: responseMessage.id,
-              userId: session.user.id,
-              title: artifact.title,
-              type: artifact.type,
-              language: artifact.language ?? null,
-              content: artifact.content ?? null,
-              fileUrl: artifact.fileUrl ?? null,
-              fileName: artifact.fileName ?? null,
-              mimeType: artifact.mimeType ?? null,
-              size: artifact.size ?? null,
-              createdAt: artifact.createdAt,
-              updatedAt: artifact.updatedAt
-            }))
-          );
         });
 
         // Update chat model if changed

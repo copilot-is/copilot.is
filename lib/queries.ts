@@ -159,10 +159,11 @@ export const getSpeechSettings = cache(async () => {
 });
 
 const DEFAULT_TITLE_PROMPT = `
-- you will generate a short title based on the first message a user begins a conversation with
-- ensure it is not more than 80 characters long
-- the title should be a summary of the user's message
-- do not use quotes or colons
+- Generate a short title that summarizes the user's first message.
+- Respond in the same language as the user's message.
+- Keep it under 50 characters — just a few words.
+- Do not use quotes or colons.
+- Output only the title text, with nothing else (no preamble, punctuation, or explanation).
 `.trim();
 
 export const getTitleSettings = cache(async () => {
@@ -236,10 +237,10 @@ const getSettings = cache(
 // App Defaults
 // ============================================================================
 
-const DEFAULT_APP_NAME = 'Copilot';
+const DEFAULT_APP_NAME = 'Chats.is';
 const DEFAULT_APP_SUBTITLE = 'AI Chatbot';
 const DEFAULT_APP_DESCRIPTION =
-  'Copilot empowers you to inquire, receive immediate responses, and engage in dynamic conversations with AI. Offering access to GPT-4, gpt-3.5-turbo, Claude from Anthropic, and an array of other bots, Copilot provides a seamless and interactive experience for all your conversational needs.';
+  'Chats.is empowers you to inquire, receive immediate responses, and engage in dynamic conversations with AI. Offering access to GPT, Claude, Gemini, and an array of other models, Chats.is provides a seamless and interactive experience for all your conversational needs.';
 
 // ============================================================================
 // High-level Service Functions

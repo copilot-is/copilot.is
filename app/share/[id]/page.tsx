@@ -1,5 +1,7 @@
 import { type Metadata } from 'next';
 import { notFound } from 'next/navigation';
+import { PreferencesProvider } from '@/contexts/preferences-context';
+import { SystemSettingsProvider } from '@/contexts/system-settings-context';
 import { format } from 'date-fns';
 
 import { convertToChatMessages } from '@/lib/utils';
@@ -32,24 +34,30 @@ export default async function Page(props: PageProps) {
   }
 
   const chatMessages = convertToChatMessages(chat.messages);
+  const settings = await api.settings.getSystem();
 
   return (
-    <div className="space-y-6">
-      <div className="mx-auto max-w-4xl px-4">
-        <div className="space-y-1 border-b py-6">
-          <h1 className="text-2xl font-bold">{chat.title}</h1>
-          <div className="text-sm text-muted-foreground">
-            {format(chat.createdAt, 'MMMM d, yyyy')} · {chat.messages.length}
-            <span className="pl-0.5">messages</span>
+    <SystemSettingsProvider settings={settings}>
+      <PreferencesProvider>
+        <div className="space-y-6">
+          <div className="mx-auto max-w-4xl px-4">
+            <div className="space-y-1 border-b py-6">
+              <h1 className="text-2xl font-bold">{chat.title}</h1>
+              <div className="text-sm text-muted-foreground">
+                {format(chat.createdAt, 'MMMM d, yyyy')} ·{' '}
+                {chat.messages.length}
+                <span className="pl-0.5">messages</span>
+              </div>
+            </div>
           </div>
+          <SharedChatView
+            className="pb-5"
+            modelId={chat.modelId}
+            messages={chatMessages}
+            artifacts={chat.artifacts ?? []}
+          />
         </div>
-      </div>
-      <SharedChatView
-        className="pb-5"
-        modelId={chat.modelId}
-        messages={chatMessages}
-        artifacts={chat.artifacts ?? []}
-      />
-    </div>
+      </PreferencesProvider>
+    </SystemSettingsProvider>
   );
 }

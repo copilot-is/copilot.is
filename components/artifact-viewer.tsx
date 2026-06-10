@@ -30,6 +30,7 @@ import {
 } from '@/components/ui/tooltip';
 import {
   artifactRegistry,
+  artifactSourceUsesCodeChrome,
   getArtifactKind,
   getArtifactLanguageLabel
 } from '@/components/artifacts/registry';
@@ -47,6 +48,9 @@ interface ArtifactViewerProps {
   hideContent?: boolean;
   viewMode?: 'source' | 'preview';
   onViewModeChange?: (mode: 'source' | 'preview') => void;
+  extraActions?: React.ReactNode;
+  consoleOpen?: boolean;
+  onConsoleOpenChange?: (open: boolean) => void;
 }
 
 const isFileArtifact = (artifact?: Artifact) =>
@@ -60,7 +64,10 @@ export function ArtifactViewer({
   hideHeader,
   hideContent,
   viewMode: controlledViewMode,
-  onViewModeChange
+  onViewModeChange,
+  extraActions,
+  consoleOpen,
+  onConsoleOpenChange
 }: ArtifactViewerProps) {
   const { copyToClipboard } = useCopyToClipboard();
   const [uncontrolledViewMode, setUncontrolledViewMode] = useState<
@@ -68,6 +75,25 @@ export function ArtifactViewer({
   >('source');
   const contentRef = useRef<HTMLDivElement>(null);
   const viewMode = controlledViewMode ?? uncontrolledViewMode;
+
+  const status = artifact?.status;
+  const artifactId = artifact?.id;
+  const artifactContent = artifact?.content;
+  const artifactFileUrl = artifact?.fileUrl;
+
+  // Keep the streaming/done view scrolled to the bottom. Declared before the
+  // early return below so the hook order stays stable when `artifact` toggles
+  // between defined and undefined (Rules of Hooks).
+  useEffect(() => {
+    if (hideContent) return;
+    if (!contentRef.current) return;
+    if (status !== 'streaming' && status !== 'done') return;
+
+    requestAnimationFrame(() => {
+      if (!contentRef.current) return;
+      contentRef.current.scrollTop = contentRef.current.scrollHeight;
+    });
+  }, [artifactContent, artifactFileUrl, artifactId, hideContent, status]);
 
   if (!artifact) {
     return (
@@ -105,40 +131,28 @@ export function ArtifactViewer({
     </span>
   ) : null;
 
-  useEffect(() => {
-    if (hideContent) return;
-    if (!contentRef.current) return;
-    if (!isStreaming && !isDone) return;
-
-    requestAnimationFrame(() => {
-      if (!contentRef.current) return;
-      contentRef.current.scrollTop = contentRef.current.scrollHeight;
-    });
-  }, [
-    artifact.content,
-    artifact.fileUrl,
-    artifact.id,
-    hideContent,
-    isDone,
-    isStreaming
-  ]);
-
+  // Source view = the registry's raw text form; preview view = the runtime
+  // preview (iframe / markdown / sheet table). The registry owns both per kind,
+  // so the viewer needs no per-type branches.
   const sourceContent = (
     <div
       ref={contentRef}
       className={cn(
-        'h-full min-h-0 overflow-auto rounded-md bg-background p-4',
-        (kind === 'code' || kind === 'sheet') && 'p-0',
-        kind !== 'code' && kind !== 'sheet' && 'border'
+        'h-full min-h-0 overflow-auto rounded-md bg-background',
+        artifactSourceUsesCodeChrome(artifact) ? 'p-0' : 'border p-4'
       )}
     >
-      {registry.renderContent(artifact)}
+      {registry.renderSource(artifact)}
     </div>
   );
 
   const previewContent = (
     <div className="h-full min-h-0 overflow-auto rounded-md bg-background">
-      <ArtifactRuntimePreview artifact={artifact} artifacts={artifacts} />
+      <ArtifactRuntimePreview
+        artifact={artifact}
+        consoleOpen={consoleOpen}
+        onConsoleOpenChange={onConsoleOpenChange}
+      />
     </div>
   );
 
@@ -281,6 +295,7 @@ export function ArtifactViewer({
             {statusIndicator}
           </div>
           <div className="absolute top-1/2 right-0 flex -translate-y-1/2 items-center gap-2">
+            {extraActions}
             {canCopyContent && (
               <Tooltip>
                 <TooltipTrigger asChild>

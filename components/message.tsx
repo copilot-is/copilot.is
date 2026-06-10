@@ -1,10 +1,11 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { UseChatHelpers } from '@ai-sdk/react';
 import { User } from 'lucide-react';
 
-import { ChatMessage } from '@/types';
+import { Artifact, ChatMessage } from '@/types';
 import { cn } from '@/lib/utils';
 import { IconLoading } from '@/components/ui/icons';
+import { DocumentPreview } from '@/components/artifacts/document-preview';
 import { AudioPlayer } from '@/components/audio-player';
 import { MediaLightbox } from '@/components/media-lightbox';
 import { MessageMarkdown } from '@/components/message-markdown';
@@ -20,7 +21,10 @@ export interface MessageProps extends Partial<
   isLastMessage?: boolean;
   supportsReasoning?: boolean | null;
   hasVisibleArtifacts?: boolean;
-  hideMessageBody?: boolean;
+  // Artifacts this message produced, rendered inline at the position of their
+  // create_artifact tool call.
+  artifacts?: Artifact[];
+  onSelectArtifact?: (id: string) => void;
   children: React.ReactNode;
 }
 
@@ -31,7 +35,8 @@ export function Message({
   isLastMessage,
   supportsReasoning,
   hasVisibleArtifacts = false,
-  hideMessageBody = false,
+  artifacts,
+  onSelectArtifact,
   children
 }: MessageProps) {
   const hasVisibleTextContent = message.parts.some(
@@ -84,11 +89,62 @@ export function Message({
     !hasVisibleReasoningDisplay &&
     !hasVisibleTextContent &&
     !hasFilePart;
-  const showEmptyAssistantLoading =
-    hideMessageBody &&
-    message.role === 'assistant' &&
-    status === 'streaming' &&
-    isLastMessage === true;
+
+  // Match each create_artifact tool call (by its position in `parts`) to the
+  // artifact it produced, so the card renders inline exactly where the model
+  // generated it. Two passes: id matches first (settled/persisted parts carry
+  // `output.id`), then leftover artifacts fill the unmatched tool parts in
+  // creation order — so one temporarily-missing artifact (e.g. mid-refetch)
+  // can't shift a sibling onto the wrong call. Memoized: this runs for every
+  // mounted message on each streaming delta.
+  const { partArtifact, unpositionedArtifacts } = useMemo(() => {
+    const messageArtifacts = artifacts ?? [];
+    const artifactsById = new Map(messageArtifacts.map(a => [a.id, a]));
+    const orderedArtifacts = [...messageArtifacts].sort(
+      (a, b) => a.createdAt.getTime() - b.createdAt.getTime()
+    );
+    const matched = new Map<number, Artifact>();
+    const usedArtifactIds = new Set<string>();
+    const fallbackPartIndexes: number[] = [];
+
+    message.parts.forEach((part, index) => {
+      if (part.type !== 'tool-create_artifact') return;
+      const outputId = (part as any).output?.id as string | undefined;
+      const artifact = outputId ? artifactsById.get(outputId) : undefined;
+      if (artifact && !usedArtifactIds.has(artifact.id)) {
+        matched.set(index, artifact);
+        usedArtifactIds.add(artifact.id);
+      } else {
+        fallbackPartIndexes.push(index);
+      }
+    });
+
+    const remaining = orderedArtifacts.filter(a => !usedArtifactIds.has(a.id));
+    fallbackPartIndexes.forEach((partIndex, i) => {
+      const artifact = remaining[i];
+      if (artifact) {
+        matched.set(partIndex, artifact);
+        usedArtifactIds.add(artifact.id);
+      }
+    });
+
+    return {
+      partArtifact: matched,
+      unpositionedArtifacts: orderedArtifacts.filter(
+        a => !usedArtifactIds.has(a.id)
+      )
+    };
+  }, [message.parts, artifacts]);
+
+  const renderArtifactCard = (artifact: Artifact) => (
+    <div className="my-2">
+      <DocumentPreview
+        artifact={artifact}
+        onOpen={onSelectArtifact}
+        showDownloadButton={true}
+      />
+    </div>
+  );
 
   return (
     <div
@@ -104,149 +160,154 @@ export function Message({
           {message.role === 'user' && <User className="size-5" />}
           {message.role === 'assistant' && <ModelIcon image={image} />}
         </div>
-        {showEmptyAssistantLoading && (
-          <div className="ml-3 flex min-h-9 flex-1 flex-col justify-center overflow-hidden px-1">
-            <div className="my-1 mr-12">
-              <IconLoading className="text-muted-foreground" />
-            </div>
-          </div>
-        )}
-        {!hideMessageBody && (
+        <div
+          className={cn(
+            'flex min-h-9 flex-1 flex-col justify-center overflow-hidden px-1',
+            message.role === 'user' ? 'mr-3 items-end' : 'ml-3 items-start'
+          )}
+        >
           <div
             className={cn(
-              'flex min-h-9 flex-1 flex-col justify-center overflow-hidden px-1',
-              message.role === 'user' ? 'mr-3 items-end' : 'ml-3 items-start'
+              message.role === 'user'
+                ? 'ml-12 rounded-2xl bg-muted px-3 py-1.5'
+                : 'w-full pr-12'
             )}
           >
-            <div
-              className={cn(
-                message.role === 'user'
-                  ? 'ml-12 rounded-2xl bg-muted px-3 py-1.5'
-                  : 'mr-12'
-              )}
-            >
-              {message.parts.map((part, index) => {
-                if (part.type === 'reasoning') {
-                  if (index !== firstReasoningIndex || !mergedReasoningPart) {
-                    return null;
-                  }
+            {message.parts.map((part, index) => {
+              if (part.type === 'tool-create_artifact') {
+                const artifact = partArtifact.get(index);
+                return artifact ? (
+                  <React.Fragment key={index}>
+                    {renderArtifactCard(artifact)}
+                  </React.Fragment>
+                ) : null;
+              }
 
-                  return (
-                    <MessageReasoning
-                      key={index}
-                      part={mergedReasoningPart}
-                      reasonDuration={message.metadata?.reasonDuration}
-                      isLoading={showReasoningLoading}
-                    />
-                  );
+              if (part.type === 'reasoning') {
+                if (index !== firstReasoningIndex || !mergedReasoningPart) {
+                  return null;
                 }
 
-                if (part.type === 'text') {
-                  return message.role === 'user' ? (
-                    <p key={index} className="whitespace-pre-wrap">
-                      {part.text.split('\n').map((line, i) => (
-                        <React.Fragment key={i}>
-                          {i > 0 && <br />}
-                          {line}
-                        </React.Fragment>
-                      ))}
-                    </p>
-                  ) : (
-                    <MessageMarkdown key={index} content={part.text} />
-                  );
-                }
-
-                if (part.type === 'file') {
-                  // Render image
-                  if (part.mediaType.startsWith('image/')) {
-                    return (
-                      <div key={index} className="my-2 max-w-80">
-                        <MediaLightbox
-                          type="image"
-                          src={part.url}
-                          alt={part.filename || 'Generated image'}
-                          trigger={
-                            <img
-                              className="max-h-96 cursor-zoom-in rounded-lg transition-opacity hover:opacity-90"
-                              src={part.url}
-                              alt={part.filename || 'Generated image'}
-                            />
-                          }
-                        />
-                      </div>
-                    );
-                  }
-
-                  // Render audio
-                  if (part.mediaType.startsWith('audio/')) {
-                    return (
-                      <div key={index} className="my-2 min-w-80">
-                        <AudioPlayer src={part.url} />
-                      </div>
-                    );
-                  }
-
-                  // Render video
-                  if (part.mediaType.startsWith('video/')) {
-                    return (
-                      <div key={index} className="my-2 max-w-80">
-                        <VideoPlayer src={part.url} />
-                      </div>
-                    );
-                  }
-
-                  // Display download link for other file types
-                  return (
-                    <a
-                      key={index}
-                      href={part.url}
-                      title={part.filename}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-sm text-primary underline hover:no-underline"
-                    >
-                      Download file
-                    </a>
-                  );
-                }
-              })}
-              {status === 'streaming' &&
-                isLastMessage &&
-                !hasVisibleArtifacts &&
-                !hasReasoningPart &&
-                !hasVisibleTextContent &&
-                !hasFilePart &&
-                (supportsReasoning ? (
+                return (
                   <MessageReasoning
-                    isLoading={false}
-                    isWaiting={true}
-                    part={{ type: 'reasoning', text: '' } as any}
+                    key={index}
+                    part={mergedReasoningPart}
                     reasonDuration={message.metadata?.reasonDuration}
+                    isLoading={showReasoningLoading}
                   />
+                );
+              }
+
+              if (part.type === 'text') {
+                return message.role === 'user' ? (
+                  <p key={index} className="whitespace-pre-wrap">
+                    {part.text.split('\n').map((line, i) => (
+                      <React.Fragment key={i}>
+                        {i > 0 && <br />}
+                        {line}
+                      </React.Fragment>
+                    ))}
+                  </p>
                 ) : (
-                  <div className="my-1">
-                    <IconLoading className="text-muted-foreground" />
-                  </div>
-                ))}
-              {showSubmittedAssistantLoading && (
+                  <MessageMarkdown key={index} content={part.text} />
+                );
+              }
+
+              if (part.type === 'file') {
+                // Render image
+                if (part.mediaType.startsWith('image/')) {
+                  return (
+                    <div key={index} className="my-2 max-w-80">
+                      <MediaLightbox
+                        type="image"
+                        src={part.url}
+                        alt={part.filename || 'Generated image'}
+                        trigger={
+                          <img
+                            className="max-h-96 cursor-zoom-in rounded-lg transition-opacity hover:opacity-90"
+                            src={part.url}
+                            alt={part.filename || 'Generated image'}
+                          />
+                        }
+                      />
+                    </div>
+                  );
+                }
+
+                // Render audio
+                if (part.mediaType.startsWith('audio/')) {
+                  return (
+                    <div key={index} className="my-2 min-w-80">
+                      <AudioPlayer src={part.url} />
+                    </div>
+                  );
+                }
+
+                // Render video
+                if (part.mediaType.startsWith('video/')) {
+                  return (
+                    <div key={index} className="my-2 max-w-80">
+                      <VideoPlayer src={part.url} />
+                    </div>
+                  );
+                }
+
+                // Display download link for other file types
+                return (
+                  <a
+                    key={index}
+                    href={part.url}
+                    title={part.filename}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-sm text-primary underline hover:no-underline"
+                  >
+                    Download file
+                  </a>
+                );
+              }
+            })}
+            {unpositionedArtifacts.map(artifact => (
+              <React.Fragment key={artifact.id}>
+                {renderArtifactCard(artifact)}
+              </React.Fragment>
+            ))}
+            {status === 'streaming' &&
+              isLastMessage &&
+              !hasVisibleArtifacts &&
+              !hasReasoningPart &&
+              !hasVisibleTextContent &&
+              !hasFilePart &&
+              (supportsReasoning ? (
+                <MessageReasoning
+                  isLoading={false}
+                  isWaiting={true}
+                  part={{ type: 'reasoning', text: '' } as any}
+                  reasonDuration={message.metadata?.reasonDuration}
+                />
+              ) : (
+                <div className="my-1">
+                  <IconLoading className="text-muted-foreground" />
+                </div>
+              ))}
+            {showSubmittedAssistantLoading && (
+              <div className="my-1">
+                <IconLoading className="text-muted-foreground" />
+              </div>
+            )}
+            {status === 'streaming' &&
+              isLastMessage &&
+              !hasVisibleArtifacts &&
+              !hasVisibleReasoningDisplay &&
+              !hasVisibleTextContent &&
+              !hasFilePart &&
+              hasReasoningPart && (
                 <div className="my-1">
                   <IconLoading className="text-muted-foreground" />
                 </div>
               )}
-              {status === 'streaming' &&
-                isLastMessage &&
-                !hasVisibleArtifacts &&
-                !hasVisibleReasoningDisplay &&
-                !hasVisibleTextContent &&
-                !hasFilePart &&
-                hasReasoningPart && (
-                  <div className="my-1">
-                    <IconLoading className="text-muted-foreground" />
-                  </div>
-                )}
-            </div>
           </div>
-        )}
+        </div>
       </div>
       {children}
     </div>
