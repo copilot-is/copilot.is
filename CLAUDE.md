@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## What this is
 
-`copilot.is` — a multi-provider AI chatbot (Next.js App Router + React 19) that does chat, image, video, and audio/speech generation. It's an admin-configurable platform: providers, models, prompts, plans, pricing, and quotas all live in the database and are managed through a `/console` admin UI rather than hardcoded. Package manager is **pnpm**.
+`chats.is` — a multi-provider AI chatbot (Next.js App Router + React 19) that does chat, image, video, and audio/speech generation. It's an admin-configurable platform: providers, models, prompts, plans, pricing, and quotas all live in the database and are managed through a `/console` admin UI rather than hardcoded. Package manager is **pnpm**.
 
 ## Tech stack
 

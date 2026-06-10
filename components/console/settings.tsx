@@ -190,7 +190,7 @@ export default function SettingsPage() {
                   id="app.name"
                   value={formData['app.name'] || ''}
                   onChange={e => handleChange('app.name', e.target.value)}
-                  placeholder="Copilot"
+                  placeholder="Chats.is"
                   disabled={bulkUpdateMutation.isPending}
                 />
               </div>

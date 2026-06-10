@@ -74,7 +74,7 @@ export function LoginForm({
         {', '}
         This is an open source project{' '}
         <a
-          href="https://github.com/copilot-is/copilot.is"
+          href="https://github.com/chats-is/chats.is"
           target="_blank"
           rel="noopener noreferrer"
           className="underline underline-offset-2 hover:text-primary"

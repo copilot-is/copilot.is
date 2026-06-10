@@ -120,7 +120,7 @@ export function UserMenu() {
             </DropdownMenuItem>
             <DropdownMenuItem asChild>
               <a
-                href="https://github.com/copilot-is/copilot.is"
+                href="https://github.com/chats-is/chats.is"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex w-full items-center justify-between"
